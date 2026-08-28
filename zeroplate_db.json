@@ -1,0 +1,344 @@
+{
+  "users": [
+    {
+      "id": "donor_spicevilla",
+      "name": "SpiceVilla Restaurant",
+      "email": "donor@spicevilla.com",
+      "role": "donor",
+      "donorType": "Restaurant",
+      "subscriptionPlan": "free",
+      "location": "Bandra West, Mumbai",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "emailVerified": true,
+      "createdAt": "2026-08-28T18:24:24.624Z"
+    },
+    {
+      "id": "donor_greenleaf",
+      "name": "Green Leaf Cafe",
+      "email": "donor@greenleaf.com",
+      "role": "donor",
+      "donorType": "Caterer",
+      "subscriptionPlan": "premium",
+      "location": "Juhu, Mumbai",
+      "latitude": 19.088,
+      "longitude": 72.826,
+      "emailVerified": true,
+      "createdAt": "2026-08-28T18:24:24.625Z"
+    },
+    {
+      "id": "donor_royalkitchen",
+      "name": "Royal Kitchen Caterers",
+      "email": "donor@royalkitchen.com",
+      "role": "donor",
+      "donorType": "Hotel",
+      "subscriptionPlan": "free",
+      "location": "Andheri East, Mumbai",
+      "latitude": 19.1197,
+      "longitude": 72.8464,
+      "emailVerified": true,
+      "createdAt": "2026-08-28T18:24:24.625Z"
+    },
+    {
+      "id": "donor_freshbites",
+      "name": "Fresh Bites Bakery",
+      "email": "donor@freshbites.com",
+      "role": "donor",
+      "donorType": "Volunteer",
+      "subscriptionPlan": "free",
+      "location": "Powai, Mumbai",
+      "latitude": 19.1176,
+      "longitude": 72.906,
+      "emailVerified": true,
+      "createdAt": "2026-08-28T18:24:24.625Z"
+    },
+    {
+      "id": "ngo_hope",
+      "name": "Hope Foundation",
+      "email": "ngo@hope.org",
+      "role": "ngo",
+      "subscriptionPlan": "premium",
+      "location": "Bandra East, Mumbai",
+      "latitude": 19.062,
+      "longitude": 72.854,
+      "emailVerified": true,
+      "createdAt": "2026-08-28T18:24:24.625Z"
+    },
+    {
+      "id": "ngo_helpinghands",
+      "name": "Helping Hands NGO",
+      "email": "ngo@helpinghands.org",
+      "role": "ngo",
+      "subscriptionPlan": "free",
+      "location": "Santa Cruz West, Mumbai",
+      "latitude": 19.084,
+      "longitude": 72.836,
+      "emailVerified": true,
+      "createdAt": "2026-08-28T18:24:24.625Z"
+    },
+    {
+      "id": "ngo_careshare",
+      "name": "Care & Share Foundation",
+      "email": "ngo@careshare.org",
+      "role": "ngo",
+      "subscriptionPlan": "premium",
+      "location": "Dharavi, Mumbai",
+      "latitude": 19.04,
+      "longitude": 72.854,
+      "emailVerified": true,
+      "createdAt": "2026-08-28T18:24:24.625Z"
+    },
+    {
+      "id": "ngo_communitykitchen",
+      "name": "Community Kitchen Alliance",
+      "email": "ngo@communitykitchen.org",
+      "role": "ngo",
+      "subscriptionPlan": "free",
+      "location": "Kurla West, Mumbai",
+      "latitude": 19.07,
+      "longitude": 72.88,
+      "emailVerified": true,
+      "createdAt": "2026-08-28T18:24:24.625Z"
+    }
+  ],
+  "ngos": [
+    {
+      "id": "ngo_entity_hope",
+      "userId": "ngo_hope",
+      "organizationName": "Hope Foundation",
+      "capacity": 120,
+      "latitude": 19.062,
+      "longitude": 72.854,
+      "availability": true,
+      "isPremium": true,
+      "createdAt": "2026-08-28T18:24:24.625Z"
+    },
+    {
+      "id": "ngo_entity_helpinghands",
+      "userId": "ngo_helpinghands",
+      "organizationName": "Helping Hands NGO",
+      "capacity": 80,
+      "latitude": 19.084,
+      "longitude": 72.836,
+      "availability": true,
+      "isPremium": false,
+      "createdAt": "2026-08-28T18:24:24.625Z"
+    },
+    {
+      "id": "ngo_entity_careshare",
+      "userId": "ngo_careshare",
+      "organizationName": "Care & Share Foundation",
+      "capacity": 150,
+      "latitude": 19.04,
+      "longitude": 72.854,
+      "availability": true,
+      "isPremium": true,
+      "createdAt": "2026-08-28T18:24:24.625Z"
+    },
+    {
+      "id": "ngo_entity_communitykitchen",
+      "userId": "ngo_communitykitchen",
+      "organizationName": "Community Kitchen Alliance",
+      "capacity": 60,
+      "latitude": 19.07,
+      "longitude": 72.88,
+      "availability": true,
+      "isPremium": false,
+      "createdAt": "2026-08-28T18:24:24.625Z"
+    }
+  ],
+  "donations": [
+    {
+      "donorId": "donor_spicevilla",
+      "donorName": "SpiceVilla Restaurant",
+      "donorType": "Restaurant",
+      "foodName": "Maggi",
+      "foodType": "veg",
+      "category": "Main Course",
+      "mealCount": 20,
+      "quantity": "20",
+      "description": "none",
+      "imageUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "pickupLocation": "Bandra West, Mumbai",
+      "pickupAddress": "Bandra West, Mumbai",
+      "availableFrom": "2026-08-28T19:51:10.513Z",
+      "pickupDeadline": "2026-08-29T18:20:00.000Z",
+      "prepTime": "",
+      "packagingAvailable": true,
+      "additionalNotes": "",
+      "id": "don_1787946670519_964",
+      "status": "CONFIRMED",
+      "pendingRequestsCount": 0,
+      "createdAt": "2026-08-28T19:51:10.519Z"
+    },
+    {
+      "donorId": "donor_spicevilla",
+      "donorName": "SpiceVilla Restaurant",
+      "donorType": "Restaurant",
+      "foodName": "Paneer Butter Masala",
+      "foodType": "veg",
+      "category": "Main Course",
+      "mealCount": 50,
+      "quantity": "25 kg (Serves 50)",
+      "description": "Freshly prepared Paneer Butter Masala with rotis.",
+      "imageUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "pickupLocation": "SpiceVilla Restaurant, Hill Road, Bandra West, Mumbai",
+      "pickupAddress": "SpiceVilla Restaurant, Hill Road, Bandra West, Mumbai",
+      "availableFrom": "2026-08-28T19:47:54.866Z",
+      "pickupDeadline": "2026-08-28T23:47:54.809Z",
+      "packagingAvailable": true,
+      "id": "don_1787946474866_69",
+      "status": "PENDING_REQUEST",
+      "pendingRequestsCount": 2,
+      "createdAt": "2026-08-28T19:47:54.866Z"
+    }
+  ],
+  "requests": [
+    {
+      "id": "req_1787946746117_121",
+      "donationId": "don_1787946670519_964",
+      "ngoId": "ngo_hope",
+      "ngoName": "Hope Foundation",
+      "donorId": "donor_spicevilla",
+      "donorName": "SpiceVilla Restaurant",
+      "foodName": "Maggi",
+      "requestedMeals": 20,
+      "matchScore": 89,
+      "distanceScore": 88,
+      "mealScore": 100,
+      "urgencyScore": 40,
+      "distanceKm": 2.9,
+      "explanation": "Recommended because Hope Foundation is 2.9 km away, currently available for pickup, and has full capacity for all 20 meals. Includes Priority NGO boost.",
+      "status": "ACCEPTED",
+      "notes": "",
+      "requestedAt": "2026-08-28T19:52:26.117Z",
+      "respondedAt": "2026-08-28T19:52:31.966Z"
+    },
+    {
+      "id": "req_1787946513245_664",
+      "donationId": "don_1787946474866_69",
+      "ngoId": "ngo_helpinghands",
+      "ngoName": "Helping Hands NGO",
+      "donorId": "donor_spicevilla",
+      "donorName": "SpiceVilla Restaurant",
+      "foodName": "Paneer Butter Masala",
+      "requestedMeals": 50,
+      "matchScore": 90,
+      "distanceScore": 82,
+      "mealScore": 100,
+      "urgencyScore": 84,
+      "distanceKm": 4.5,
+      "explanation": "Recommended because Helping Hands NGO is 4.5 km away, currently pickup needed within 4 hours, and has full capacity for all 50 meals.",
+      "status": "PENDING",
+      "requestedAt": "2026-08-28T19:48:33.245Z"
+    },
+    {
+      "id": "req_1787946505257_713",
+      "donationId": "don_1787946474866_69",
+      "ngoId": "ngo_hope",
+      "ngoName": "Hope Foundation",
+      "donorId": "donor_spicevilla",
+      "donorName": "SpiceVilla Restaurant",
+      "foodName": "Paneer Butter Masala",
+      "requestedMeals": 50,
+      "matchScore": 98,
+      "distanceScore": 88,
+      "mealScore": 100,
+      "urgencyScore": 84,
+      "distanceKm": 2.9,
+      "explanation": "Recommended because Hope Foundation is 2.9 km away, currently pickup needed within 4 hours, and has full capacity for all 50 meals. Includes Priority NGO boost.",
+      "status": "PENDING",
+      "notes": "Emergency distribution drive",
+      "requestedAt": "2026-08-28T19:48:25.257Z"
+    }
+  ],
+  "bookings": [
+    {
+      "id": "book_1787946751966_98",
+      "donationId": "don_1787946670519_964",
+      "requestId": "req_1787946746117_121",
+      "ngoId": "ngo_hope",
+      "ngoName": "Hope Foundation",
+      "donorId": "donor_spicevilla",
+      "donorName": "SpiceVilla Restaurant",
+      "foodName": "Maggi",
+      "mealCount": 20,
+      "pickupLocation": "Bandra West, Mumbai",
+      "status": "CONFIRMED",
+      "pickupTime": "2026-08-29T18:20:00.000Z",
+      "createdAt": "2026-08-28T19:52:31.966Z"
+    }
+  ],
+  "messages": [
+    {
+      "bookingId": "book_1787946751966_98",
+      "senderId": "ngo_hope",
+      "senderName": "Hope Foundation",
+      "receiverId": "receiver",
+      "message": "hii",
+      "id": "msg_1787947881902_453",
+      "createdAt": "2026-08-28T20:11:21.902Z"
+    },
+    {
+      "bookingId": "book_1787946751966_98",
+      "senderId": "donor_spicevilla",
+      "senderName": "SpiceVilla Restaurant",
+      "receiverId": "receiver",
+      "message": "hii",
+      "id": "msg_1787947888266_446",
+      "createdAt": "2026-08-28T20:11:28.266Z"
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": "sub_hope",
+      "userId": "ngo_hope",
+      "plan": "premium",
+      "status": "active",
+      "startedAt": "2026-08-28T18:24:24.625Z",
+      "expiresAt": "2027-08-28T18:24:24.625Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif_1787946751966_win",
+      "userId": "ngo_hope",
+      "type": "success",
+      "title": "Food Request Accepted! 🎉",
+      "message": "SpiceVilla Restaurant accepted your request for Maggi (20 meals). Pickup confirmed!",
+      "read": false,
+      "createdAt": "2026-08-28T19:52:31.966Z"
+    },
+    {
+      "id": "notif_1787946746117",
+      "userId": "donor_spicevilla",
+      "type": "urgent",
+      "title": "New Food Request Received!",
+      "message": "Hope Foundation has requested your surplus food (Maggi, 20 meals) with a 89% match.",
+      "read": false,
+      "createdAt": "2026-08-28T19:52:26.117Z"
+    },
+    {
+      "id": "notif_1787946513245",
+      "userId": "donor_spicevilla",
+      "type": "urgent",
+      "title": "New Food Request Received!",
+      "message": "Helping Hands NGO has requested your surplus food (Paneer Butter Masala, 50 meals) with a 90% match.",
+      "read": false,
+      "createdAt": "2026-08-28T19:48:33.245Z"
+    },
+    {
+      "id": "notif_1787946505257",
+      "userId": "donor_spicevilla",
+      "type": "urgent",
+      "title": "New Food Request Received!",
+      "message": "Hope Foundation has requested your surplus food (Paneer Butter Masala, 50 meals) with a 98% match.",
+      "read": false,
+      "createdAt": "2026-08-28T19:48:25.257Z"
+    }
+  ]
+}
