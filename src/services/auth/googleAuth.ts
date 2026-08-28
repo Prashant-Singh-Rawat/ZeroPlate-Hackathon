@@ -1,4 +1,5 @@
 export const GOOGLE_CLIENT_ID =
+  (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID ||
   '132721264540-tvqtl6nen6f2hsun0u1ejlqkqmr9640r.apps.googleusercontent.com';
 
 export interface GoogleUserPayload {
@@ -37,6 +38,8 @@ export function renderGoogleButton(
   onSuccess: (googleData: { token: string; payload?: GoogleUserPayload }) => void,
   onError?: (err: any) => void
 ) {
+  if (!GOOGLE_CLIENT_ID) return;
+
   if (typeof window !== 'undefined' && (window as any).google?.accounts?.id) {
     const google = (window as any).google;
 
@@ -143,7 +146,6 @@ export function launchGoogleOAuthPopup(
           }
 
           if (accessToken) {
-            // Fetch profile via Google UserInfo API
             fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
               headers: { Authorization: `Bearer ${accessToken}` },
             })
@@ -168,7 +170,7 @@ export function launchGoogleOAuthPopup(
         }
       }
     } catch (e) {
-      // Cross-origin access while on accounts.google.com is expected until redirect
+      // Cross-origin access while navigating accounts.google.com
     }
   }, 500);
 }
