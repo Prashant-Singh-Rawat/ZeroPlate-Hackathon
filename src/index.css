@@ -1,71 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* =============================================
-   LIGHT MODE — Force EVERY element white/light
-   Uses wildcard * inside html:not(.dark) to
-   catch absolutely everything.
+   PREMIUM DESIGN SYSTEM
    ============================================= */
 
-/* Root page background */
+/* LIGHT MODE */
 html:not(.dark),
 html:not(.dark) body,
 html:not(.dark) #root {
-  background-color: #FFFFFF !important;
+  background-color: #F8FAFC !important;
   color: #1F2937 !important;
 }
 
-/* Every div, section, aside, header, nav, main, article */
-html:not(.dark) div:not([class*="bg-orange"]):not([class*="bg-brand-orange"]):not([class*="bg-emerald"]):not([class*="bg-red"]):not([class*="bg-amber"]):not([class*="bg-green"]):not([class*="bg-teal"]):not([class*="bg-gradient"]),
-html:not(.dark) aside,
-html:not(.dark) header,
-html:not(.dark) main,
-html:not(.dark) nav,
-html:not(.dark) section,
-html:not(.dark) article,
-html:not(.dark) footer {
-  background-color: #FFFFFF !important;
+html:not(.dark) .min-h-screen { background-color: #F8FAFC !important; }
+
+/* Structural elements */
+html:not(.dark) aside { background-color: #FFFFFF !important; border-right-color: #F1F5F9 !important; }
+html:not(.dark) header { background-color: rgba(255,255,255,0.95) !important; border-bottom-color: #F1F5F9 !important; }
+html:not(.dark) main { background-color: #F8FAFC !important; }
+
+/* Cards */
+html:not(.dark) .bg-white { background-color: #FFFFFF !important; }
+html:not(.dark) section { background-color: #FFFFFF !important; }
+
+/* Sidebar nav items — transparent */
+html:not(.dark) aside nav button:not([class*="bg-brand-orange"]):not([class*="bg-orange"]) {
+  background-color: transparent !important;
 }
 
-/* Tinted accent surfaces (cream/gray) */
-html:not(.dark) .bg-brand-light,
-html:not(.dark) .bg-brand-cream,
-html:not(.dark) .bg-orange-50,
-html:not(.dark) .bg-amber-50,
-html:not(.dark) .bg-gray-50 {
-  background-color: #FFF7ED !important;
-}
+/* Light surface tints */
+html:not(.dark) .bg-gray-50 { background-color: #F9FAFB !important; }
+html:not(.dark) .bg-gray-100 { background-color: #F3F4F6 !important; }
 
-html:not(.dark) .bg-gray-100 {
-  background-color: #F3F4F6 !important;
-}
-
-/* Text - remove any dark/slate text in light mode */
+/* Text */
 html:not(.dark) .text-slate-100,
 html:not(.dark) .text-slate-200,
-html:not(.dark) .text-slate-300 {
-  color: #1F2937 !important;
-}
-
-html:not(.dark) .text-slate-400,
-html:not(.dark) .text-slate-500 {
-  color: #6B7280 !important;
-}
+html:not(.dark) .text-slate-300 { color: #1F2937 !important; }
+html:not(.dark) .text-slate-400 { color: #6B7280 !important; }
 
 /* Borders */
 html:not(.dark) .border-slate-700,
 html:not(.dark) .border-slate-800,
-html:not(.dark) .border-slate-800\/80,
-html:not(.dark) .border-amber-900\/5,
-html:not(.dark) .divide-slate-800 > * + * {
-  border-color: #FDE8D0 !important;
-}
-
-/* Buttons in sidebar that are NOT active (transparent background) */
-html:not(.dark) aside button:not([class*="bg-brand-orange"]):not([class*="bg-orange"]) {
-  background-color: transparent !important;
-}
+html:not(.dark) .border-amber-900\/5 { border-color: #E5E7EB !important; }
 
 /* Inputs */
 html:not(.dark) input,
@@ -75,83 +54,85 @@ html:not(.dark) select {
   color: #1F2937 !important;
   border-color: #E5E7EB !important;
 }
-
-/* placeholder */
 html:not(.dark) input::placeholder,
-html:not(.dark) textarea::placeholder {
-  color: #9CA3AF !important;
-}
+html:not(.dark) textarea::placeholder { color: #9CA3AF !important; }
 
-/* =============================================
-   DARK MODE — Force EVERYTHING dark navy
-   ============================================= */
-
+/* DARK MODE */
 html.dark,
 html.dark body,
-html.dark #root {
-  background-color: #0B1120 !important;
-  color: #F1F5F9 !important;
-}
-
-html.dark aside {
-  background-color: #1E293B !important;
-  border-right-color: #334155 !important;
-}
-
-html.dark header {
-  background-color: #1E293B !important;
-  border-bottom-color: #334155 !important;
-}
-
-html.dark main {
-  background-color: #0B1120 !important;
-}
-
-html.dark section,
-html.dark .bg-white {
-  background-color: #1E293B !important;
-}
-
-html.dark .bg-gray-50,
-html.dark .bg-gray-100,
-html.dark .bg-brand-cream {
-  background-color: #0F172A !important;
-}
-
-html.dark input,
-html.dark textarea,
-html.dark select {
+html.dark #root { background-color: #0B1120 !important; color: #F1F5F9 !important; }
+html.dark .min-h-screen { background-color: #0B1120 !important; }
+html.dark aside { background-color: #1E293B !important; border-right-color: #334155 !important; }
+html.dark header { background-color: rgba(30,41,59,0.95) !important; border-bottom-color: #334155 !important; }
+html.dark main { background-color: #0B1120 !important; }
+html.dark section, html.dark .bg-white { background-color: #1E293B !important; }
+html.dark .bg-gray-50 { background-color: #0F172A !important; }
+html.dark input, html.dark textarea, html.dark select {
   background-color: #0F172A !important;
   color: #F8FAFC !important;
   border-color: #334155 !important;
 }
 
-html.dark input::placeholder,
-html.dark textarea::placeholder {
-  color: #64748B !important;
-}
-
-html.dark .text-brand-text { color: #F8FAFC !important; }
-html.dark .text-brand-muted { color: #94A3B8 !important; }
-
 /* =============================================
-   BASE TRANSITIONS
+   GLOBAL BASE
    ============================================= */
 @layer base {
-  body {
-    transition: background-color 0.2s ease, color 0.2s ease;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  * { box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
   }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+}
+
+/* =============================================
+   PREMIUM COMPONENT STYLES
+   ============================================= */
+
+/* Card hover elevation */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* Glass morphism surfaces */
+.glass {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+html.dark .glass {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Premium button base */
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-400 text-white font-extrabold text-sm rounded-xl shadow-md hover:shadow-lg hover:from-orange-600 hover:to-amber-500 transition-all active:scale-95;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-200 font-bold text-sm rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-orange-200 transition-all active:scale-95;
 }
 
 /* =============================================
    SCROLLBAR
    ============================================= */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #FAFAFA; }
-html.dark ::-webkit-scrollbar-track { background: #0B1120; }
-::-webkit-scrollbar-thumb { background: #FDBA74; border-radius: 9999px; }
-html.dark ::-webkit-scrollbar-thumb { background: #475569; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 999px; }
+html.dark ::-webkit-scrollbar-thumb { background: #334155; }
 ::-webkit-scrollbar-thumb:hover { background: #F97316; }
 
 /* =============================================
@@ -170,13 +151,29 @@ html.dark ::-webkit-scrollbar-thumb { background: #475569; }
 .animate-status-pop { animation: status-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-fadeIn { animation: fadeIn 0.25s ease-out forwards; }
+.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-slideIn { animation: slideIn 0.25s ease-out forwards; }
 
 @keyframes scaleUp {
-  from { opacity: 0; transform: scale(0.96); }
+  from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
 }
 .animate-scaleUp { animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
