@@ -242,8 +242,15 @@ export const FindFood: React.FC<FindFoodProps> = ({
         /* Map View (§3) */
         <MapView
           donations={filteredListings}
+          ngoLocation={{
+            name: user?.name || 'Hope Foundation',
+            latitude: user?.latitude || 19.062,
+            longitude: user?.longitude || 72.854,
+          }}
+          radiusKm={radiusKm}
           onSelectDonation={(d) => setDetailModalItem(d)}
           onRequestDonation={(d) => openRequestModal(d)}
+          onRefresh={() => fetchFood()}
         />
       ) : (
         /* List View (§3) */

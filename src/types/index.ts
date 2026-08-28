@@ -104,6 +104,11 @@ export interface Booking {
   foodName: string;
   mealCount: number;
   pickupLocation: string;
+  pickupAddress?: string;
+  donorLatitude?: number;
+  donorLongitude?: number;
+  ngoLatitude?: number;
+  ngoLongitude?: number;
   status: BookingStatus;
   pickupTime?: string;
   reservationExpiry?: string;

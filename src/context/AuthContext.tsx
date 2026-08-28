@@ -11,6 +11,8 @@ interface AuthContextType {
   logout: () => void;
   switchRole: (role: UserRole) => void;
   updateUserPlan: (plan: SubscriptionPlan) => void;
+  onboardNGO: (details: any) => Promise<{ success: boolean; error?: string }>;
+  onboardDonor: (details: any) => Promise<{ success: boolean; error?: string }>;
 }
 
 const DEFAULT_DONOR: User = {
@@ -154,6 +156,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const onboardNGO = async (details: any) => {
+    if (user) {
+      setUser({ ...user, ...details, role: 'ngo' });
+    }
+    return { success: true };
+  };
+
+  const onboardDonor = async (details: any) => {
+    if (user) {
+      setUser({ ...user, ...details, role: 'donor' });
+    }
+    return { success: true };
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -166,6 +182,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         switchRole,
         updateUserPlan,
+        onboardNGO,
+        onboardDonor,
       }}
     >
       {children}
