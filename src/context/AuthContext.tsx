@@ -8,8 +8,9 @@ interface AuthContextType {
   login: (email: string, role?: UserRole) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: (role: UserRole) => Promise<boolean>;
   signup: (name: string, email: string, role: UserRole, donorType?: string, location?: string) => Promise<{ success: boolean; error?: string }>;
+  onboardNGO: (data: any) => Promise<{ success: boolean; error?: string }>;
+  onboardDonor: (data: any) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  switchRole: (role: UserRole) => void;
   updateUserPlan: (plan: SubscriptionPlan) => void;
 }
 
@@ -18,12 +19,14 @@ const DEFAULT_DONOR: User = {
   name: 'SpiceVilla Restaurant',
   email: 'donor@spicevilla.com',
   role: 'donor',
+  phone: '+91 98200 12345',
   donorType: 'Restaurant',
   subscriptionPlan: 'free',
   location: 'Bandra West, Mumbai',
   latitude: 19.076,
   longitude: 72.8777,
   emailVerified: true,
+  onboarded: true,
   createdAt: new Date().toISOString(),
 };
 
@@ -32,11 +35,14 @@ const DEFAULT_NGO: User = {
   name: 'Hope Foundation',
   email: 'ngo@hope.org',
   role: 'ngo',
+  phone: '+91 98111 88888',
+  organizationType: 'NGO',
   subscriptionPlan: 'premium',
   location: 'Bandra East, Mumbai',
   latitude: 19.062,
   longitude: 72.854,
   emailVerified: true,
+  onboarded: true,
   createdAt: new Date().toISOString(),
 };
 
@@ -70,8 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return { success: false, error: data.error || 'Login failed.' };
     } catch (e) {
-      console.warn('API login offline fallback');
-      const fallbackUser = email.toLowerCase().includes('ngo') ? DEFAULT_NGO : DEFAULT_DONOR;
+      const fallbackUser = selectedRole === 'ngo' || email.toLowerCase().includes('ngo') ? DEFAULT_NGO : DEFAULT_DONOR;
       setUser(fallbackUser);
       return { success: true };
     }
@@ -82,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: selectedRole, googleToken: 'mock_token' }),
+        body: JSON.stringify({ role: selectedRole }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -128,6 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         latitude: 19.076,
         longitude: 72.8777,
         emailVerified: true,
+        onboarded: false,
         createdAt: new Date().toISOString(),
       };
       setUser(newUser);
@@ -135,16 +141,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
-    setUser(null);
+  const onboardNGO = async (formData: any): Promise<{ success: boolean; error?: string }> => {
+    if (!user) return { success: false, error: 'No user session found.' };
+    try {
+      const res = await fetch('/api/auth/onboard/ngo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, ...formData }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUser(data.user);
+        return { success: true };
+      }
+      return { success: false, error: data.error || 'Onboarding failed.' };
+    } catch (e) {
+      const updated = { ...user, name: formData.organizationName, onboarded: true };
+      setUser(updated);
+      return { success: true };
+    }
   };
 
-  const switchRole = (newRole: UserRole) => {
-    if (newRole === 'ngo') {
-      setUser(DEFAULT_NGO);
-    } else {
-      setUser(DEFAULT_DONOR);
+  const onboardDonor = async (formData: any): Promise<{ success: boolean; error?: string }> => {
+    if (!user) return { success: false, error: 'No user session found.' };
+    try {
+      const res = await fetch('/api/auth/onboard/donor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, ...formData }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUser(data.user);
+        return { success: true };
+      }
+      return { success: false, error: data.error || 'Onboarding failed.' };
+    } catch (e) {
+      const updated = { ...user, name: formData.organizationName, onboarded: true };
+      setUser(updated);
+      return { success: true };
     }
+  };
+
+  const logout = () => {
+    setUser(null);
   };
 
   const updateUserPlan = (plan: SubscriptionPlan) => {
@@ -163,8 +203,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         loginWithGoogle,
         signup,
+        onboardNGO,
+        onboardDonor,
         logout,
-        switchRole,
         updateUserPlan,
       }}
     >

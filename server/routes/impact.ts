@@ -36,7 +36,8 @@ router.get('/', (req, res) => {
   // Category breakdown
   const categoryMap: Record<string, number> = {};
   store.donations.forEach((d) => {
-    categoryMap[d.category] = (categoryMap[d.category] || 0) + d.mealCount;
+    const cat = d.foodCategory || d.category || 'Cooked Meal';
+    categoryMap[cat] = (categoryMap[cat] || 0) + d.mealCount;
   });
 
   const categoryData = Object.keys(categoryMap).map((cat) => ({

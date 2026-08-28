@@ -12,24 +12,47 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
 
   const [foodName, setFoodName] = useState('Veg Hyderabadi Biryani');
   const [foodType, setFoodType] = useState<'veg' | 'non-veg'>('veg');
-  const [category, setCategory] = useState('Main Course');
+  const [foodCategory, setFoodCategory] = useState('Main Course');
+  const [selectedSpecs, setSelectedSpecs] = useState<string[]>(['Rice + Dal', 'Biryani']);
   const [mealCount, setMealCount] = useState<number>(80);
   const [quantity, setQuantity] = useState('40 kg (Serves 80)');
   const [description, setDescription] = useState('Freshly prepared aromatic vegetarian biryani with raita. Packed in food-grade insulated containers.');
   const [imageUrl, setImageUrl] = useState('https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&auto=format&fit=crop&q=80');
 
-  const [pickupLocation, setPickupLocation] = useState(user?.location || 'SpiceVilla Restaurant, Hill Road, Bandra West, Mumbai');
+  const [pickupLocation, setPickupLocation] = useState(user?.location || 'SpiceVilla Restaurant, Bandra West, Mumbai');
   const [pickupAddress, setPickupAddress] = useState('Shop 4, Hill Road, Bandra West, Mumbai 400050');
   const [prepTime, setPrepTime] = useState('Freshly cooked 1 hr ago');
   const [packagingAvailable, setPackagingAvailable] = useState(true);
-  const [additionalNotes, setAdditionalNotes] = useState('Contact front desk on arrival for quick handoff.');
+  const [additionalNotes, setAdditionalNotes] = useState('Pickup from restaurant rear entrance loading dock on Hill Road.');
 
-  // Default deadline: Today before 8 PM (or 4 hours from now)
   const defaultDeadline = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString().slice(0, 16);
   const [pickupDeadline, setPickupDeadline] = useState(defaultDeadline);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const foodSpecOptions = [
+    'Rice + Dal',
+    'Biryani',
+    'Rice',
+    'Dal',
+    'Roti/Chapati',
+    'Sabzi',
+    'Paneer',
+    'Thali',
+    'Packaged Meals',
+    'Cooked Food',
+    'Dry Ration',
+    'Other',
+  ];
+
+  const handleToggleSpec = (spec: string) => {
+    if (selectedSpecs.includes(spec)) {
+      setSelectedSpecs(selectedSpecs.filter((s) => s !== spec));
+    } else {
+      setSelectedSpecs([...selectedSpecs, spec]);
+    }
+  };
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -57,8 +80,9 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
         donorName: user?.name || 'SpiceVilla Restaurant',
         donorType: user?.donorType || 'Restaurant',
         foodName,
+        foodCategory,
+        foodSpecifications: selectedSpecs,
         foodType,
-        category,
         mealCount: Number(mealCount),
         quantity,
         description,
@@ -105,7 +129,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
           <div>
             <h1 className="text-2xl font-black text-brand-text">Publish Surplus Food Donation</h1>
             <p className="text-xs font-medium text-brand-muted">
-              List available surplus food to make it instantly discoverable and requestable by nearby NGOs.
+              List available surplus food with dietary types and food specifications to match nearby NGO needs.
             </p>
           </div>
         </div>
@@ -114,7 +138,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
           {/* Section 1: Food Information */}
           <div className="space-y-4">
             <h3 className="text-xs font-black text-brand-orange uppercase tracking-wider">
-              1. Food Details & Quantity
+              1. Food Details, Category & Specifications (§4)
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -139,16 +163,42 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
                   Food Category
                 </label>
                 <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  value={foodCategory}
+                  onChange={(e) => setFoodCategory(e.target.value)}
                   className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-brand-text focus:outline-none"
                 >
-                  <option value="Main Course">Main Course</option>
-                  <option value="Combo Meal">Combo Meal</option>
-                  <option value="Curry & Bread">Curry & Bread</option>
+                  <option value="Main Course">Main Course (Cooked Meal)</option>
+                  <option value="Combo Meal">Combo Meal (Thali / Rice + Dal)</option>
+                  <option value="Curry & Bread">Curry & Bread (Sabzi & Roti)</option>
                   <option value="Bakery & Snacks">Bakery & Snacks</option>
-                  <option value="Desserts & Sweets">Desserts & Sweets</option>
+                  <option value="Dry Ration">Dry Ration / Pantry</option>
                 </select>
+              </div>
+            </div>
+
+            {/* Food Specifications Multi-Select (§4) */}
+            <div>
+              <label className="block text-xs font-bold text-brand-text uppercase mb-2">
+                Food Specifications / Components (Matches NGO Requirements)
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {foodSpecOptions.map((spec) => {
+                  const isSelected = selectedSpecs.includes(spec);
+                  return (
+                    <button
+                      key={spec}
+                      type="button"
+                      onClick={() => handleToggleSpec(spec)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold border transition-all ${
+                        isSelected
+                          ? 'bg-brand-orange text-white border-brand-orange shadow-warm-sm'
+                          : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-orange-200'
+                      }`}
+                    >
+                      {spec}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -201,28 +251,28 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
 
               <div>
                 <label className="block text-xs font-bold text-brand-text uppercase mb-1">
-                  Estimated Weight / Volume
+                  Quantity / Weight
                 </label>
                 <input
                   type="text"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   placeholder="e.g. 40 kg"
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:border-brand-orange focus:outline-none"
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none"
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-brand-text uppercase mb-1">
-                Food Description & Preparation Time
+                Description & Handling Instructions
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
-                placeholder="Describe freshness, storage conditions, and handling notes..."
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:border-brand-orange focus:outline-none"
+                placeholder="Describe preparation, freshness, and packaging containers..."
+                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none"
               />
             </div>
           </div>
@@ -238,7 +288,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-brand-text uppercase mb-1">
-                  Pickup Location Landmark / Area *
+                  Public Pickup Area / Neighborhood *
                 </label>
                 <div className="relative">
                   <MapPin className="w-4 h-4 text-brand-orange absolute left-3.5 top-3" />
@@ -257,7 +307,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
 
               <div>
                 <label className="block text-xs font-bold text-brand-text uppercase mb-1">
-                  Pickup Deadline (Must be in future) *
+                  Pickup Deadline *
                 </label>
                 <div className="relative">
                   <Clock className="w-4 h-4 text-brand-orange absolute left-3.5 top-3" />
@@ -276,14 +326,27 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
 
             <div>
               <label className="block text-xs font-bold text-brand-text uppercase mb-1">
-                Full Street Address (Revealed upon confirmed booking)
+                Full Street Address (Revealed to matched NGO upon confirmed booking)
               </label>
               <input
                 type="text"
                 value={pickupAddress}
                 onChange={(e) => setPickupAddress(e.target.value)}
-                placeholder="Exact door number and street address for pickup vehicle"
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:border-brand-orange focus:outline-none"
+                placeholder="Exact door number, landmark, and street for vehicle navigation"
+                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-brand-text uppercase mb-1">
+                Pickup Instructions
+              </label>
+              <input
+                type="text"
+                value={additionalNotes}
+                onChange={(e) => setAdditionalNotes(e.target.value)}
+                placeholder="e.g. Pickup from restaurant rear entrance loading dock on Hill Road."
+                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none"
               />
             </div>
 
@@ -301,12 +364,12 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
             </div>
           </div>
 
-          {/* Publish CTA (§2) */}
-          <div className="pt-3 flex flex-col sm:flex-row items-center gap-3">
+          {/* Publish CTA */}
+          <div className="pt-3">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full sm:flex-1 py-3.5 bg-brand-orange hover:bg-brand-deep text-white font-black text-sm rounded-2xl shadow-warm-md hover:shadow-warm-lg transition-all flex items-center justify-center gap-2 active:scale-95"
+              className="w-full py-3.5 bg-brand-orange hover:bg-brand-deep text-white font-black text-sm rounded-2xl shadow-warm-md hover:shadow-warm-lg transition-all flex items-center justify-center gap-2 active:scale-95"
             >
               <CheckCircle2 className="w-5 h-5 fill-white" />
               <span>{isSubmitting ? 'Publishing Food Donation...' : 'Publish Food Donation (Make Available)'}</span>

@@ -7,12 +7,64 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
+  phone?: string;
   subscriptionPlan: SubscriptionPlan;
-  location: string;
+  location?: string;
   latitude: number;
   longitude: number;
   emailVerified: boolean;
-  donorType?: 'Restaurant' | 'Hotel' | 'Caterer' | 'Household' | 'Volunteer';
+  onboarded: boolean;
+  donorType?: 'Restaurant' | 'Hotel' | 'Caterer' | 'Household' | 'Individual' | 'Volunteer' | 'Other';
+  organizationType?: string;
+  createdAt: string;
+}
+
+export interface NGOEntity {
+  id: string;
+  userId: string;
+  organizationName: string;
+  organizationType: 'NGO' | 'Charity' | 'Community Kitchen' | 'Food Shelter' | 'Orphanage' | 'Old Age Home' | 'Relief Organization' | 'Other';
+  contactPerson: string;
+  phone: string;
+  email: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  locationSharingEnabled: boolean;
+  capacity: number;
+  isPremium?: boolean;
+  availability?: boolean;
+  createdAt: string;
+}
+
+export type NGO = NGOEntity;
+
+export interface NGOFoodRequirement {
+  id: string;
+  ngoId: string;
+  requiredMeals: number;
+  foodSpecifications: string[];
+  foodType: 'veg' | 'non-veg' | 'either';
+  urgency: 'low' | 'medium' | 'high' | 'emergency';
+  requiredBy: string;
+  maximumRadius: number;
+  specificRequirement?: string;
+  status: 'ACTIVE' | 'FULFILLED' | 'CANCELLED';
+  createdAt: string;
+}
+
+export interface DonorEntity {
+  id: string;
+  userId: string;
+  donorType: 'Restaurant' | 'Hotel' | 'Caterer' | 'Household' | 'Individual' | 'Volunteer' | 'Other';
+  organizationName: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  isHousehold: boolean;
   createdAt: string;
 }
 
@@ -21,6 +73,7 @@ export type DonationStatus =
   | 'PENDING_REQUEST'
   | 'CONFIRMED'
   | 'RESERVED'
+  | 'PICKUP_IN_PROGRESS'
   | 'COMPLETED'
   | 'CANCELLED'
   | 'EXPIRED';
@@ -31,8 +84,10 @@ export interface FoodDonation {
   donorName: string;
   donorType?: string;
   foodName: string;
+  foodCategory: string;
+  category?: string;
+  foodSpecifications: string[];
   foodType: 'veg' | 'non-veg';
-  category: string;
   mealCount: number;
   quantity: string;
   description: string;
@@ -45,22 +100,9 @@ export interface FoodDonation {
   pickupDeadline: string;
   status: DonationStatus;
   prepTime?: string;
-  packagingAvailable?: boolean;
+  packagingAvailable: boolean;
   additionalNotes?: string;
   pendingRequestsCount?: number;
-  createdAt: string;
-}
-
-export interface NGO {
-  id: string;
-  userId: string;
-  organizationName: string;
-  capacity: number;
-  latitude: number;
-  longitude: number;
-  address?: string;
-  availability: boolean;
-  isPremium?: boolean;
   createdAt: string;
 }
 
@@ -77,7 +119,9 @@ export interface FoodRequest {
   requestedMeals: number;
   matchScore: number;
   distanceScore: number;
-  mealScore: number;
+  mealQuantityScore: number;
+  mealScore?: number;
+  foodSpecScore: number;
   urgencyScore: number;
   distanceKm: number;
   explanation: string;
@@ -88,6 +132,8 @@ export interface FoodRequest {
 }
 
 export type BookingStatus =
+  | 'REQUESTED'
+  | 'ACCEPTED'
   | 'CONFIRMED'
   | 'PICKUP_IN_PROGRESS'
   | 'COMPLETED'
@@ -104,11 +150,27 @@ export interface Booking {
   foodName: string;
   mealCount: number;
   pickupLocation: string;
+  pickupAddress?: string;
+  donorLatitude?: number;
+  donorLongitude?: number;
+  ngoLatitude?: number;
+  ngoLongitude?: number;
   status: BookingStatus;
   pickupTime?: string;
   reservationExpiry?: string;
+  liveTrackingEnabled: boolean;
   completedAt?: string;
   createdAt: string;
+}
+
+export interface LocationUpdate {
+  id: string;
+  bookingId: string;
+  userId: string;
+  role: UserRole;
+  latitude: number;
+  longitude: number;
+  timestamp: string;
 }
 
 export interface Message {
@@ -141,9 +203,10 @@ export interface NotificationItem {
 }
 
 export interface MatchScoreResult {
-  matchScore: number; // 0-100
+  matchScore: number;
   distanceScore: number;
-  mealScore: number;
+  mealQuantityScore: number;
+  foodSpecScore: number;
   urgencyScore: number;
   premiumBonus: number;
   distanceKm: number;
@@ -154,6 +217,7 @@ export interface SearchFilters {
   location?: string;
   radiusKm?: number;
   foodType?: 'all' | 'veg' | 'non-veg';
+  foodSpecifications?: string[];
   minMeals?: number;
   maxMeals?: number;
   urgency?: 'all' | 'urgent';

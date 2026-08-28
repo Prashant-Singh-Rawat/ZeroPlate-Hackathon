@@ -4,10 +4,6 @@ import { UserRole } from '../../src/types';
 
 const router = Router();
 
-// Configuration for Google Cloud Console OAuth (TonyCV project)
-const GOOGLE_CLOUD_PROJECT_ID = process.env.GOOGLE_PROJECT_ID || 'tonycv';
-const GOOGLE_CLOUD_PROJECT_NUMBER = process.env.GOOGLE_PROJECT_NUMBER || '132721264540';
-
 // POST /api/auth/login
 router.post('/login', (req, res) => {
   const { email, role } = req.body;
@@ -22,7 +18,7 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ error: 'Account not found. Please sign up or continue with Google.' });
   }
 
-  // Ensure role matches selected portal
+  // Strictly enforce role at server-side
   if (role && user.role !== role) {
     return res.status(403).json({
       error: `This account is registered as a ${user.role === 'donor' ? 'Food Donor' : 'NGO Manager'}. Please select the ${user.role === 'donor' ? 'Food Donor' : 'NGO / Volunteer'} card above.`,
@@ -32,17 +28,15 @@ router.post('/login', (req, res) => {
   return res.json({ user });
 });
 
-// POST /api/auth/google - Google Cloud OAuth / Gmail verification
+// POST /api/auth/google
 router.post('/google', (req, res) => {
-  const { role, googleToken, email, name, googleCloudProjectId } = req.body;
+  const { role, email, name } = req.body;
 
   if (!role || (role !== 'donor' && role !== 'ngo')) {
     return res.status(400).json({ error: 'Please select whether you are a Food Donor or NGO / Volunteer before connecting with Google.' });
   }
 
   const store = db.getStore();
-
-  // If user provided a specific email or default preset
   const targetEmail = email || (role === 'donor' ? 'donor@spicevilla.com' : 'ngo@hope.org');
   let user = store.users.find((u) => u.email.toLowerCase() === targetEmail.toLowerCase());
 
@@ -50,62 +44,94 @@ router.post('/google', (req, res) => {
     user.emailVerified = true;
     return res.json({
       user,
-      cloudProject: GOOGLE_CLOUD_PROJECT_ID,
       verifiedVia: 'Google Cloud Gmail OAuth 2.0',
-      message: `Successfully authenticated via Google Cloud (${GOOGLE_CLOUD_PROJECT_ID})!`,
+      message: 'Google Authentication successful!',
     });
   }
 
   const newUser = db.addUser({
-    name: name || (role === 'donor' ? 'SpiceVilla Google Donor' : 'Hope Foundation NGO'),
+    name: name || (role === 'donor' ? 'New Food Donor' : 'New NGO Partner'),
     email: targetEmail,
     role,
-    donorType: role === 'donor' ? 'Restaurant' : undefined,
     subscriptionPlan: 'free',
-    location: 'Bandra, Mumbai',
     latitude: 19.076,
     longitude: 72.8777,
     emailVerified: true,
+    onboarded: false, // Must complete role-specific onboarding
   });
 
   return res.json({
     user: newUser,
-    cloudProject: GOOGLE_CLOUD_PROJECT_ID,
     verifiedVia: 'Google Cloud Gmail OAuth 2.0',
-    message: `Google Account verified and created via Google Cloud (${GOOGLE_CLOUD_PROJECT_ID})!`,
+    message: 'Google Account authenticated! Please complete onboarding.',
   });
 });
 
-// POST /api/auth/signup
-router.post('/signup', (req, res) => {
-  const { name, email, role, donorType, location, latitude, longitude } = req.body;
+// POST /api/auth/onboard/ngo (§3)
+router.post('/onboard/ngo', (req, res) => {
+  const { userId, organizationName, organizationType, contactPerson, phone, address, latitude, longitude, requirements } = req.body;
 
-  if (!name || !email || !role) {
-    return res.status(400).json({ error: 'Name, email, and role are required.' });
+  if (!userId || !organizationName) {
+    return res.status(400).json({ error: 'Organization name and user ID are required.' });
   }
 
-  const store = db.getStore();
-  const existing = store.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-  if (existing) {
-    return res.status(400).json({ error: 'An account with this email already exists.' });
+  try {
+    const { user, entity } = db.onboardNGO(
+      userId,
+      organizationName,
+      organizationType || 'NGO',
+      contactPerson || 'Coordinator',
+      phone || '',
+      address || 'Mumbai',
+      latitude || 19.062,
+      longitude || 72.854,
+      requirements?.requiredMeals || 80
+    );
+
+    if (requirements) {
+      db.setNGORequirement(user.id, {
+        requiredMeals: Number(requirements.requiredMeals) || 80,
+        foodSpecifications: requirements.foodSpecifications || ['Rice + Dal'],
+        foodType: requirements.foodType || 'either',
+        urgency: requirements.urgency || 'medium',
+        requiredBy: requirements.requiredBy || new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(),
+        maximumRadius: Number(requirements.maximumRadius) || 15,
+        specificRequirement: requirements.specificRequirement,
+        status: 'ACTIVE',
+      });
+    }
+
+    return res.json({ success: true, user, entity, message: 'NGO Onboarding complete!' });
+  } catch (e: any) {
+    return res.status(400).json({ error: e.message || 'Onboarding failed.' });
+  }
+});
+
+// POST /api/auth/onboard/donor (§4)
+router.post('/onboard/donor', (req, res) => {
+  const { userId, donorType, organizationName, contactPerson, phone, address, latitude, longitude, isHousehold } = req.body;
+
+  if (!userId || !organizationName) {
+    return res.status(400).json({ error: 'Donor name and user ID are required.' });
   }
 
-  const newUser = db.addUser({
-    name,
-    email,
-    role,
-    donorType: role === 'donor' ? donorType || 'Restaurant' : undefined,
-    subscriptionPlan: 'free',
-    location: location || 'Bandra West, Mumbai',
-    latitude: latitude || 19.076,
-    longitude: longitude || 72.8777,
-    emailVerified: true,
-  });
+  try {
+    const { user, entity } = db.onboardDonor(
+      userId,
+      donorType || 'Restaurant',
+      organizationName,
+      contactPerson || 'Manager',
+      phone || '',
+      address || 'Mumbai',
+      latitude || 19.076,
+      longitude || 72.8777,
+      Boolean(isHousehold)
+    );
 
-  return res.status(201).json({
-    message: 'Account created successfully! Welcome to ZeroPlate.',
-    user: newUser,
-  });
+    return res.json({ success: true, user, entity, message: 'Food Donor Onboarding complete!' });
+  } catch (e: any) {
+    return res.status(400).json({ error: e.message || 'Onboarding failed.' });
+  }
 });
 
 // POST /api/auth/reset-demo

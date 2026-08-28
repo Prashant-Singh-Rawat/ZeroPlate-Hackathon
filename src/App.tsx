@@ -4,10 +4,11 @@ import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { Toast, ToastMessage } from './components/Toast';
 
-// Auth Pages
+// Auth & Onboarding Pages
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { ForgotPassword } from './pages/ForgotPassword';
+import { Onboarding } from './pages/Onboarding';
 
 // Donor Pages
 import { DonorDashboard } from './pages/DonorDashboard';
@@ -44,7 +45,7 @@ const MainLayout: React.FC = () => {
     });
   };
 
-  // Keep pending requests count fresh
+  // Keep pending requests count fresh for donors
   useEffect(() => {
     if (user && role === 'donor') {
       fetch(`/api/requests?donorId=${user.id}&status=PENDING`)
@@ -70,11 +71,24 @@ const MainLayout: React.FC = () => {
     );
   }
 
+  // Onboarding gate: if user is not yet onboarded, show role-specific setup (§2, §3, §4)
+  if (user.onboarded === false) {
+    return (
+      <div className="min-h-screen bg-brand-bg font-sans">
+        <Onboarding
+          onComplete={() => setActiveTab('dashboard')}
+          onShowToast={showToast}
+        />
+        <Toast toast={toast} onClose={() => setToast(null)} />
+      </div>
+    );
+  }
+
   const handleNavigate = (tab: string, extraData?: any) => {
     setActiveTab(tab);
   };
 
-  // Render role-protected views
+  // Render role-protected views (Strict non-symmetric enforcement)
   const renderView = () => {
     const isDonor = role === 'donor';
 
@@ -89,12 +103,12 @@ const MainLayout: React.FC = () => {
           />
         );
 
-      // Donor Specific Views (§2)
+      // Donor Specific Views (§4)
       case 'add-food':
         if (!isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200">
-              Access Restricted: Only Food Donors may create food donation listings.
+            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+              Access Restricted: Only Food Donors may publish food donations.
             </div>
           );
         }
@@ -113,8 +127,8 @@ const MainLayout: React.FC = () => {
       case 'donations-completed':
         if (!isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200">
-              Access Restricted: My Food Donations is available only for Food Donors.
+            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+              Access Restricted: Food Donations listings are available only for Food Donors.
             </div>
           );
         }
@@ -129,7 +143,7 @@ const MainLayout: React.FC = () => {
       case 'requests':
         if (!isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200">
+            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
               Access Restricted: NGO Requests inbox is only accessible to Food Donors.
             </div>
           );
@@ -147,7 +161,7 @@ const MainLayout: React.FC = () => {
       case 'find-food-list':
         if (isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200">
+            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
               Access Restricted: Find Food discovery is exclusively for NGO Managers.
             </div>
           );
@@ -163,7 +177,7 @@ const MainLayout: React.FC = () => {
       case 'my-requests':
         if (isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200">
+            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
               Access Restricted: My Requests is exclusively for NGO Managers.
             </div>
           );
@@ -176,7 +190,7 @@ const MainLayout: React.FC = () => {
           />
         );
 
-      // Shared Views
+      // Shared Views (§6, §11)
       case 'bookings':
         return <BookingsPage onShowToast={showToast} />;
 
@@ -200,18 +214,21 @@ const MainLayout: React.FC = () => {
         return (
           <div className="bg-white rounded-3xl p-8 border border-amber-900/5 shadow-warm-sm space-y-4 max-w-xl">
             <h2 className="text-xl font-black text-brand-text">Organization Profile & Settings</h2>
-            <div className="space-y-2 text-xs text-brand-muted">
+            <div className="space-y-2.5 text-xs text-brand-muted">
               <p>
-                Organization Name: <strong className="text-brand-text font-bold">{user.name}</strong>
+                Organization / Business Name: <strong className="text-brand-text font-bold">{user.name}</strong>
               </p>
               <p>
                 Registered Email: <strong className="text-brand-text font-bold">{user.email}</strong>
               </p>
               <p>
-                Assigned Role: <strong className="uppercase text-brand-orange font-extrabold">{role === 'donor' ? 'Food Donor / Volunteer' : 'NGO Manager'}</strong>
+                Phone: <strong className="text-brand-text font-bold">{user.phone || '+91 98200 12345'}</strong>
               </p>
               <p>
-                Location: <strong className="text-brand-text font-bold">{user.location}</strong>
+                Fixed Account Role: <strong className="uppercase text-brand-orange font-extrabold">{role === 'donor' ? 'Food Donor / Volunteer' : 'NGO Manager'}</strong>
+              </p>
+              <p>
+                Location: <strong className="text-brand-text font-bold">{user.location || 'Mumbai, Maharashtra'}</strong>
               </p>
               <p>
                 Status:{' '}
