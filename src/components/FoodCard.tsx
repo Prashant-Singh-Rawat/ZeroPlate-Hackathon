@@ -30,9 +30,9 @@ export const FoodCard: React.FC<FoodCardProps> = ({
   const isUrgent = hoursRemaining <= 3;
 
   return (
-    <div className="bg-white rounded-3xl border border-amber-900/5 shadow-warm-sm hover:shadow-warm-md transition-all duration-200 overflow-hidden flex flex-col group">
+    <div className="bg-white dark:bg-[#1E293B] rounded-3xl border border-amber-900/5 dark:border-slate-800/80 shadow-warm-sm hover:shadow-warm-md transition-all duration-200 overflow-hidden flex flex-col group">
       {/* Food Image Banner */}
-      <div className="relative h-48 w-full overflow-hidden bg-brand-light">
+      <div className="relative h-48 w-full overflow-hidden bg-brand-light dark:bg-slate-800">
         <img
           src={donation.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'}
           alt={donation.foodName}
@@ -69,21 +69,21 @@ export const FoodCard: React.FC<FoodCardProps> = ({
       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         <div>
           <div className="flex items-start justify-between gap-2 mb-1.5">
-            <h3 className="font-extrabold text-base text-brand-text group-hover:text-brand-orange transition-colors">
+            <h3 className="font-extrabold text-base text-brand-text dark:text-slate-100 group-hover:text-brand-orange transition-colors">
               {donation.foodName}
             </h3>
-            <div className="flex items-baseline gap-1 text-brand-deep font-black text-lg shrink-0">
+            <div className="flex items-baseline gap-1 text-brand-deep dark:text-orange-400 font-black text-lg shrink-0">
               <span>{donation.mealCount}</span>
-              <span className="text-xs font-semibold text-brand-muted">meals</span>
+              <span className="text-xs font-semibold text-brand-muted dark:text-slate-400">meals</span>
             </div>
           </div>
 
-          <p className="text-xs text-brand-muted line-clamp-2 mb-3">
+          <p className="text-xs text-brand-muted dark:text-slate-400 line-clamp-2 mb-3">
             {donation.description}
           </p>
 
           {/* Details Row */}
-          <div className="space-y-1.5 text-xs text-brand-muted bg-brand-cream/60 p-3 rounded-2xl border border-orange-100/70">
+          <div className="space-y-1.5 text-xs text-brand-muted dark:text-slate-400 bg-brand-cream/60 dark:bg-slate-800/80 p-3 rounded-2xl border border-orange-100/70 dark:border-slate-700/60">
             <div className="flex items-center gap-2">
               <MapPin className="w-3.5 h-3.5 text-brand-orange shrink-0" />
               <span className="truncate">
@@ -94,18 +94,18 @@ export const FoodCard: React.FC<FoodCardProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-brand-orange shrink-0" />
-                <span className={isUrgent ? 'font-bold text-red-600' : ''}>
+                <span className={isUrgent ? 'font-bold text-red-600 dark:text-red-400' : ''}>
                   {hoursRemaining > 0 ? `${hoursRemaining} hrs left` : 'Expired'}
                 </span>
               </div>
-              <span className="text-brand-text font-bold">By {donation.donorName}</span>
+              <span className="text-brand-text dark:text-slate-200 font-bold">By {donation.donorName}</span>
             </div>
           </div>
 
           {/* Donor specific: Pending Requests indicator */}
           {isDonor && (
-            <div className="mt-3 flex items-center justify-between p-2.5 bg-orange-50/70 rounded-xl border border-orange-200/60 text-xs">
-              <div className="flex items-center gap-1.5 font-bold text-brand-deep">
+            <div className="mt-3 flex items-center justify-between p-2.5 bg-orange-50/70 dark:bg-orange-950/30 rounded-xl border border-orange-200/60 dark:border-orange-800/50 text-xs">
+              <div className="flex items-center gap-1.5 font-bold text-brand-deep dark:text-orange-300">
                 <Inbox className="w-4 h-4 text-brand-orange" />
                 <span>
                   {donation.pendingRequestsCount && donation.pendingRequestsCount > 0
@@ -118,22 +118,22 @@ export const FoodCard: React.FC<FoodCardProps> = ({
 
           {/* NGO Match Explanation */}
           {!isDonor && donation.match?.explanation && (
-            <div className="mt-3 text-xs bg-amber-50/90 text-amber-900 p-2.5 rounded-xl border border-amber-200/70">
-              <span className="font-bold text-brand-deep">Match Score {donation.match.matchScore}%: </span>
+            <div className="mt-3 text-xs bg-amber-50/90 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 p-2.5 rounded-xl border border-amber-200/70 dark:border-amber-800/60">
+              <span className="font-bold text-brand-deep dark:text-orange-400">Match Score {donation.match.matchScore}%: </span>
               {donation.match.explanation}
             </div>
           )}
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-2 border-t border-gray-100 flex items-center gap-2">
+        <div className="pt-2 border-t border-gray-100 dark:border-slate-800 flex items-center gap-2">
           {/* NGO Actions */}
           {!isDonor && (
             <>
               {onViewDetails && (
                 <button
                   onClick={() => onViewDetails(donation)}
-                  className="flex-1 py-2.5 bg-brand-light hover:bg-orange-100 text-brand-deep font-bold text-xs rounded-xl border border-orange-200 transition-all flex items-center justify-center gap-1"
+                  className="flex-1 py-2.5 bg-brand-light dark:bg-slate-800 hover:bg-orange-100 dark:hover:bg-slate-700 text-brand-deep dark:text-orange-300 font-bold text-xs rounded-xl border border-orange-200 dark:border-slate-700 transition-all flex items-center justify-center gap-1"
                 >
                   <Eye className="w-3.5 h-3.5" />
                   <span>Details</span>
@@ -151,7 +151,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({
               )}
 
               {!isAvailable && (
-                <div className="w-full py-2 text-center text-xs font-bold text-gray-500 bg-gray-100 rounded-xl">
+                <div className="w-full py-2 text-center text-xs font-bold text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 rounded-xl">
                   {donation.status === 'CONFIRMED' ? 'Confirmed for NGO' : 'Unavailable'}
                 </div>
               )}

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Booking, Message } from '../types';
-import { MessageSquare, Send, Building, Utensils, CheckCircle2 } from 'lucide-react';
+import { Send, Utensils } from 'lucide-react';
 
 export const MessagesPage: React.FC = () => {
   const { user, role } = useAuth();
+  const { t } = useLanguage();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -73,25 +75,25 @@ export const MessagesPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       <div>
-        <h1 className="text-2xl font-black text-brand-text">Booking Communications</h1>
-        <p className="text-xs font-medium text-brand-muted mt-1">
+        <h1 className="text-2xl font-black text-brand-text dark:text-slate-100">{t('messages')}</h1>
+        <p className="text-xs font-medium text-brand-muted dark:text-slate-400 mt-1">
           Direct booking-scoped messaging between Food Donors and NGO pickup teams.
         </p>
       </div>
 
-      <div className="bg-white rounded-3xl border border-amber-900/5 shadow-warm-lg overflow-hidden flex flex-col md:flex-row h-[600px]">
-        {/* Left Sidebar: Threads grouped by booking (§12) */}
-        <div className="w-full md:w-80 border-r border-gray-100 flex flex-col bg-brand-cream/30">
-          <div className="p-4 border-b border-gray-100 bg-white">
-            <h3 className="font-bold text-xs uppercase tracking-wider text-brand-muted">
+      <div className="bg-white dark:bg-[#1E293B] rounded-3xl border border-amber-900/5 dark:border-slate-800 shadow-warm-lg overflow-hidden flex flex-col md:flex-row h-[600px] transition-colors">
+        {/* Left Sidebar: Threads grouped by booking */}
+        <div className="w-full md:w-80 border-r border-gray-100 dark:border-slate-800 flex flex-col bg-brand-cream/30 dark:bg-slate-900/40">
+          <div className="p-4 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-[#1E293B]">
+            <h3 className="font-bold text-xs uppercase tracking-wider text-brand-muted dark:text-slate-400">
               Active Booking Threads
             </h3>
           </div>
-          <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
+          <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-slate-800">
             {bookings.length === 0 ? (
-              <div className="p-6 text-center text-xs text-brand-muted">No active bookings yet.</div>
+              <div className="p-6 text-center text-xs text-brand-muted dark:text-slate-400">No active bookings yet.</div>
             ) : (
               bookings.map((b) => (
                 <button
@@ -102,16 +104,16 @@ export const MessagesPage: React.FC = () => {
                   }}
                   className={`w-full p-4 text-left transition-colors flex items-start gap-3 ${
                     selectedBooking?.id === b.id
-                      ? 'bg-brand-light border-l-4 border-brand-orange'
-                      : 'hover:bg-gray-50'
+                      ? 'bg-brand-light dark:bg-orange-950/40 border-l-4 border-brand-orange'
+                      : 'hover:bg-gray-50 dark:hover:bg-slate-800/60'
                   }`}
                 >
-                  <div className="p-2 bg-orange-100 text-brand-orange rounded-xl shrink-0">
+                  <div className="p-2 bg-orange-100 dark:bg-orange-950/60 text-brand-orange dark:text-orange-400 rounded-xl shrink-0">
                     <Utensils className="w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h4 className="font-bold text-xs text-brand-text truncate">{b.foodName}</h4>
-                    <p className="text-[11px] font-semibold text-brand-orange mt-0.5">
+                    <h4 className="font-bold text-xs text-brand-text dark:text-slate-100 truncate">{b.foodName}</h4>
+                    <p className="text-[11px] font-semibold text-brand-orange dark:text-orange-400 mt-0.5">
                       {b.mealCount} Meals • {role === 'donor' ? b.ngoName : b.donorName}
                     </p>
                   </div>
@@ -123,24 +125,24 @@ export const MessagesPage: React.FC = () => {
 
         {/* Right Pane: Chat Interface */}
         {selectedBooking ? (
-          <div className="flex-1 flex flex-col bg-white">
+          <div className="flex-1 flex flex-col bg-white dark:bg-[#1E293B]">
             {/* Header */}
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-brand-cream/40">
+            <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between bg-brand-cream/40 dark:bg-slate-900/20">
               <div>
-                <h3 className="font-extrabold text-sm text-brand-text">{selectedBooking.foodName}</h3>
-                <p className="text-xs text-brand-muted">
-                  Partner: <strong className="text-brand-text">{role === 'donor' ? selectedBooking.ngoName : selectedBooking.donorName}</strong> • Pickup: {selectedBooking.pickupLocation}
+                <h3 className="font-extrabold text-sm text-brand-text dark:text-slate-100">{selectedBooking.foodName}</h3>
+                <p className="text-xs text-brand-muted dark:text-slate-400">
+                  Partner: <strong className="text-brand-text dark:text-slate-200">{role === 'donor' ? selectedBooking.ngoName : selectedBooking.donorName}</strong> • Pickup: {selectedBooking.pickupLocation}
                 </p>
               </div>
-              <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-200">
+              <span className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-full border border-emerald-200 dark:border-emerald-800">
                 {selectedBooking.status}
               </span>
             </div>
 
             {/* Messages Stream */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 dark:bg-[#0B1120]/60">
               {messages.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-xs text-brand-muted">
+                <div className="h-full flex items-center justify-center text-xs text-brand-muted dark:text-slate-400">
                   No messages yet. Send a message to coordinate pickup timing.
                 </div>
               ) : (
@@ -151,14 +153,14 @@ export const MessagesPage: React.FC = () => {
                       key={m.id}
                       className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
                     >
-                      <span className="text-[10px] font-bold text-gray-400 mb-1 px-1">
+                      <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 mb-1 px-1">
                         {m.senderName}
                       </span>
                       <div
                         className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl text-xs font-medium ${
                           isMe
                             ? 'bg-brand-orange text-white rounded-br-none shadow-warm-sm'
-                            : 'bg-white text-brand-text border border-gray-200 rounded-bl-none shadow-sm'
+                            : 'bg-white dark:bg-slate-800 text-brand-text dark:text-slate-100 border border-gray-200 dark:border-slate-700 rounded-bl-none shadow-sm'
                         }`}
                       >
                         {m.message}
@@ -170,13 +172,13 @@ export const MessagesPage: React.FC = () => {
             </div>
 
             {/* Input Form */}
-            <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-100 flex items-center gap-2">
+            <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-100 dark:border-slate-800 flex items-center gap-2">
               <input
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder="Type your pickup coordination message..."
-                className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:border-brand-orange focus:outline-none"
+                className="flex-1 px-4 py-2.5 bg-gray-50 dark:bg-[#0F172A] border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-medium text-brand-text dark:text-slate-100 focus:outline-none focus:border-brand-orange"
               />
               <button
                 type="submit"
@@ -187,7 +189,7 @@ export const MessagesPage: React.FC = () => {
             </form>
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center p-8 text-center text-brand-muted text-xs">
+          <div className="flex-1 flex items-center justify-center p-8 text-center text-brand-muted dark:text-slate-400 text-xs">
             Select a booking thread to open messaging.
           </div>
         )}

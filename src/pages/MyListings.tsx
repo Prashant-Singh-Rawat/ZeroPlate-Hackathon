@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { FoodDonation } from '../types';
 import { FoodCard } from '../components/FoodCard';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
-import { PlusCircle, ListFilter } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 
 interface MyListingsProps {
   initialTab?: string;
@@ -18,6 +19,7 @@ export const MyListings: React.FC<MyListingsProps> = ({
   onNavigateRequests,
 }) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [filterTab, setFilterTab] = useState<'all' | 'available' | 'reserved' | 'completed'>(
     initialTab === 'donations-available'
       ? 'available'
@@ -58,11 +60,11 @@ export const MyListings: React.FC<MyListingsProps> = ({
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-brand-text">My Food Donations</h1>
-          <p className="text-xs font-medium text-brand-muted mt-1">
+          <h1 className="text-2xl font-black text-brand-text dark:text-slate-100">{t('myFoodListings')}</h1>
+          <p className="text-xs font-medium text-brand-muted dark:text-slate-400 mt-1">
             Track published surplus food listings, manage incoming requests, and monitor pickup statuses.
           </p>
         </div>
@@ -72,17 +74,17 @@ export const MyListings: React.FC<MyListingsProps> = ({
           className="px-5 py-2.5 bg-brand-orange hover:bg-brand-deep text-white font-black text-xs rounded-xl shadow-warm-sm hover:shadow-warm-md transition-all flex items-center gap-2 active:scale-95 shrink-0"
         >
           <PlusCircle className="w-4 h-4" />
-          <span>Publish New Food Donation</span>
+          <span>{t('addFoodDonation')}</span>
         </button>
       </div>
 
-      {/* Tabs Filter (§2) */}
-      <div className="flex items-center gap-2 border-b border-gray-200 overflow-x-auto pb-1">
+      {/* Tabs Filter */}
+      <div className="flex items-center gap-2 border-b border-gray-200 dark:border-slate-800 overflow-x-auto pb-1">
         {[
-          { id: 'all', label: `All Listings (${donations.length})` },
-          { id: 'available', label: `Available (${donations.filter((d) => d.status === 'AVAILABLE' || d.status === 'PENDING_REQUEST').length})` },
-          { id: 'reserved', label: `Reserved / Confirmed (${donations.filter((d) => d.status === 'CONFIRMED' || d.status === 'RESERVED').length})` },
-          { id: 'completed', label: `Completed Pickups (${donations.filter((d) => d.status === 'COMPLETED').length})` },
+          { id: 'all', label: `${t('viewAll')} (${donations.length})` },
+          { id: 'available', label: `${t('available')} (${donations.filter((d) => d.status === 'AVAILABLE' || d.status === 'PENDING_REQUEST').length})` },
+          { id: 'reserved', label: `${t('reservedPending')} (${donations.filter((d) => d.status === 'CONFIRMED' || d.status === 'RESERVED').length})` },
+          { id: 'completed', label: `${t('completed')} (${donations.filter((d) => d.status === 'COMPLETED').length})` },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -90,7 +92,7 @@ export const MyListings: React.FC<MyListingsProps> = ({
             className={`px-4 py-2 text-xs font-extrabold rounded-t-xl transition-all whitespace-nowrap ${
               filterTab === tab.id
                 ? 'bg-brand-orange text-white shadow-warm-sm'
-                : 'text-brand-muted hover:text-brand-text hover:bg-brand-light'
+                : 'text-brand-muted dark:text-slate-400 hover:text-brand-text dark:hover:text-slate-200 hover:bg-brand-light dark:hover:bg-slate-800'
             }`}
           >
             {tab.label}
@@ -102,9 +104,9 @@ export const MyListings: React.FC<MyListingsProps> = ({
         <LoadingState message="Loading food donation listings..." />
       ) : filtered.length === 0 ? (
         <EmptyState
-          title="No food donations yet."
-          description="Your surplus food listings will appear here."
-          actionLabel="Add Food"
+          title="No Food Donations in this view"
+          description="Publish a surplus food donation to connect with local NGOs."
+          actionLabel="Publish Food Donation"
           onAction={onNavigateAddFood}
         />
       ) : (

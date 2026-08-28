@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Booking } from '../types';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
-import { CalendarDays, MapPin, Building, CheckCircle2, Clock, Utensils, Check } from 'lucide-react';
+import { MapPin, Building, CheckCircle2, Clock, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface BookingsPageProps {
@@ -12,6 +13,7 @@ interface BookingsPageProps {
 
 export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
   const { user, role } = useAuth();
+  const { t } = useLanguage();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'confirmed' | 'completed'>('all');
   const [isLoading, setIsLoading] = useState(true);
@@ -69,16 +71,16 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       <div>
-        <h1 className="text-2xl font-black text-brand-text">Confirmed Bookings & Pickups</h1>
-        <p className="text-xs font-medium text-brand-muted mt-1">
+        <h1 className="text-2xl font-black text-brand-text dark:text-slate-100">{t('bookings')} & Pickups</h1>
+        <p className="text-xs font-medium text-brand-muted dark:text-slate-400 mt-1">
           Manage locked food arrangements, coordinate collection timing, and confirm completed pickups.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-gray-200 overflow-x-auto pb-1">
+      <div className="flex items-center gap-2 border-b border-gray-200 dark:border-slate-800 overflow-x-auto pb-1">
         {[
           { id: 'all', label: `All Bookings (${bookings.length})` },
           { id: 'confirmed', label: `Active Pickups (${bookings.filter((b) => b.status === 'CONFIRMED').length})` },
@@ -90,7 +92,7 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
             className={`px-4 py-2 text-xs font-extrabold rounded-t-xl transition-all whitespace-nowrap ${
               activeTab === tab.id
                 ? 'bg-brand-orange text-white shadow-warm-sm'
-                : 'text-brand-muted hover:text-brand-text hover:bg-brand-light'
+                : 'text-brand-muted dark:text-slate-400 hover:text-brand-text dark:hover:text-slate-200 hover:bg-brand-light dark:hover:bg-slate-800'
             }`}
           >
             {tab.label}
@@ -114,19 +116,19 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
             return (
               <div
                 key={b.id}
-                className="bg-white rounded-3xl border border-amber-900/5 p-6 shadow-warm-sm hover:shadow-warm-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-5"
+                className="bg-white dark:bg-[#1E293B] rounded-3xl border border-amber-900/5 dark:border-slate-800/80 p-6 shadow-warm-sm hover:shadow-warm-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-5"
               >
                 <div className="space-y-3 flex-1">
                   <div className="flex flex-wrap items-center gap-3">
-                    <h3 className="font-black text-lg text-brand-text">{b.foodName}</h3>
-                    <span className="px-3 py-1 rounded-full text-xs font-black bg-brand-light text-brand-deep">
+                    <h3 className="font-black text-lg text-brand-text dark:text-slate-100">{b.foodName}</h3>
+                    <span className="px-3 py-1 rounded-full text-xs font-black bg-brand-light dark:bg-orange-950/50 text-brand-deep dark:text-orange-400">
                       {b.mealCount} Meals
                     </span>
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1 ${
                         isCompleted
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-blue-100 text-blue-800 animate-pulse-subtle'
+                          ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300'
+                          : 'bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 animate-pulse-subtle'
                       }`}
                     >
                       {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
@@ -134,18 +136,18 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-brand-muted font-medium">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-brand-muted dark:text-slate-400 font-medium">
                     <div className="flex items-center gap-2">
                       <Building className="w-4 h-4 text-brand-orange shrink-0" />
-                      <span>Food Donor: <strong className="text-brand-text">{b.donorName}</strong></span>
+                      <span>Food Donor: <strong className="text-brand-text dark:text-slate-200">{b.donorName}</strong></span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Building className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>NGO Partner: <strong className="text-brand-text">{b.ngoName}</strong></span>
+                      <span>NGO Partner: <strong className="text-brand-text dark:text-slate-200">{b.ngoName}</strong></span>
                     </div>
                     <div className="flex items-center gap-2 sm:col-span-2">
                       <MapPin className="w-4 h-4 text-brand-orange shrink-0" />
-                      <span>Pickup Address: <strong className="text-brand-text">{b.pickupLocation}</strong></span>
+                      <span>Pickup Address: <strong className="text-brand-text dark:text-slate-200">{b.pickupLocation}</strong></span>
                     </div>
                   </div>
                 </div>
@@ -163,7 +165,7 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
                     </button>
                   )}
                   {isCompleted && (
-                    <div className="text-xs font-black text-emerald-700 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200 flex items-center gap-1.5">
+                    <div className="text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-3.5 py-2 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Rescue Drive Completed</span>
                     </div>

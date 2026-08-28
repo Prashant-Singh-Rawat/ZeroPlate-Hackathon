@@ -189,9 +189,7 @@ export function computeFullMatch(
   return {
     matchScore: finalScore,
     distanceScore,
-    mealQuantityScore: mealScore,
     mealScore,
-    foodSpecScore: 95,
     urgencyScore,
     premiumBonus: bonus,
     distanceKm,

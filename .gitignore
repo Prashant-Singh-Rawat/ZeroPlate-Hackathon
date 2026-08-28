@@ -36,3 +36,7 @@ lerna-debug.log*
 coverage/
 *.lcov
 .nyc_output
+
+# Temporary deploy scripts
+scripts/
+PR_DETAILS.md

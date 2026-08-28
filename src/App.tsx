@@ -1,37 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { Toast, ToastMessage } from './components/Toast';
 
-// Auth & Onboarding Pages
+// Auth Pages
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { ForgotPassword } from './pages/ForgotPassword';
-import { Onboarding } from './pages/Onboarding';
 
 // Donor Pages
 import { DonorDashboard } from './pages/DonorDashboard';
 import { AddFood } from './pages/AddFood';
 import { MyListings } from './pages/MyListings';
 import { DonorRequests } from './pages/DonorRequests';
-import { DeliveryPersonsPage } from './pages/DeliveryPersonsPage';
-import { DeliveriesPage } from './pages/DeliveriesPage';
 
 // NGO Pages
 import { NGODashboard } from './pages/NGODashboard';
 import { FindFood } from './pages/FindFood';
 import { MyRequests } from './pages/MyRequests';
-import { HireDeliveryPartnerPage } from './pages/HireDeliveryPartnerPage';
 
 // Shared Pages
 import { BookingsPage } from './pages/BookingsPage';
 import { MessagesPage } from './pages/MessagesPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { ImpactDashboard } from './pages/ImpactDashboard';
+import { SettingsPage } from './pages/SettingsPage';
 
 const MainLayout: React.FC = () => {
   const { user, role } = useAuth();
+  const { t } = useLanguage();
 
   const [authView, setAuthView] = useState<'login' | 'signup' | 'forgot'>('login');
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -48,7 +48,7 @@ const MainLayout: React.FC = () => {
     });
   };
 
-  // Keep pending requests count fresh for donors
+  // Keep pending requests count fresh
   useEffect(() => {
     if (user && role === 'donor') {
       fetch(`/api/requests?donorId=${user.id}&status=PENDING`)
@@ -57,6 +57,18 @@ const MainLayout: React.FC = () => {
         .catch(() => {});
     }
   }, [user, role, activeTab]);
+
+  // Reset tab on role switch if current tab is role-incompatible
+  useEffect(() => {
+    const donorOnlyTabs = ['add-food', 'donations', 'donations-available', 'donations-reserved', 'donations-completed', 'requests'];
+    const ngoOnlyTabs = ['find-food', 'find-food-map', 'find-food-list', 'my-requests', 'subscription'];
+
+    if (role === 'donor' && ngoOnlyTabs.includes(activeTab)) {
+      setActiveTab('dashboard');
+    } else if (role === 'ngo' && donorOnlyTabs.includes(activeTab)) {
+      setActiveTab('dashboard');
+    }
+  }, [role, activeTab]);
 
   // Auth pages if user is not logged in
   if (!user) {
@@ -71,19 +83,6 @@ const MainLayout: React.FC = () => {
         onNavigateSignup={() => setAuthView('signup')}
         onNavigateForgot={() => setAuthView('forgot')}
       />
-    );
-  }
-
-  // Onboarding gate: if user is not yet onboarded, show role-specific setup
-  if (user.onboarded === false) {
-    return (
-      <div className="min-h-screen bg-brand-bg font-sans">
-        <Onboarding
-          onComplete={() => setActiveTab('dashboard')}
-          onShowToast={showToast}
-        />
-        <Toast toast={toast} onClose={() => setToast(null)} />
-      </div>
     );
   }
 
@@ -102,24 +101,24 @@ const MainLayout: React.FC = () => {
         ) : (
           <NGODashboard
             onNavigate={handleNavigate}
-            onRequestDonation={(donation) => {
-              handleNavigate('find-food', { selectedDonation: donation });
-            }}
+            onRequestDonation={() => handleNavigate('find-food')}
           />
         );
 
-      // Donor Specific Views
+      // Donor Specific Views (§2)
       case 'add-food':
         if (!isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
-              Access Restricted: Only Food Donors may publish food donations.
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
+              Access Restricted: Only Food Donors may create food donation listings.
             </div>
           );
         }
         return (
           <AddFood
-            onSuccessPublished={() => setActiveTab('donations')}
+            onSuccessPublished={() => {
+              setActiveTab('donations');
+            }}
             onShowToast={showToast}
           />
         );
@@ -130,8 +129,8 @@ const MainLayout: React.FC = () => {
       case 'donations-completed':
         if (!isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
-              Access Restricted: Food Donations listings are available only for Food Donors.
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
+              Access Restricted: My Food Donations is available only for Food Donors.
             </div>
           );
         }
@@ -146,36 +145,25 @@ const MainLayout: React.FC = () => {
       case 'requests':
         if (!isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
               Access Restricted: NGO Requests inbox is only accessible to Food Donors.
             </div>
           );
         }
         return (
           <DonorRequests
-            onNavigateBookings={() => setActiveTab('deliveries')}
+            onNavigateBookings={() => setActiveTab('bookings')}
             onShowToast={showToast}
           />
         );
 
-      case 'delivery-persons':
-        if (!isDonor) {
-          return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
-              Access Restricted: Delivery fleet management is available to Food Donors.
-            </div>
-          );
-        }
-        return <DeliveryPersonsPage onShowToast={showToast} />;
-
-      // NGO Specific Views
+      // NGO Specific Views (§3)
       case 'find-food':
       case 'find-food-map':
       case 'find-food-list':
-      case 'nearby-donors':
         if (isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
               Access Restricted: Find Food discovery is exclusively for NGO Managers.
             </div>
           );
@@ -191,7 +179,7 @@ const MainLayout: React.FC = () => {
       case 'my-requests':
         if (isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
               Access Restricted: My Requests is exclusively for NGO Managers.
             </div>
           );
@@ -199,32 +187,12 @@ const MainLayout: React.FC = () => {
         return (
           <MyRequests
             onNavigateFindFood={() => setActiveTab('find-food')}
-            onNavigateBookings={() => setActiveTab('active-deliveries')}
+            onNavigateBookings={() => setActiveTab('bookings')}
             onShowToast={showToast}
           />
         );
 
-      case 'hire-delivery':
-        if (isDonor) {
-          return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
-              Access Restricted: Hire Delivery Partner is exclusively for NGO Managers.
-            </div>
-          );
-        }
-        return (
-          <HireDeliveryPartnerPage
-            onNavigateDeliveries={() => setActiveTab('active-deliveries')}
-            onShowToast={showToast}
-          />
-        );
-
-      // Shared Deliveries & Bookings
-      case 'deliveries':
-      case 'active-deliveries':
-      case 'delivery-history':
-        return <DeliveriesPage onShowToast={showToast} />;
-
+      // Shared Views
       case 'bookings':
         return <BookingsPage onShowToast={showToast} />;
 
@@ -232,6 +200,13 @@ const MainLayout: React.FC = () => {
         return <MessagesPage />;
 
       case 'subscription':
+        if (isDonor) {
+          return (
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
+              Access Restricted: Subscription tiers and boost plans are exclusively for NGO Managers.
+            </div>
+          );
+        }
         return (
           <SubscriptionPage
             onUpgradeSuccess={(msg) => {
@@ -244,43 +219,42 @@ const MainLayout: React.FC = () => {
         return <ImpactDashboard />;
 
       case 'profile':
-      case 'settings':
         return (
-          <div className="bg-white rounded-3xl p-8 border border-amber-900/5 shadow-warm-sm space-y-4 max-w-xl">
-            <h2 className="text-xl font-black text-brand-text">Organization Profile & Settings</h2>
-            <div className="space-y-2.5 text-xs text-brand-muted">
+          <div className="bg-white dark:bg-[#1E293B] rounded-3xl p-8 border border-amber-900/5 dark:border-slate-800 shadow-warm-sm space-y-4 max-w-xl transition-colors">
+            <h2 className="text-xl font-black text-brand-text dark:text-slate-100">{t('orgProfile')}</h2>
+            <div className="space-y-2 text-xs text-brand-muted dark:text-slate-400">
               <p>
-                Organization / Business Name: <strong className="text-brand-text font-bold">{user.name}</strong>
+                {t('orgName')} <strong className="text-brand-text dark:text-slate-200 font-bold">{user.name}</strong>
               </p>
               <p>
-                Registered Email: <strong className="text-brand-text font-bold">{user.email}</strong>
+                {t('registeredEmail')} <strong className="text-brand-text dark:text-slate-200 font-bold">{user.email}</strong>
               </p>
               <p>
-                Phone: <strong className="text-brand-text font-bold">{user.phone || '+91 98200 12345'}</strong>
+                {t('assignedRole')} <strong className="uppercase text-brand-orange dark:text-orange-400 font-extrabold">{role === 'donor' ? t('donorPortal') : t('ngoPortal')}</strong>
               </p>
               <p>
-                Fixed Account Role: <strong className="uppercase text-brand-orange font-extrabold">{role === 'donor' ? 'Food Donor / Volunteer' : 'NGO Manager'}</strong>
+                {t('locationLabel')} <strong className="text-brand-text dark:text-slate-200 font-bold">{user.location}</strong>
               </p>
               <p>
-                Location: <strong className="text-brand-text font-bold">{user.location || 'Mumbai, Maharashtra'}</strong>
-              </p>
-              <p>
-                Status:{' '}
-                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
-                  Verified Active
+                {t('statusLabel')}{' '}
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800">
+                  {t('verifiedActive')}
                 </span>
               </p>
             </div>
           </div>
         );
 
+      case 'settings':
+        return <SettingsPage onShowToast={showToast} />;
+
       default:
-        return <div className="p-8 text-brand-muted">Page not found</div>;
+        return <div className="p-8 text-brand-muted dark:text-slate-400">Page not found</div>;
     }
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg flex flex-col font-sans">
+    <div className="min-h-screen bg-brand-bg dark:bg-[#0B1120] text-brand-text dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       <Navbar
         onToggleSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         activeView={activeTab}
@@ -310,8 +284,12 @@ const MainLayout: React.FC = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainLayout />
-    </AuthProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <MainLayout />
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }

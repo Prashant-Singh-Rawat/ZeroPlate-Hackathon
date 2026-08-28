@@ -9,8 +9,7 @@
       "location": "Bandra West, Mumbai",
       "latitude": 19.076,
       "longitude": 72.8777,
-      "createdAt": "2026-08-28T18:24:24.624Z",
-      "emailVerified": true
+      "createdAt": "2026-08-28T18:24:24.624Z"
     },
     {
       "id": "donor_greenleaf",
@@ -100,35 +99,6 @@
       "emailVerified": true,
       "id": "user_1787944033808_403",
       "createdAt": "2026-08-28T19:07:13.808Z"
-    },
-    {
-      "name": "Prashant singh Rawat",
-      "email": "rawatnaksh67@gmail.com",
-      "role": "donor",
-      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocJpztkV8xMiBV37trfZUgRe34Ol5qaW9RmSGxztqhbs5oiDyn4=s96-c",
-      "subscriptionPlan": "free",
-      "latitude": 19.076,
-      "longitude": 72.8777,
-      "emailVerified": true,
-      "onboarded": false,
-      "id": "user_1787949240946_479",
-      "createdAt": "2026-08-28T20:34:00.946Z"
-    },
-    {
-      "name": "TONY STARK",
-      "email": "tonystark06032007@gmail.com",
-      "role": "ngo",
-      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocLHvAgO1K-YAIVzz0mIeoM5wkJQBheGhtbiDNA7myKXjTBQhQ=s96-c",
-      "subscriptionPlan": "premium",
-      "latitude": 31.25450417220089,
-      "longitude": 75.70560717210654,
-      "emailVerified": true,
-      "onboarded": true,
-      "id": "user_1787950082389_290",
-      "createdAt": "2026-08-28T20:48:02.389Z",
-      "donorType": "Household",
-      "phone": "+919119341195",
-      "location": "GPS Location (31.2545, 75.7056) - Bandra, Mumbai"
     }
   ],
   "ngos": [
@@ -211,7 +181,7 @@
       "packagingAvailable": true,
       "additionalNotes": "Contact front desk on arrival for quick handoff.",
       "id": "don_1787943666862_670",
-      "status": "CONFIRMED",
+      "status": "COMPLETED",
       "pendingRequestsCount": 0,
       "createdAt": "2026-08-28T19:01:06.862Z"
     },
@@ -303,11 +273,11 @@
       "pickupLocation": "SpiceVilla Restaurant, Hill Road, Bandra West",
       "availableFrom": "2026-08-28T17:54:24.625Z",
       "pickupDeadline": "2026-08-28T22:24:24.625Z",
-      "status": "PENDING_REQUEST",
+      "status": "COMPLETED",
       "prepTime": "Freshly prepared 1 hour ago",
       "packagingAvailable": true,
       "createdAt": "2026-08-28T18:24:24.625Z",
-      "pendingRequestsCount": 1
+      "pendingRequestsCount": 0
     },
     {
       "id": "don_dalrice",
@@ -375,6 +345,22 @@
   ],
   "bookings": [
     {
+      "id": "book_1787946214645_480",
+      "donationId": "don_biryani",
+      "requestId": "req_1787944522502_41",
+      "ngoId": "ngo_hope",
+      "ngoName": "Hope Foundation",
+      "donorId": "donor_spicevilla",
+      "donorName": "SpiceVilla Restaurant",
+      "foodName": "Veg Hyderabadi Biryani",
+      "mealCount": 80,
+      "pickupLocation": "SpiceVilla Restaurant, Hill Road, Bandra West",
+      "status": "COMPLETED",
+      "pickupTime": "2026-08-28T22:24:24.625Z",
+      "createdAt": "2026-08-28T19:43:34.645Z",
+      "completedAt": "2026-08-28T20:12:51.132Z"
+    },
+    {
       "id": "book_1787944259004_462",
       "donationId": "don_1787943666862_670",
       "requestId": "req_1787944116799_226",
@@ -385,9 +371,10 @@
       "foodName": "Veg Biryani",
       "mealCount": 80,
       "pickupLocation": "SpiceVilla Restaurant, Hill Road, Bandra West, Mumbai",
-      "status": "CONFIRMED",
+      "status": "COMPLETED",
       "pickupTime": "2026-08-28T23:00:00.000Z",
-      "createdAt": "2026-08-28T19:10:59.001Z"
+      "createdAt": "2026-08-28T19:10:59.001Z",
+      "completedAt": "2026-08-28T20:13:00.942Z"
     },
     {
       "id": "book_1787942455777_39",
@@ -447,6 +434,15 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif_1787946214645_win",
+      "userId": "ngo_hope",
+      "type": "success",
+      "title": "Food Request Accepted! 🎉",
+      "message": "SpiceVilla Restaurant accepted your request for Veg Hyderabadi Biryani (80 meals). Pickup confirmed!",
+      "read": false,
+      "createdAt": "2026-08-28T19:43:34.645Z"
+    },
     {
       "id": "notif_1787944522502",
       "userId": "donor_spicevilla",
@@ -536,9 +532,10 @@
       "urgencyScore": 88,
       "distanceKm": 2.9,
       "explanation": "Recommended because Hope Foundation is 2.9 km away, currently pickup needed within 3 hours, and has full capacity for all 80 meals. Includes Priority NGO boost.",
-      "status": "PENDING",
+      "status": "ACCEPTED",
       "notes": "",
-      "requestedAt": "2026-08-28T19:15:22.502Z"
+      "requestedAt": "2026-08-28T19:15:22.502Z",
+      "respondedAt": "2026-08-28T19:43:34.645Z"
     },
     {
       "id": "req_1787944116799_226",
@@ -559,81 +556,6 @@
       "notes": "Requesting 80 meals of Veg Biryani for Bandra slum distribution.",
       "requestedAt": "2026-08-28T19:08:36.799Z",
       "respondedAt": "2026-08-28T19:10:59.001Z"
-    }
-  ],
-  "requirements": [
-    {
-      "id": "req_hope_default",
-      "ngoId": "ngo_hope",
-      "requiredMeals": 80,
-      "foodSpecifications": [
-        "Rice",
-        "Dal",
-        "Rice + Dal",
-        "Biryani"
-      ],
-      "foodType": "veg",
-      "urgency": "high",
-      "requiredBy": "2026-08-29T02:31:02.075Z",
-      "maximumRadius": 15,
-      "specificRequirement": "Nutritious lunch meal for 80 children at Bandra East shelter",
-      "status": "ACTIVE",
-      "createdAt": "2026-08-28T20:31:02.075Z"
-    }
-  ],
-  "donors": [
-    {
-      "id": "donor_entity_spicevilla",
-      "userId": "donor_spicevilla",
-      "donorType": "Restaurant",
-      "organizationName": "SpiceVilla Restaurant",
-      "contactPerson": "Chef Vikram Malhotra",
-      "phone": "+91 98200 12345",
-      "email": "donor@spicevilla.com",
-      "address": "Shop 4, Hill Road, Bandra West, Mumbai 400050",
-      "latitude": 19.076,
-      "longitude": 72.8777,
-      "isHousehold": false,
-      "createdAt": "2026-08-28T20:31:02.075Z"
-    },
-    {
-      "id": "donor_entity_user_1787950082389_290",
-      "userId": "user_1787950082389_290",
-      "donorType": "Household",
-      "organizationName": "TONY STARK",
-      "contactPerson": "Devesh Tiwari",
-      "phone": "+919119341195",
-      "email": "tonystark06032007@gmail.com",
-      "address": "GPS Location (31.2545, 75.7056) - Bandra, Mumbai",
-      "latitude": 31.25450417220089,
-      "longitude": 75.70560717210654,
-      "isHousehold": false,
-      "createdAt": "2026-08-28T20:50:13.141Z"
-    }
-  ],
-  "locationUpdates": [],
-  "deliveryPersons": [
-    {
-      "id": "del_rahul",
-      "donorId": "donor_spicevilla",
-      "name": "Rahul Sharma",
-      "phone": "+91 98765 43210",
-      "role": "Volunteer",
-      "vehicleType": "Bike",
-      "vehicleNumber": "MH-02-BQ-4512",
-      "availability": "Available",
-      "createdAt": "2026-08-28T21:25:19.086Z"
-    },
-    {
-      "id": "del_amit",
-      "donorId": "donor_spicevilla",
-      "name": "Amit Verma",
-      "phone": "+91 98765 11223",
-      "role": "Driver",
-      "vehicleType": "Van",
-      "vehicleNumber": "MH-02-CV-8890",
-      "availability": "Available",
-      "createdAt": "2026-08-28T21:25:19.086Z"
     }
   ]
 }
