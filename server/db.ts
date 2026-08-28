@@ -207,9 +207,18 @@ class Database {
       if (fs.existsSync(DB_FILE)) {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
         const parsed = JSON.parse(raw);
-        if (!parsed.deliveryPersons) parsed.deliveryPersons = initialSeedData.deliveryPersons;
+        if (!parsed.donors) parsed.donors = initialSeedData.donors || [];
+        if (!parsed.ngos) parsed.ngos = initialSeedData.ngos || [];
+        if (!parsed.users) parsed.users = initialSeedData.users || [];
+        if (!parsed.donations) parsed.donations = initialSeedData.donations || [];
+        if (!parsed.deliveryPersons) parsed.deliveryPersons = initialSeedData.deliveryPersons || [];
         if (!parsed.requests) parsed.requests = [];
         if (!parsed.bookings) parsed.bookings = [];
+        if (!parsed.messages) parsed.messages = [];
+        if (!parsed.subscriptions) parsed.subscriptions = [];
+        if (!parsed.notifications) parsed.notifications = [];
+        if (!parsed.requirements) parsed.requirements = [];
+        if (!parsed.locationUpdates) parsed.locationUpdates = [];
         return parsed;
       }
     } catch (e) {
