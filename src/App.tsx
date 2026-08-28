@@ -283,7 +283,7 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg dark:bg-[#0B1120] text-brand-text dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-[#FFFCF7] dark:bg-[#0B1120] text-[#1F2937] dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       <Navbar
         onToggleSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         activeView={activeTab}
