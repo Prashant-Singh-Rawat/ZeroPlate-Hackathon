@@ -117,9 +117,9 @@
     {
       "name": "TONY STARK",
       "email": "tonystark06032007@gmail.com",
-      "role": "donor",
+      "role": "ngo",
       "avatar": "https://lh3.googleusercontent.com/a/ACg8ocLHvAgO1K-YAIVzz0mIeoM5wkJQBheGhtbiDNA7myKXjTBQhQ=s96-c",
-      "subscriptionPlan": "free",
+      "subscriptionPlan": "premium",
       "latitude": 31.25450417220089,
       "longitude": 75.70560717210654,
       "emailVerified": true,
@@ -611,5 +611,29 @@
       "createdAt": "2026-08-28T20:50:13.141Z"
     }
   ],
-  "locationUpdates": []
+  "locationUpdates": [],
+  "deliveryPersons": [
+    {
+      "id": "del_rahul",
+      "donorId": "donor_spicevilla",
+      "name": "Rahul Sharma",
+      "phone": "+91 98765 43210",
+      "role": "Volunteer",
+      "vehicleType": "Bike",
+      "vehicleNumber": "MH-02-BQ-4512",
+      "availability": "Available",
+      "createdAt": "2026-08-28T21:25:19.086Z"
+    },
+    {
+      "id": "del_amit",
+      "donorId": "donor_spicevilla",
+      "name": "Amit Verma",
+      "phone": "+91 98765 11223",
+      "role": "Driver",
+      "vehicleType": "Van",
+      "vehicleNumber": "MH-02-CV-8890",
+      "availability": "Available",
+      "createdAt": "2026-08-28T21:25:19.086Z"
+    }
+  ]
 }
