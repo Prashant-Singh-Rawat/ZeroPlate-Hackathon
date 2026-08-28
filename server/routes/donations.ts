@@ -27,9 +27,11 @@ router.get('/', (req, res) => {
     donations = donations.filter((d) => d.donorId === donorId);
   }
 
-  // Filter by status if specified
+  // Filter by status if specified, or default to AVAILABLE for NGO search
   if (status) {
     donations = donations.filter((d) => d.status === status);
+  } else if (!donorId && ngoId) {
+    donations = donations.filter((d) => d.status === 'AVAILABLE');
   }
 
   // Search by food name, donor name, or location
@@ -201,8 +203,10 @@ router.post('/', (req, res) => {
     donorName: donorName || 'SpiceVilla Restaurant',
     donorType: donorType || 'Restaurant',
     foodName,
-    foodType: foodType === 'non-veg' ? 'non-veg' : 'veg',
+    foodCategory: category || 'Main Course',
     category: category || 'Main Course',
+    foodSpecifications: req.body.foodSpecifications || ['Cooked Food'],
+    foodType: foodType === 'non-veg' ? 'non-veg' : 'veg',
     mealCount: Number(mealCount),
     quantity: quantity || `${mealCount} meals`,
     description: description || 'Freshly prepared surplus food ready for NGO collection.',

@@ -1,4 +1,4 @@
-export type UserRole = 'donor' | 'ngo';
+export type UserRole = 'donor' | 'ngo' | 'delivery';
 export type SubscriptionPlan = 'free' | 'premium';
 
 export interface User {
@@ -7,12 +7,64 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
+  phone?: string;
   subscriptionPlan: SubscriptionPlan;
-  location: string;
+  location?: string;
   latitude: number;
   longitude: number;
   emailVerified: boolean;
-  donorType?: 'Restaurant' | 'Hotel' | 'Caterer' | 'Household' | 'Volunteer';
+  onboarded: boolean;
+  donorType?: 'Restaurant' | 'Hotel' | 'Caterer' | 'Household' | 'Individual' | 'Volunteer' | 'Other';
+  organizationType?: string;
+  createdAt: string;
+}
+
+export interface NGOEntity {
+  id: string;
+  userId: string;
+  organizationName: string;
+  organizationType: 'NGO' | 'Charity' | 'Community Kitchen' | 'Food Shelter' | 'Orphanage' | 'Old Age Home' | 'Relief Organization' | 'Other';
+  contactPerson: string;
+  phone: string;
+  email: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  locationSharingEnabled: boolean;
+  capacity: number;
+  isPremium?: boolean;
+  availability?: boolean;
+  createdAt: string;
+}
+
+export type NGO = NGOEntity;
+
+export interface NGOFoodRequirement {
+  id: string;
+  ngoId: string;
+  requiredMeals: number;
+  foodSpecifications: string[];
+  foodType: 'veg' | 'non-veg' | 'either';
+  urgency: 'low' | 'medium' | 'high' | 'emergency';
+  requiredBy: string;
+  maximumRadius: number;
+  specificRequirement?: string;
+  status: 'ACTIVE' | 'FULFILLED' | 'CANCELLED';
+  createdAt: string;
+}
+
+export interface DonorEntity {
+  id: string;
+  userId: string;
+  donorType: 'Restaurant' | 'Hotel' | 'Caterer' | 'Household' | 'Individual' | 'Volunteer' | 'Other';
+  organizationName: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  isHousehold: boolean;
   createdAt: string;
 }
 
@@ -21,6 +73,7 @@ export type DonationStatus =
   | 'PENDING_REQUEST'
   | 'CONFIRMED'
   | 'RESERVED'
+  | 'PICKUP_IN_PROGRESS'
   | 'COMPLETED'
   | 'CANCELLED'
   | 'EXPIRED';
@@ -31,36 +84,29 @@ export interface FoodDonation {
   donorName: string;
   donorType?: string;
   foodName: string;
+  foodCategory: string;
+  category?: string;
+  foodSpecifications: string[];
   foodType: 'veg' | 'non-veg';
-  category: string;
   mealCount: number;
   quantity: string;
   description: string;
+  packagingStatus?: 'Already packed' | 'Needs packaging' | 'Not applicable';
   imageUrl?: string;
   latitude: number;
   longitude: number;
   pickupLocation: string;
   pickupAddress?: string;
+  originAddress?: string;
+  originLatitude?: number;
+  originLongitude?: number;
   availableFrom: string;
   pickupDeadline: string;
   status: DonationStatus;
   prepTime?: string;
-  packagingAvailable?: boolean;
+  packagingAvailable: boolean;
   additionalNotes?: string;
   pendingRequestsCount?: number;
-  createdAt: string;
-}
-
-export interface NGO {
-  id: string;
-  userId: string;
-  organizationName: string;
-  capacity: number;
-  latitude: number;
-  longitude: number;
-  address?: string;
-  availability: boolean;
-  isPremium?: boolean;
   createdAt: string;
 }
 
@@ -77,7 +123,9 @@ export interface FoodRequest {
   requestedMeals: number;
   matchScore: number;
   distanceScore: number;
-  mealScore: number;
+  mealQuantityScore: number;
+  mealScore?: number;
+  foodSpecScore: number;
   urgencyScore: number;
   distanceKm: number;
   explanation: string;
@@ -87,9 +135,33 @@ export interface FoodRequest {
   respondedAt?: string;
 }
 
+export type DeliveryRole = 'Driver' | 'Volunteer' | 'Delivery Person' | 'Staff' | 'Other';
+export type VehicleType = 'Bike' | 'Scooter' | 'Car' | 'Van' | 'Other';
+
+export interface DeliveryPerson {
+  id: string;
+  donorId: string;
+  name: string;
+  phone: string;
+  role: DeliveryRole;
+  vehicleType: VehicleType;
+  vehicleNumber?: string;
+  profilePhoto?: string;
+  availability: 'Available' | 'Unavailable';
+  activeBookingId?: string;
+  currentLatitude?: number;
+  currentLongitude?: number;
+  createdAt: string;
+}
+
 export type BookingStatus =
   | 'CONFIRMED'
+  | 'DELIVERY_ASSIGNED'
   | 'PICKUP_IN_PROGRESS'
+  | 'FOOD_PICKED_UP'
+  | 'OUT_FOR_DELIVERY'
+  | 'NEAR_DESTINATION'
+  | 'DELIVERED'
   | 'COMPLETED'
   | 'CANCELLED';
 
@@ -99,17 +171,56 @@ export interface Booking {
   requestId?: string;
   ngoId: string;
   ngoName: string;
+  ngoPhone?: string;
   donorId: string;
   donorName: string;
+  donorPhone?: string;
   foodName: string;
   mealCount: number;
+  foodSpecifications?: string[];
   pickupLocation: string;
+  pickupAddress?: string;
+  originAddress?: string;
+  originLatitude?: number;
+  originLongitude?: number;
+  destinationAddress?: string;
+  destinationLatitude?: number;
+  destinationLongitude?: number;
+  donorLatitude?: number;
+  donorLongitude?: number;
+  ngoLatitude?: number;
+  ngoLongitude?: number;
+  deliveryPersonId?: string;
+  deliveryPersonName?: string;
+  deliveryPersonPhone?: string;
+  deliveryVehicleType?: VehicleType;
+  deliveryVehicleNumber?: string;
+  deliveryPersonLatitude?: number;
+  deliveryPersonLongitude?: number;
+  routeDistanceKm?: number;
+  estimatedMinutes?: number;
+  trafficStatus?: 'Low' | 'Moderate' | 'Heavy' | 'Unavailable';
+  trafficAwareEta?: string;
   status: BookingStatus;
   pickupTime?: string;
   reservationExpiry?: string;
+  liveTrackingEnabled: boolean;
   completedAt?: string;
   createdAt: string;
 }
+
+export interface DeliveryLocationUpdate {
+  id: string;
+  bookingId: string;
+  deliveryPersonId: string;
+  latitude: number;
+  longitude: number;
+  speedKmh?: number;
+  heading?: number;
+  timestamp: string;
+}
+
+export type LocationUpdate = DeliveryLocationUpdate;
 
 export interface Message {
   id: string;
@@ -141,21 +252,13 @@ export interface NotificationItem {
 }
 
 export interface MatchScoreResult {
-  matchScore: number; // 0-100
+  matchScore: number;
   distanceScore: number;
-  mealScore: number;
+  mealQuantityScore: number;
+  mealScore?: number;
+  foodSpecScore: number;
   urgencyScore: number;
   premiumBonus: number;
   distanceKm: number;
   explanation: string;
-}
-
-export interface SearchFilters {
-  location?: string;
-  radiusKm?: number;
-  foodType?: 'all' | 'veg' | 'non-veg';
-  minMeals?: number;
-  maxMeals?: number;
-  urgency?: 'all' | 'urgent';
-  sortBy?: 'best_match' | 'nearest' | 'most_meals' | 'most_urgent' | 'latest';
 }

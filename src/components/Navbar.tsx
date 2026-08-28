@@ -1,25 +1,24 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
-import { UtensilsCrossed, Sparkles } from 'lucide-react';
+import { UtensilsCrossed, Bell, User as UserIcon, Sparkles } from 'lucide-react';
 
 interface NavbarProps {
   onToggleSidebar?: () => void;
   activeView: string;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
-  const { user, role, switchRole, subscriptionPlan } = useAuth();
-  const { t } = useLanguage();
+export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, activeView }) => {
+  const { user, role, subscriptionPlan } = useAuth();
+  const isDonor = role === 'donor';
 
   return (
-    <header className="bg-white dark:bg-[#1E293B] border-b border-amber-900/5 dark:border-slate-800/80 sticky top-0 z-30 shadow-warm-sm transition-colors">
+    <header className="bg-white border-b border-amber-900/5 sticky top-0 z-30 shadow-warm-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo & Mobile Toggle */}
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSidebar}
-            className="md:hidden p-2 text-brand-muted dark:text-slate-400 hover:text-brand-text dark:hover:text-slate-100 rounded-lg"
+            className="md:hidden p-2 text-brand-muted hover:text-brand-text rounded-lg"
           >
             <span className="sr-only">Toggle Sidebar</span>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,9 +31,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
               <UtensilsCrossed className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-xl font-extrabold tracking-tight text-brand-text dark:text-slate-100">ZeroPlate</span>
-              <span className="hidden sm:inline-block ml-2 text-xs font-semibold text-brand-orange dark:text-orange-400 bg-brand-light dark:bg-orange-950/40 px-2 py-0.5 rounded-full border border-orange-200 dark:border-orange-800/60">
-                {t('appTagline')}
+              <span className="text-xl font-extrabold tracking-tight text-brand-text">ZeroPlate</span>
+              <span className="hidden sm:inline-block ml-2 text-xs font-semibold text-brand-orange bg-brand-light px-2 py-0.5 rounded-full border border-orange-200">
+                Share Food, Share Hope
               </span>
             </div>
           </div>
@@ -42,52 +41,31 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
 
         {/* Header Right Controls */}
         <div className="flex items-center gap-3 sm:gap-4">
-          {/* Demo Role Switcher Pill */}
-          <div className="bg-brand-cream dark:bg-[#0F172A] border border-orange-200 dark:border-slate-700 rounded-full p-1 flex items-center shadow-warm-sm">
-            <button
-              onClick={() => switchRole('donor')}
-              className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
-                role === 'donor'
-                  ? 'bg-brand-orange text-white shadow-sm'
-                  : 'text-brand-muted dark:text-slate-400 hover:text-brand-text dark:hover:text-slate-100'
-              }`}
-            >
-              {t('donorView')}
-            </button>
-            <button
-              onClick={() => switchRole('ngo')}
-              className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
-                role === 'ngo'
-                  ? 'bg-brand-orange text-white shadow-sm'
-                  : 'text-brand-muted dark:text-slate-400 hover:text-brand-text dark:hover:text-slate-100'
-              }`}
-            >
-              {t('ngoView')}
-            </button>
-          </div>
+          {/* Active Portal Badge (Role Locked) */}
+          <span className="px-3 py-1 bg-brand-light text-brand-deep rounded-full text-xs font-black border border-orange-200 uppercase tracking-wider">
+            {isDonor ? '🍽️ Food Donor Portal' : '❤️ NGO Manager Portal'}
+          </span>
 
-          {/* Subscription Plan Badge (NGO Only) */}
-          {role === 'ngo' && (
-            subscriptionPlan === 'premium' ? (
-              <span className="hidden lg:flex items-center gap-1 text-xs font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 rounded-full shadow-warm-sm">
-                <Sparkles className="w-3.5 h-3.5 fill-white" />
-                {t('priorityPlan')}
-              </span>
-            ) : (
-              <span className="hidden lg:inline-block text-xs font-semibold text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-full border dark:border-slate-700">
-                {t('freeTier')}
-              </span>
-            )
+          {/* Subscription Plan Badge */}
+          {subscriptionPlan === 'premium' ? (
+            <span className="hidden lg:flex items-center gap-1 text-xs font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 rounded-full shadow-warm-sm">
+              <Sparkles className="w-3.5 h-3.5 fill-white" />
+              Priority Plan
+            </span>
+          ) : (
+            <span className="hidden lg:inline-block text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full border">
+              Standard Plan
+            </span>
           )}
 
           {/* User Profile Pill */}
-          <div className="flex items-center gap-2 pl-2 border-l border-gray-200 dark:border-slate-700">
-            <div className="w-8 h-8 rounded-full bg-brand-light dark:bg-orange-950/50 text-brand-deep dark:text-orange-400 font-bold flex items-center justify-center text-sm border border-orange-200 dark:border-orange-800/60 shadow-warm-sm">
+          <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
+            <div className="w-8 h-8 rounded-full bg-brand-light text-brand-deep font-bold flex items-center justify-center text-sm border border-orange-200 shadow-warm-sm">
               {user?.name ? user.name.charAt(0) : 'U'}
             </div>
             <div className="hidden md:block text-left">
-              <p className="text-xs font-bold text-brand-text dark:text-slate-100 truncate max-w-[130px]">{user?.name}</p>
-              <p className="text-[10px] font-semibold text-brand-orange dark:text-orange-400 uppercase">{role === 'donor' ? t('donorView') : t('ngoView')}</p>
+              <p className="text-xs font-bold text-brand-text truncate max-w-[130px]">{user?.name}</p>
+              <p className="text-[10px] font-semibold text-brand-orange uppercase">{isDonor ? 'Food Donor' : 'NGO Manager'}</p>
             </div>
           </div>
         </div>

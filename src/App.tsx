@@ -6,21 +6,25 @@ import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { Toast, ToastMessage } from './components/Toast';
 
-// Auth Pages
+// Auth & Onboarding Pages
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { ForgotPassword } from './pages/ForgotPassword';
+import { Onboarding } from './pages/Onboarding';
 
 // Donor Pages
 import { DonorDashboard } from './pages/DonorDashboard';
 import { AddFood } from './pages/AddFood';
 import { MyListings } from './pages/MyListings';
 import { DonorRequests } from './pages/DonorRequests';
+import { DeliveryPersonsPage } from './pages/DeliveryPersonsPage';
+import { DeliveriesPage } from './pages/DeliveriesPage';
 
 // NGO Pages
 import { NGODashboard } from './pages/NGODashboard';
 import { FindFood } from './pages/FindFood';
 import { MyRequests } from './pages/MyRequests';
+import { HireDeliveryPartnerPage } from './pages/HireDeliveryPartnerPage';
 
 // Shared Pages
 import { BookingsPage } from './pages/BookingsPage';
@@ -48,7 +52,7 @@ const MainLayout: React.FC = () => {
     });
   };
 
-  // Keep pending requests count fresh
+  // Keep pending requests count fresh for donors
   useEffect(() => {
     if (user && role === 'donor') {
       fetch(`/api/requests?donorId=${user.id}&status=PENDING`)
@@ -57,18 +61,6 @@ const MainLayout: React.FC = () => {
         .catch(() => {});
     }
   }, [user, role, activeTab]);
-
-  // Reset tab on role switch if current tab is role-incompatible
-  useEffect(() => {
-    const donorOnlyTabs = ['add-food', 'donations', 'donations-available', 'donations-reserved', 'donations-completed', 'requests'];
-    const ngoOnlyTabs = ['find-food', 'find-food-map', 'find-food-list', 'my-requests', 'subscription'];
-
-    if (role === 'donor' && ngoOnlyTabs.includes(activeTab)) {
-      setActiveTab('dashboard');
-    } else if (role === 'ngo' && donorOnlyTabs.includes(activeTab)) {
-      setActiveTab('dashboard');
-    }
-  }, [role, activeTab]);
 
   // Auth pages if user is not logged in
   if (!user) {
@@ -83,6 +75,19 @@ const MainLayout: React.FC = () => {
         onNavigateSignup={() => setAuthView('signup')}
         onNavigateForgot={() => setAuthView('forgot')}
       />
+    );
+  }
+
+  // Onboarding gate: if user is not yet onboarded, show role-specific setup
+  if (user.onboarded === false) {
+    return (
+      <div className="min-h-screen bg-brand-bg dark:bg-[#0B1120] text-brand-text dark:text-slate-100 font-sans transition-colors duration-200">
+        <Onboarding
+          onComplete={() => setActiveTab('dashboard')}
+          onShowToast={showToast}
+        />
+        <Toast toast={toast} onClose={() => setToast(null)} />
+      </div>
     );
   }
 
@@ -101,24 +106,24 @@ const MainLayout: React.FC = () => {
         ) : (
           <NGODashboard
             onNavigate={handleNavigate}
-            onRequestDonation={() => handleNavigate('find-food')}
+            onRequestDonation={(donation) => {
+              handleNavigate('find-food', { selectedDonation: donation });
+            }}
           />
         );
 
-      // Donor Specific Views (§2)
+      // Donor Specific Views
       case 'add-food':
         if (!isDonor) {
           return (
             <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
-              Access Restricted: Only Food Donors may create food donation listings.
+              Access Restricted: Only Food Donors may publish food donations.
             </div>
           );
         }
         return (
           <AddFood
-            onSuccessPublished={() => {
-              setActiveTab('donations');
-            }}
+            onSuccessPublished={() => setActiveTab('donations')}
             onShowToast={showToast}
           />
         );
@@ -130,7 +135,7 @@ const MainLayout: React.FC = () => {
         if (!isDonor) {
           return (
             <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
-              Access Restricted: My Food Donations is available only for Food Donors.
+              Access Restricted: Food Donations listings are available only for Food Donors.
             </div>
           );
         }
@@ -152,15 +157,26 @@ const MainLayout: React.FC = () => {
         }
         return (
           <DonorRequests
-            onNavigateBookings={() => setActiveTab('bookings')}
+            onNavigateBookings={() => setActiveTab('deliveries')}
             onShowToast={showToast}
           />
         );
 
-      // NGO Specific Views (§3)
+      case 'delivery-persons':
+        if (!isDonor) {
+          return (
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
+              Access Restricted: Delivery fleet management is available to Food Donors.
+            </div>
+          );
+        }
+        return <DeliveryPersonsPage onShowToast={showToast} />;
+
+      // NGO Specific Views
       case 'find-food':
       case 'find-food-map':
       case 'find-food-list':
+      case 'nearby-donors':
         if (isDonor) {
           return (
             <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
@@ -187,12 +203,32 @@ const MainLayout: React.FC = () => {
         return (
           <MyRequests
             onNavigateFindFood={() => setActiveTab('find-food')}
-            onNavigateBookings={() => setActiveTab('bookings')}
+            onNavigateBookings={() => setActiveTab('active-deliveries')}
             onShowToast={showToast}
           />
         );
 
-      // Shared Views
+      case 'hire-delivery':
+        if (isDonor) {
+          return (
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
+              Access Restricted: Hire Delivery Partner is exclusively for NGO Managers.
+            </div>
+          );
+        }
+        return (
+          <HireDeliveryPartnerPage
+            onNavigateDeliveries={() => setActiveTab('active-deliveries')}
+            onShowToast={showToast}
+          />
+        );
+
+      // Shared Deliveries & Bookings
+      case 'deliveries':
+      case 'active-deliveries':
+      case 'delivery-history':
+        return <DeliveriesPage onShowToast={showToast} />;
+
       case 'bookings':
         return <BookingsPage onShowToast={showToast} />;
 
@@ -200,13 +236,6 @@ const MainLayout: React.FC = () => {
         return <MessagesPage />;
 
       case 'subscription':
-        if (isDonor) {
-          return (
-            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
-              Access Restricted: Subscription tiers and boost plans are exclusively for NGO Managers.
-            </div>
-          );
-        }
         return (
           <SubscriptionPage
             onUpgradeSuccess={(msg) => {
@@ -221,24 +250,24 @@ const MainLayout: React.FC = () => {
       case 'profile':
         return (
           <div className="bg-white dark:bg-[#1E293B] rounded-3xl p-8 border border-amber-900/5 dark:border-slate-800 shadow-warm-sm space-y-4 max-w-xl transition-colors">
-            <h2 className="text-xl font-black text-brand-text dark:text-slate-100">{t('orgProfile')}</h2>
+            <h2 className="text-xl font-black text-brand-text dark:text-slate-100">{t('orgProfile', 'Organization Profile')}</h2>
             <div className="space-y-2 text-xs text-brand-muted dark:text-slate-400">
               <p>
-                {t('orgName')} <strong className="text-brand-text dark:text-slate-200 font-bold">{user.name}</strong>
+                {t('orgName', 'Organization Name')}: <strong className="text-brand-text dark:text-slate-200 font-bold">{user.name}</strong>
               </p>
               <p>
-                {t('registeredEmail')} <strong className="text-brand-text dark:text-slate-200 font-bold">{user.email}</strong>
+                {t('registeredEmail', 'Registered Email')}: <strong className="text-brand-text dark:text-slate-200 font-bold">{user.email}</strong>
               </p>
               <p>
-                {t('assignedRole')} <strong className="uppercase text-brand-orange dark:text-orange-400 font-extrabold">{role === 'donor' ? t('donorPortal') : t('ngoPortal')}</strong>
+                {t('assignedRole', 'Portal Role')}: <strong className="uppercase text-brand-orange dark:text-orange-400 font-extrabold">{role === 'donor' ? 'Food Donor / Volunteer' : 'NGO Manager'}</strong>
               </p>
               <p>
-                {t('locationLabel')} <strong className="text-brand-text dark:text-slate-200 font-bold">{user.location}</strong>
+                {t('locationLabel', 'Location')}: <strong className="text-brand-text dark:text-slate-200 font-bold">{user.location || 'Mumbai, Maharashtra'}</strong>
               </p>
               <p>
-                {t('statusLabel')}{' '}
+                {t('statusLabel', 'Account Status')}:{' '}
                 <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800">
-                  {t('verifiedActive')}
+                  {t('verifiedActive', 'Verified Active')}
                 </span>
               </p>
             </div>
