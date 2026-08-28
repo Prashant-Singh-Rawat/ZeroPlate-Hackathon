@@ -9,7 +9,8 @@
       "location": "Bandra West, Mumbai",
       "latitude": 19.076,
       "longitude": 72.8777,
-      "createdAt": "2026-08-28T18:24:24.624Z"
+      "createdAt": "2026-08-28T18:24:24.624Z",
+      "emailVerified": true
     },
     {
       "id": "donor_greenleaf",
@@ -112,6 +113,22 @@
       "onboarded": false,
       "id": "user_1787949240946_479",
       "createdAt": "2026-08-28T20:34:00.946Z"
+    },
+    {
+      "name": "TONY STARK",
+      "email": "tonystark06032007@gmail.com",
+      "role": "donor",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocLHvAgO1K-YAIVzz0mIeoM5wkJQBheGhtbiDNA7myKXjTBQhQ=s96-c",
+      "subscriptionPlan": "free",
+      "latitude": 31.25450417220089,
+      "longitude": 75.70560717210654,
+      "emailVerified": true,
+      "onboarded": true,
+      "id": "user_1787950082389_290",
+      "createdAt": "2026-08-28T20:48:02.389Z",
+      "donorType": "Household",
+      "phone": "+919119341195",
+      "location": "GPS Location (31.2545, 75.7056) - Bandra, Mumbai"
     }
   ],
   "ngos": [
@@ -578,6 +595,20 @@
       "longitude": 72.8777,
       "isHousehold": false,
       "createdAt": "2026-08-28T20:31:02.075Z"
+    },
+    {
+      "id": "donor_entity_user_1787950082389_290",
+      "userId": "user_1787950082389_290",
+      "donorType": "Household",
+      "organizationName": "TONY STARK",
+      "contactPerson": "Devesh Tiwari",
+      "phone": "+919119341195",
+      "email": "tonystark06032007@gmail.com",
+      "address": "GPS Location (31.2545, 75.7056) - Bandra, Mumbai",
+      "latitude": 31.25450417220089,
+      "longitude": 75.70560717210654,
+      "isHousehold": false,
+      "createdAt": "2026-08-28T20:50:13.141Z"
     }
   ],
   "locationUpdates": []

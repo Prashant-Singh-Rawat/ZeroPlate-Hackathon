@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Building2,
@@ -12,6 +12,9 @@ import {
   ArrowRight,
   Info,
   Sparkles,
+  Compass,
+  Crosshair,
+  Radio,
 } from 'lucide-react';
 
 interface OnboardingProps {
@@ -30,10 +33,12 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onShowToast 
   const [address, setAddress] = useState(
     isNGO ? 'Bandra East Community Center, Mumbai 400051' : 'Shop 4, Hill Road, Bandra West, Mumbai 400050'
   );
-  const [latitude, setLatitude] = useState<number>(isNGO ? 19.062 : 19.076);
-  const [longitude, setLongitude] = useState<number>(isNGO ? 72.854 : 72.8777);
+  const [latitude, setLatitude] = useState<number>(user?.latitude || (isNGO ? 19.062 : 19.076));
+  const [longitude, setLongitude] = useState<number>(user?.longitude || (isNGO ? 72.854 : 72.8777));
   const [isLocating, setIsLocating] = useState(false);
+  const [isLiveTracking, setIsLiveTracking] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string>('');
+  const [geocodedArea, setGeocodedArea] = useState<string>('');
 
   // NGO Specific Fields (§3)
   const [orgType, setOrgType] = useState<string>('NGO');
@@ -74,6 +79,41 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onShowToast 
     }
   };
 
+  // Real-time reverse geocode coordinates to human-readable address
+  const reverseGeocode = async (lat: number, lng: number) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+        { headers: { 'User-Agent': 'ZeroPlate-FoodRescue/1.0' } }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data.display_name) {
+          const parts = [
+            data.address?.road || data.address?.suburb,
+            data.address?.city || data.address?.town || data.address?.county,
+            data.address?.state,
+            data.address?.postcode,
+          ]
+            .filter(Boolean)
+            .join(', ');
+
+          const formattedAddress = parts || data.display_name;
+          setAddress(formattedAddress);
+          setGeocodedArea(formattedAddress);
+          return formattedAddress;
+        }
+      }
+    } catch (e) {
+      console.warn('Reverse geocoding error', e);
+    }
+    const fallback = `Location Coordinates (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+    setAddress(fallback);
+    setGeocodedArea(fallback);
+    return fallback;
+  };
+
+  // Live GPS locator
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
       onShowToast('warning', 'Geolocation is not supported by your browser.');
@@ -81,27 +121,48 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onShowToast 
     }
 
     setIsLocating(true);
-    setLocationStatus('Requesting browser GPS permission...');
+    setLocationStatus('Acquiring high-accuracy real-time GPS coordinates...');
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         setLatitude(lat);
         setLongitude(lng);
         setIsLocating(false);
-        setLocationStatus('GPS Coordinates captured accurately.');
-        setAddress(`GPS Location (${lat.toFixed(4)}, ${lng.toFixed(4)}) - Bandra, Mumbai`);
-        onShowToast('success', 'Location updated successfully via GPS.');
+        setIsLiveTracking(true);
+        setLocationStatus(`GPS Locked: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+
+        const addr = await reverseGeocode(lat, lng);
+        onShowToast('success', `Real-time GPS locked: ${addr.slice(0, 40)}...`);
       },
       (err) => {
         setIsLocating(false);
-        setLocationStatus('Permission denied or GPS unavailable. Using default landmark coordinates.');
-        onShowToast('info', 'Default Mumbai landmark location used.');
+        setLocationStatus('GPS permission denied. Using fallback coordinates.');
+        onShowToast('info', 'Default location used.');
       },
-      { timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
   };
+
+  // Auto-acquire live GPS on component mount for instant accuracy
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setLatitude(lat);
+          setLongitude(lng);
+          setIsLiveTracking(true);
+          setLocationStatus(`Live GPS Active: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+          await reverseGeocode(lat, lng);
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -267,14 +328,16 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onShowToast 
 
           <hr className="border-gray-100" />
 
-          {/* Section 2: Location & Transparent Geolocation (§3, §4) */}
+          {/* Section 2: Real-Time GPS Tracking & Interactive Google Map */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-black text-brand-orange uppercase tracking-wider">
-                2. Operating Location & GPS
+              <h3 className="text-xs font-black text-brand-orange uppercase tracking-wider flex items-center gap-2">
+                <Compass className="w-4 h-4 text-brand-orange" />
+                <span>2. Operating Location & Real-Time GPS Tracker</span>
               </h3>
-              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                Transparent Location
+              <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Live GPS Radar Active</span>
               </span>
             </div>
 
@@ -282,15 +345,16 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onShowToast 
             <div className="bg-brand-light/70 p-3.5 rounded-2xl border border-orange-200/80 flex items-start gap-3 text-xs text-brand-deep font-medium">
               <Info className="w-5 h-5 text-brand-orange shrink-0 mt-0.5" />
               <div>
-                <strong>Why we request location:</strong> Your GPS location helps ZeroPlate calculate accurate Haversine distances, route surplus meals before expiration, and power live pickup coordination.
+                <strong>Real-Time GPS Location Tracking:</strong> Your live coordinates are used by ZeroPlate to compute precise Haversine distances, route urgent meal pickups within your operating zone, and coordinate live driver handoffs.
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Left Input & GPS Trigger */}
+              <div className="space-y-3 flex flex-col justify-between">
                 <div>
                   <label className="block text-xs font-bold text-brand-text uppercase mb-1">
-                    Street Address / Landmark
+                    Street Address & Live Geocoded Area
                   </label>
                   <div className="relative">
                     <MapPin className="w-4 h-4 text-brand-orange absolute left-3.5 top-3" />
@@ -302,39 +366,83 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onShowToast 
                       className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:border-brand-orange focus:outline-none"
                     />
                   </div>
+                  {geocodedArea && (
+                    <p className="text-[10px] text-emerald-700 font-bold mt-1 truncate">
+                      📍 Geocoded: {geocodedArea}
+                    </p>
+                  )}
                 </div>
 
-                {/* Geolocation Button */}
+                {/* Real-time GPS Trigger Button */}
                 <button
                   type="button"
                   onClick={handleUseCurrentLocation}
                   disabled={isLocating}
-                  className="w-full py-2.5 px-4 bg-white hover:bg-orange-50 border border-brand-orange text-brand-deep font-bold text-xs rounded-xl shadow-warm-sm transition-all flex items-center justify-center gap-2 active:scale-95"
+                  className="w-full py-3 px-4 bg-brand-orange hover:bg-brand-deep text-white font-extrabold text-xs rounded-xl shadow-warm-sm transition-all flex items-center justify-center gap-2 active:scale-95 group"
                 >
-                  <Navigation className="w-4 h-4 text-brand-orange" />
-                  <span>{isLocating ? 'Acquiring GPS...' : 'Use My Current Location (GPS)'}</span>
+                  <Crosshair className={`w-4 h-4 text-white ${isLocating ? 'animate-spin' : 'group-hover:scale-110'}`} />
+                  <span>{isLocating ? 'Acquiring GPS Satellite Lock...' : 'Track My Current Real-Time Location (GPS)'}</span>
                 </button>
 
                 {locationStatus && (
-                  <p className="text-[11px] text-brand-muted font-medium italic">{locationStatus}</p>
+                  <p className="text-[11px] text-brand-muted font-medium italic flex items-center gap-1.5">
+                    <Radio className="w-3.5 h-3.5 text-brand-orange animate-pulse" />
+                    <span>{locationStatus}</span>
+                  </p>
                 )}
+
+                {/* Coordinate Display */}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-200">
+                    <span className="text-[10px] text-gray-500 font-bold uppercase block">Latitude</span>
+                    <strong className="font-mono text-brand-text font-bold">{latitude.toFixed(5)}° N</strong>
+                  </div>
+                  <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-200">
+                    <span className="text-[10px] text-gray-500 font-bold uppercase block">Longitude</span>
+                    <strong className="font-mono text-brand-text font-bold">{longitude.toFixed(5)}° E</strong>
+                  </div>
+                </div>
               </div>
 
-              {/* Map Coordinates Preview */}
-              <div className="bg-stone-900 text-white rounded-2xl p-4 flex flex-col justify-between border border-amber-950/40 relative overflow-hidden">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase text-orange-400">Target Coordinates</span>
-                  <div className="text-sm font-mono font-bold">
-                    Lat: {latitude.toFixed(4)}, Lng: {longitude.toFixed(4)}
-                  </div>
-                  <p className="text-[10px] text-stone-400">
-                    Adjustable pinpoint centered in Mumbai metro rescue zone.
-                  </p>
+              {/* Right: Embedded Live Map & GPS Pin Tracker */}
+              <div className="relative rounded-2xl overflow-hidden border-2 border-orange-200 shadow-md h-56 bg-slate-900 flex flex-col justify-between">
+                {/* Interactive Map Iframe centered on user's exact GPS coordinates */}
+                <iframe
+                  title="Live GPS Map Location"
+                  width="100%"
+                  height="100%"
+                  frameBorder="0"
+                  scrolling="no"
+                  marginHeight={0}
+                  marginWidth={0}
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.01}%2C${latitude - 0.008}%2C${longitude + 0.01}%2C${latitude + 0.008}&layer=mapnik&marker=${latitude}%2C${longitude}`}
+                  className="w-full h-full opacity-90 hover:opacity-100 transition-opacity"
+                />
+
+                {/* Top Badge Overlay */}
+                <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
+                  <span className="px-2.5 py-1 bg-black/80 backdrop-blur-md rounded-full text-white text-[10px] font-black border border-white/20 flex items-center gap-1.5 shadow-lg">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span>Real-Time GPS Map View</span>
+                  </span>
+                  <span className="px-2 py-0.5 bg-brand-orange text-white text-[9px] font-black rounded-full shadow">
+                    Active Radar
+                  </span>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2 text-[10px] text-emerald-400 font-bold">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Ready for Haversine Distance Calculation</span>
+                {/* Bottom Coordinates & External Map Link */}
+                <div className="absolute bottom-2 left-2 right-2 bg-black/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 flex items-center justify-between text-[10px] text-white">
+                  <div className="font-mono font-bold truncate max-w-[200px]">
+                    {latitude.toFixed(4)}, {longitude.toFixed(4)}
+                  </div>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-orange-400 hover:text-orange-300 font-bold underline shrink-0 pointer-events-auto"
+                  >
+                    Open in Google Maps ↗
+                  </a>
                 </div>
               </div>
             </div>
