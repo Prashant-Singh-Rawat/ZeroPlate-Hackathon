@@ -273,11 +273,11 @@
       "pickupLocation": "SpiceVilla Restaurant, Hill Road, Bandra West",
       "availableFrom": "2026-08-28T17:54:24.625Z",
       "pickupDeadline": "2026-08-28T22:24:24.625Z",
-      "status": "PENDING_REQUEST",
+      "status": "AVAILABLE",
       "prepTime": "Freshly prepared 1 hour ago",
       "packagingAvailable": true,
       "createdAt": "2026-08-28T18:24:24.625Z",
-      "pendingRequestsCount": 1
+      "pendingRequestsCount": 0
     },
     {
       "id": "don_dalrice",
@@ -506,9 +506,10 @@
       "urgencyScore": 88,
       "distanceKm": 2.9,
       "explanation": "Recommended because Hope Foundation is 2.9 km away, currently pickup needed within 3 hours, and has full capacity for all 80 meals. Includes Priority NGO boost.",
-      "status": "PENDING",
+      "status": "CANCELLED",
       "notes": "",
-      "requestedAt": "2026-08-28T19:15:22.502Z"
+      "requestedAt": "2026-08-28T19:15:22.502Z",
+      "respondedAt": "2026-08-28T21:10:01.047Z"
     },
     {
       "id": "req_1787944116799_226",

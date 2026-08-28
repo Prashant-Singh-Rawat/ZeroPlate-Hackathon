@@ -159,3 +159,61 @@ export interface SearchFilters {
   urgency?: 'all' | 'urgent';
   sortBy?: 'best_match' | 'nearest' | 'most_meals' | 'most_urgent' | 'latest';
 }
+
+export interface NotificationSettings {
+  newMatchingFood: boolean;
+  requestUpdates: boolean;
+  bookingConfirmed: boolean;
+  pickupReminders: boolean;
+  newMessages: boolean;
+  expiringAlerts: boolean;
+  frequency: 'instant' | 'daily';
+}
+
+export interface MatchingPreferences {
+  maxRadiusKm: number;
+  minMeals: number;
+  preferredTypes: {
+    vegetarian: boolean;
+    nonVegetarian: boolean;
+    cookedFood: boolean;
+    packagedFood: boolean;
+  };
+  showExpiringFirst: boolean;
+  prioritizeUrgent: boolean;
+}
+
+export interface PickupPreferences {
+  availableDays: string[];
+  startTime: string;
+  endTime: string;
+  maxDistanceKm: number;
+  vehicleAvailable: boolean;
+  contactNumber: string;
+}
+
+export interface SecuritySettings {
+  twoFactorEnabled: boolean;
+  lastPasswordChanged?: string;
+}
+
+export interface GeneralSettings {
+  language: string;
+  appearance: 'light' | 'dark';
+  locationServices: boolean;
+  location?: string;
+  distanceUnit?: 'km' | 'miles';
+  timeFormat?: '12h' | '24h';
+}
+
+export interface UserSettings {
+  userId: string;
+  role: UserRole;
+  notifications: NotificationSettings;
+  matching: MatchingPreferences;
+  pickup: PickupPreferences;
+  security: SecuritySettings;
+  general: GeneralSettings;
+  updatedAt: string;
+}
+

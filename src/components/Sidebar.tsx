@@ -18,6 +18,8 @@ import {
   User,
 } from 'lucide-react';
 
+import { useThemeLanguage } from '../context/ThemeLanguageContext';
+
 interface SubNavItem {
   id: string;
   label: string;
@@ -48,55 +50,56 @@ export const Sidebar: React.FC<SidebarProps> = ({
   pendingRequestsCount = 0,
 }) => {
   const { role, logout, user } = useAuth();
+  const { t } = useThemeLanguage();
   const isDonor = role === 'donor';
 
   const donorLinks: NavItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'dashboard', label: t('nav.dashboard', 'Dashboard'), icon: LayoutDashboard },
     {
       id: 'donations',
-      label: 'Food Donations',
+      label: t('nav.foodDonations', 'Food Donations'),
       icon: UtensilsCrossed,
       subLinks: [
-        { id: 'add-food', label: 'Add Food', icon: PlusCircle },
-        { id: 'donations-available', label: 'Available', icon: ListFilter },
-        { id: 'donations-reserved', label: 'Reserved / Pending', icon: ListFilter },
-        { id: 'donations-completed', label: 'Completed', icon: ListFilter },
+        { id: 'add-food', label: t('nav.addFood', 'Add Food'), icon: PlusCircle },
+        { id: 'donations-available', label: t('nav.available', 'Available'), icon: ListFilter },
+        { id: 'donations-reserved', label: t('nav.reserved', 'Reserved / Pending'), icon: ListFilter },
+        { id: 'donations-completed', label: t('nav.completed', 'Completed'), icon: ListFilter },
       ],
     },
     {
       id: 'requests',
-      label: 'NGO Requests',
+      label: t('nav.ngoRequests', 'NGO Requests'),
       icon: Inbox,
       badge: pendingRequestsCount > 0 ? pendingRequestsCount : undefined,
     },
-    { id: 'bookings', label: 'Bookings', icon: CalendarDays },
-    { id: 'impact', label: 'Impact Dashboard', icon: TrendingUp },
-    { id: 'messages', label: 'Messages', icon: MessageSquare },
+    { id: 'bookings', label: t('nav.bookings', 'Bookings'), icon: CalendarDays },
+    { id: 'impact', label: t('nav.impact', 'Impact Dashboard'), icon: TrendingUp },
+    { id: 'messages', label: t('nav.messages', 'Messages'), icon: MessageSquare },
   ];
 
   const ngoLinks: NavItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'dashboard', label: t('nav.dashboard', 'Dashboard'), icon: LayoutDashboard },
     {
       id: 'find-food',
-      label: 'Find Food',
+      label: t('nav.findFood', 'Find Food'),
       icon: Search,
       subLinks: [
-        { id: 'find-food-map', label: 'Map View', icon: MapPin },
-        { id: 'find-food-list', label: 'List View', icon: ListFilter },
+        { id: 'find-food-map', label: t('nav.mapView', 'Map View'), icon: MapPin },
+        { id: 'find-food-list', label: t('nav.listView', 'List View'), icon: ListFilter },
       ],
     },
-    { id: 'my-requests', label: 'My Requests', icon: Inbox },
-    { id: 'bookings', label: 'Bookings', icon: CalendarDays },
-    { id: 'messages', label: 'Messages', icon: MessageSquare },
-    { id: 'impact', label: 'Impact Dashboard', icon: TrendingUp },
+    { id: 'my-requests', label: t('nav.myRequests', 'My Requests'), icon: Inbox },
+    { id: 'bookings', label: t('nav.bookings', 'Bookings'), icon: CalendarDays },
+    { id: 'messages', label: t('nav.messages', 'Messages'), icon: MessageSquare },
+    { id: 'impact', label: t('nav.impact', 'Impact Dashboard'), icon: TrendingUp },
   ];
 
   const mainLinks = isDonor ? donorLinks : ngoLinks;
 
   const secondaryLinks = [
-    { id: 'subscription', label: 'Subscription', icon: Sparkles },
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'subscription', label: t('nav.subscription', 'Subscription'), icon: Sparkles },
+    { id: 'profile', label: t('nav.profile', 'Profile'), icon: User },
+    { id: 'settings', label: t('nav.settings', 'Settings'), icon: Settings },
   ];
 
   return (
@@ -232,10 +235,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             onClick={logout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold text-xs text-red-600 hover:bg-red-50 transition-all"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold text-xs text-red-600 hover:bg-red-50 transition-all cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
+            <span>{t('nav.logout', 'Sign Out')}</span>
           </button>
         </div>
       </aside>

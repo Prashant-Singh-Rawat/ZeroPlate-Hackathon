@@ -42,3 +42,82 @@
 .animate-status-pop {
   animation: status-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Dark Theme Overrides */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body,
+html.dark .bg-brand-bg {
+  background-color: #0B0F19 !important;
+  color: #F8FAFC !important;
+}
+
+html.dark .bg-white {
+  background-color: #151D2E !important;
+  border-color: #243048 !important;
+  color: #F8FAFC !important;
+}
+
+html.dark .text-brand-text {
+  color: #F8FAFC !important;
+}
+
+html.dark .text-brand-muted {
+  color: #94A3B8 !important;
+}
+
+html.dark .text-gray-700,
+html.dark .text-gray-600,
+html.dark .text-gray-800,
+html.dark .text-stone-700 {
+  color: #E2E8F0 !important;
+}
+
+html.dark .bg-gray-50,
+html.dark .bg-gray-100,
+html.dark .bg-slate-50,
+html.dark .bg-amber-50\/40,
+html.dark .bg-amber-50\/80,
+html.dark .bg-brand-cream,
+html.dark .bg-brand-cream\/60,
+html.dark .bg-brand-cream\/50,
+html.dark .bg-brand-cream\/40,
+html.dark .bg-brand-cream\/30,
+html.dark .bg-brand-light {
+  background-color: #1A2338 !important;
+  border-color: #2E3C56 !important;
+}
+
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-gray-300,
+html.dark .border-amber-900\/5,
+html.dark .border-amber-900\/10,
+html.dark .border-orange-100,
+html.dark .border-orange-100\/70,
+html.dark .border-orange-200\/60,
+html.dark .divide-gray-100 > * + * {
+  border-color: #243048 !important;
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: #0F172A !important;
+  border-color: #2E3C56 !important;
+  color: #F8FAFC !important;
+}
+
+html.dark header,
+html.dark aside,
+html.dark nav {
+  background-color: #151D2E !important;
+  border-color: #243048 !important;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #0B0F19;
+}
+

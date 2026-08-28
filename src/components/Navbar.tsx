@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useThemeLanguage } from '../context/ThemeLanguageContext';
 import { UtensilsCrossed, Bell, User as UserIcon, Sparkles, RefreshCw } from 'lucide-react';
 
 interface NavbarProps {
@@ -9,6 +10,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, activeView }) => {
   const { user, role, switchRole, subscriptionPlan } = useAuth();
+  const { t } = useThemeLanguage();
 
   return (
     <header className="bg-white border-b border-amber-900/5 sticky top-0 z-30 shadow-warm-sm">
@@ -32,7 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, activeView }) =
             <div>
               <span className="text-xl font-extrabold tracking-tight text-brand-text">ZeroPlate</span>
               <span className="hidden sm:inline-block ml-2 text-xs font-semibold text-brand-orange bg-brand-light px-2 py-0.5 rounded-full border border-orange-200">
-                Share Food, Share Hope
+                {t('app.tagline', 'Share Food, Share Hope')}
               </span>
             </div>
           </div>
@@ -44,23 +46,23 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, activeView }) =
           <div className="bg-brand-cream border border-orange-200 rounded-full p-1 flex items-center shadow-warm-sm">
             <button
               onClick={() => switchRole('donor')}
-              className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
+              className={`px-3 py-1 text-xs font-bold rounded-full transition-all cursor-pointer ${
                 role === 'donor'
                   ? 'bg-brand-orange text-white shadow-sm'
                   : 'text-brand-muted hover:text-brand-text'
               }`}
             >
-              Donor View
+              {t('nav.donorView', 'Donor View')}
             </button>
             <button
               onClick={() => switchRole('ngo')}
-              className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
+              className={`px-3 py-1 text-xs font-bold rounded-full transition-all cursor-pointer ${
                 role === 'ngo'
                   ? 'bg-brand-orange text-white shadow-sm'
                   : 'text-brand-muted hover:text-brand-text'
               }`}
             >
-              NGO View
+              {t('nav.ngoView', 'NGO View')}
             </button>
           </div>
 
@@ -68,11 +70,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, activeView }) =
           {subscriptionPlan === 'premium' ? (
             <span className="hidden lg:flex items-center gap-1 text-xs font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 rounded-full shadow-warm-sm">
               <Sparkles className="w-3.5 h-3.5 fill-white" />
-              Priority Plan
+              {t('nav.priorityPlan', 'Priority Plan')}
             </span>
           ) : (
             <span className="hidden lg:inline-block text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full border">
-              Free Tier
+              {t('nav.freeTier', 'Free Tier')}
             </span>
           )}
 

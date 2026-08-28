@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeLanguageProvider } from './context/ThemeLanguageContext';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { Toast, ToastMessage } from './components/Toast';
@@ -25,6 +26,7 @@ import { BookingsPage } from './pages/BookingsPage';
 import { MessagesPage } from './pages/MessagesPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { ImpactDashboard } from './pages/ImpactDashboard';
+import { SettingsPage } from './pages/SettingsPage';
 
 const MainLayout: React.FC = () => {
   const { user, role } = useAuth();
@@ -196,10 +198,9 @@ const MainLayout: React.FC = () => {
         return <ImpactDashboard />;
 
       case 'profile':
-      case 'settings':
         return (
           <div className="bg-white rounded-3xl p-8 border border-amber-900/5 shadow-warm-sm space-y-4 max-w-xl">
-            <h2 className="text-xl font-black text-brand-text">Organization Profile & Settings</h2>
+            <h2 className="text-xl font-black text-brand-text">Organization Profile</h2>
             <div className="space-y-2 text-xs text-brand-muted">
               <p>
                 Organization Name: <strong className="text-brand-text font-bold">{user.name}</strong>
@@ -222,6 +223,9 @@ const MainLayout: React.FC = () => {
             </div>
           </div>
         );
+
+      case 'settings':
+        return <SettingsPage onShowToast={showToast} onNavigate={handleNavigate} />;
 
       default:
         return <div className="p-8 text-brand-muted">Page not found</div>;
@@ -259,8 +263,10 @@ const MainLayout: React.FC = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainLayout />
-    </AuthProvider>
+    <ThemeLanguageProvider>
+      <AuthProvider>
+        <MainLayout />
+      </AuthProvider>
+    </ThemeLanguageProvider>
   );
 }

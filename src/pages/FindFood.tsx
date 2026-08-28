@@ -7,6 +7,7 @@ import { MatchScore } from '../components/MatchScore';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
 import { Search, MapPin, List, RefreshCw, Filter, Sparkles, Clock, Building, ArrowRight, X, CheckCircle2 } from 'lucide-react';
+import { getSavedMatchingPreferences } from '../services/settings/settingsService';
 
 interface FindFoodProps {
   initialViewMode?: 'map' | 'list';
@@ -26,13 +27,28 @@ export const FindFood: React.FC<FindFoodProps> = ({
   const [foodListings, setFoodListings] = useState<(FoodDonation & { match?: MatchScoreResult })[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Filters & Sorting (§3)
+  // Filters & Sorting with saved user matching preferences (§3)
+  const savedMatching = getSavedMatchingPreferences(user?.id);
+
+  const initialFoodType: 'all' | 'veg' | 'non-veg' = (() => {
+    if (savedMatching?.preferredTypes) {
+      const { vegetarian, nonVegetarian } = savedMatching.preferredTypes;
+      if (vegetarian && !nonVegetarian) return 'veg';
+      if (!vegetarian && nonVegetarian) return 'non-veg';
+    }
+    return 'all';
+  })();
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [radiusKm, setRadiusKm] = useState<number>(25);
-  const [foodType, setFoodType] = useState<'all' | 'veg' | 'non-veg'>('all');
-  const [minMeals, setMinMeals] = useState<number>(0);
-  const [urgencyFilter, setUrgencyFilter] = useState<'all' | 'urgent'>('all');
-  const [sortBy, setSortBy] = useState<'best_match' | 'nearest' | 'most_meals' | 'most_urgent' | 'latest'>('best_match');
+  const [radiusKm, setRadiusKm] = useState<number>(savedMatching?.maxRadiusKm || 25);
+  const [foodType, setFoodType] = useState<'all' | 'veg' | 'non-veg'>(initialFoodType);
+  const [minMeals, setMinMeals] = useState<number>(savedMatching?.minMeals || 0);
+  const [urgencyFilter, setUrgencyFilter] = useState<'all' | 'urgent'>(
+    savedMatching?.prioritizeUrgent ? 'urgent' : 'all'
+  );
+  const [sortBy, setSortBy] = useState<'best_match' | 'nearest' | 'most_meals' | 'most_urgent' | 'latest'>(
+    savedMatching?.showExpiringFirst ? 'most_urgent' : 'best_match'
+  );
 
   // Modals
   const [detailModalItem, setDetailModalItem] = useState<(FoodDonation & { match?: MatchScoreResult }) | null>(
@@ -42,6 +58,24 @@ export const FindFood: React.FC<FindFoodProps> = ({
   const [requestedMealsInput, setRequestedMealsInput] = useState<number>(80);
   const [requestNotes, setRequestNotes] = useState('');
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      const prefs = getSavedMatchingPreferences(user.id);
+      if (prefs) {
+        setRadiusKm(prefs.maxRadiusKm);
+        setMinMeals(prefs.minMeals);
+        if (prefs.prioritizeUrgent) setUrgencyFilter('urgent');
+        if (prefs.showExpiringFirst) setSortBy('most_urgent');
+        if (prefs.preferredTypes) {
+          const { vegetarian, nonVegetarian } = prefs.preferredTypes;
+          if (vegetarian && !nonVegetarian) setFoodType('veg');
+          else if (!vegetarian && nonVegetarian) setFoodType('non-veg');
+          else setFoodType('all');
+        }
+      }
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     fetchFood();
