@@ -142,7 +142,7 @@ export const ImpactDashboard: React.FC = () => {
                   impactData.recentActivity.map((act: any) => (
                     <div
                       key={act.id}
-                      className="p-3 bg-brand-cream/60 dark:bg-slate-800/80 rounded-xl border border-orange-100 dark:border-slate-700 text-xs flex items-center justify-between gap-3"
+                      className="p-3 bg-orange-50 dark:bg-slate-800/80 rounded-xl border border-orange-100 dark:border-slate-700 text-xs flex items-center justify-between gap-3"
                     >
                       <div className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />

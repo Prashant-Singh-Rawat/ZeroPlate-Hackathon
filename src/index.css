@@ -3,14 +3,13 @@
 @tailwind utilities;
 
 /* =============================================
-   LIGHT MODE — html:not(.dark) gives highest specificity
-   Forces EVERYTHING white when not in dark mode
+   LIGHT MODE — Maximum specificity overrides
+   Forces bg white on the structural elements ONLY
    ============================================= */
 
-html:not(.dark),
+/* Page backgrounds */
 html:not(.dark) body,
-html:not(.dark) #root,
-html:not(.dark) #root > * {
+html:not(.dark) #root {
   background-color: #FFFFFF !important;
   color: #1F2937 !important;
 }
@@ -19,57 +18,55 @@ html:not(.dark) .min-h-screen {
   background-color: #FFFFFF !important;
 }
 
-html:not(.dark) aside,
-html:not(.dark) header,
-html:not(.dark) main,
-html:not(.dark) section,
-html:not(.dark) .bg-white,
-html:not(.dark) .bg-brand-bg,
-html:not(.dark) .bg-brand-cream,
-html:not(.dark) .bg-gray-50,
-html:not(.dark) .bg-gray-100 {
+/* Structural chrome — sidebar, header, main */
+html:not(.dark) aside {
+  background-color: #FFFFFF !important;
+  border-right-color: #FDE8D0 !important;
+}
+
+html:not(.dark) header {
+  background-color: #FFFFFF !important;
+  border-bottom-color: #FDE8D0 !important;
+}
+
+html:not(.dark) main {
   background-color: #FFFFFF !important;
 }
 
-html:not(.dark) .bg-brand-light,
-html:not(.dark) .bg-orange-50 {
-  background-color: #FFF7ED !important;
+/* Sidebar nav buttons — transparent by default in light mode */
+html:not(.dark) aside nav button:not(.bg-brand-orange):not([class*="bg-brand-orange"]) {
+  background-color: transparent !important;
 }
 
-html:not(.dark) .bg-amber-50,
-html:not(.dark) .bg-amber-50\/90 {
-  background-color: #FFFBEB !important;
+/* Card surfaces */
+html:not(.dark) .bg-white {
+  background-color: #FFFFFF !important;
 }
 
-/* Borders light mode */
-html:not(.dark) .border-amber-900\/5,
-html:not(.dark) .border-gray-100,
-html:not(.dark) .border-slate-800,
-html:not(.dark) .border-slate-800\/80,
-html:not(.dark) .divide-slate-800 > * + * {
-  border-color: #FCE8D4 !important;
+/* Inputs — light gray */
+html:not(.dark) input:not([class*="bg-orange"]):not([class*="bg-brand-orange"]),
+html:not(.dark) textarea,
+html:not(.dark) select {
+  background-color: #F9FAFB !important;
+  color: #1F2937 !important;
 }
 
-/* Text light mode */
-html:not(.dark) .text-brand-text,
+/* Text overrides for light mode dark text classes that bleed */
 html:not(.dark) .text-slate-100,
 html:not(.dark) .text-slate-200 {
   color: #1F2937 !important;
 }
 
-html:not(.dark) .text-brand-muted,
 html:not(.dark) .text-slate-400 {
   color: #6B7280 !important;
 }
 
 /* =============================================
-   DARK MODE — html.dark forces everything dark
+   DARK MODE — Force deep navy on everything
    ============================================= */
 
-html.dark,
 html.dark body,
-html.dark #root,
-html.dark #root > * {
+html.dark #root {
   background-color: #0B1120 !important;
   color: #F1F5F9 !important;
 }
@@ -92,15 +89,8 @@ html.dark main {
   background-color: #0B1120 !important;
 }
 
-html.dark section,
 html.dark .bg-white {
   background-color: #1E293B !important;
-}
-
-html.dark .bg-brand-cream,
-html.dark .bg-gray-50,
-html.dark .bg-gray-100 {
-  background-color: #0F172A !important;
 }
 
 html.dark .text-brand-text {
@@ -112,8 +102,9 @@ html.dark .text-brand-muted {
 }
 
 /* =============================================
-   BASE BODY DEFAULTS
+   GLOBAL BASE
    ============================================= */
+
 @layer base {
   body {
     transition: background-color 0.2s ease, color 0.2s ease;
@@ -121,18 +112,19 @@ html.dark .text-brand-muted {
   }
 
   input, textarea, select {
-    color: #0F172A;
+    color: #1F2937;
   }
 
   html.dark input,
   html.dark textarea,
   html.dark select {
     color: #F8FAFC;
+    background-color: #0F172A;
   }
 
   input::placeholder,
   textarea::placeholder {
-    color: #94A3B8;
+    color: #9CA3AF;
   }
 
   html.dark input::placeholder,
@@ -142,10 +134,10 @@ html.dark .text-brand-muted {
 }
 
 /* =============================================
-   CUSTOM SCROLLBAR
+   SCROLLBAR
    ============================================= */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #FFFDF8; }
+::-webkit-scrollbar-track { background: #FAFAFA; }
 html.dark ::-webkit-scrollbar-track { background: #0B1120; }
 ::-webkit-scrollbar-thumb { background: #FDBA74; border-radius: 9999px; }
 html.dark ::-webkit-scrollbar-thumb { background: #475569; }
