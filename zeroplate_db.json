@@ -108,12 +108,15 @@
       "role": "donor",
       "avatar": "https://lh3.googleusercontent.com/a/ACg8ocLHvAgO1K-YAIVzz0mIeoM5wkJQBheGhtbiDNA7myKXjTBQhQ=s96-c",
       "subscriptionPlan": "free",
-      "latitude": 19.076,
-      "longitude": 72.8777,
+      "latitude": 31.254552306303577,
+      "longitude": 75.70562946955306,
       "emailVerified": true,
-      "onboarded": false,
+      "onboarded": true,
       "id": "user_1787954502070_257",
-      "createdAt": "2026-08-28T22:01:42.070Z"
+      "createdAt": "2026-08-28T22:01:42.070Z",
+      "donorType": "Household",
+      "phone": "+919119341195",
+      "location": "NH44, Phagwara, Punjab, 144411"
     }
   ],
   "ngos": [
@@ -596,5 +599,37 @@
       "availability": "Available",
       "createdAt": "2026-08-28T21:51:04.357Z"
     }
-  ]
+  ],
+  "donors": [
+    {
+      "id": "donor_entity_spicevilla",
+      "userId": "donor_spicevilla",
+      "donorType": "Restaurant",
+      "organizationName": "SpiceVilla Restaurant",
+      "contactPerson": "Chef Vikram Malhotra",
+      "phone": "+91 98200 12345",
+      "email": "donor@spicevilla.com",
+      "address": "Shop 4, Hill Road, Bandra West, Mumbai 400050",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "isHousehold": false,
+      "createdAt": "2026-08-28T22:04:23.103Z"
+    },
+    {
+      "id": "donor_entity_user_1787954502070_257",
+      "userId": "user_1787954502070_257",
+      "donorType": "Household",
+      "organizationName": "TONY STARK",
+      "contactPerson": "Devesh Tiwari",
+      "phone": "+919119341195",
+      "email": "tonystark06032007@gmail.com",
+      "address": "NH44, Phagwara, Punjab, 144411",
+      "latitude": 31.254552306303577,
+      "longitude": 75.70562946955306,
+      "isHousehold": false,
+      "createdAt": "2026-08-28T22:05:31.387Z"
+    }
+  ],
+  "requirements": [],
+  "locationUpdates": []
 }
