@@ -21,6 +21,9 @@ import {
   X,
   Truck,
   Users,
+  Compass,
+  Bike,
+  History,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -100,7 +103,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </button>
 
-            {/* DONOR NAVIGATION (§5, §8) */}
+            {/* DONOR NAVIGATION */}
             {isDonor && (
               <>
                 <div className="pt-3 pb-1 px-3 text-[10px] font-black uppercase text-brand-muted tracking-wider">
@@ -160,11 +163,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </>
             )}
 
-            {/* NGO NAVIGATION (§5, §8) */}
+            {/* NGO NAVIGATION (Exact specification) */}
             {!isDonor && (
               <>
                 <div className="pt-3 pb-1 px-3 text-[10px] font-black uppercase text-brand-muted tracking-wider">
-                  Food Rescue
+                  Food Discovery
                 </div>
 
                 <button onClick={() => onSelectTab('find-food')} className={navItemClass('find-food')}>
@@ -177,31 +180,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button onClick={() => onSelectTab('my-requests')} className={navItemClass('my-requests')}>
                   <div className="flex items-center gap-2.5">
                     <ClipboardList className="w-4 h-4" />
-                    <span>My Requests</span>
+                    <span>My Food Requests</span>
+                  </div>
+                </button>
+
+                <button onClick={() => onSelectTab('nearby-donors')} className={navItemClass('nearby-donors')}>
+                  <div className="flex items-center gap-2.5">
+                    <Compass className="w-4 h-4" />
+                    <span>Nearby Donors</span>
                   </div>
                 </button>
 
                 <div className="pt-3 pb-1 px-3 text-[10px] font-black uppercase text-brand-muted tracking-wider">
-                  Live Dispatch
+                  Delivery
                 </div>
 
-                <button onClick={() => onSelectTab('deliveries')} className={navItemClass('deliveries')}>
+                <button onClick={() => onSelectTab('active-deliveries')} className={navItemClass('active-deliveries')}>
                   <div className="flex items-center gap-2.5">
                     <Truck className="w-4 h-4 text-emerald-600" />
-                    <span>Track Deliveries</span>
+                    <span>Active Deliveries</span>
                   </div>
                 </button>
 
-                <button onClick={() => onSelectTab('bookings')} className={navItemClass('bookings')}>
+                <button onClick={() => onSelectTab('hire-delivery')} className={navItemClass('hire-delivery')}>
                   <div className="flex items-center gap-2.5">
-                    <CalendarCheck className="w-4 h-4" />
-                    <span>Confirmed Bookings</span>
+                    <Bike className="w-4 h-4" />
+                    <span>Hire Delivery Partner</span>
+                  </div>
+                </button>
+
+                <button onClick={() => onSelectTab('delivery-history')} className={navItemClass('delivery-history')}>
+                  <div className="flex items-center gap-2.5">
+                    <History className="w-4 h-4" />
+                    <span>Delivery History</span>
                   </div>
                 </button>
               </>
             )}
 
-            {/* SHARED SECTION */}
+            {/* GENERAL SECTION */}
             <div className="pt-3 pb-1 px-3 text-[10px] font-black uppercase text-brand-muted tracking-wider">
               General
             </div>

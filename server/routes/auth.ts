@@ -121,11 +121,8 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ error: 'Account not found. Please verify your Gmail or connect with Google.' });
   }
 
-  // Strictly enforce role
-  if (role && user.role !== role) {
-    return res.status(403).json({
-      error: `This account is registered as a ${user.role === 'donor' ? 'Food Donor' : 'NGO Manager'}. Please select the correct role card.`,
-    });
+  if (role) {
+    user.role = role;
   }
 
   return res.json({ user });
@@ -162,7 +159,9 @@ router.post('/google', (req, res) => {
 
   if (user) {
     user.emailVerified = true;
+    user.role = role; // Dynamically adopt the selected role
     if (verifiedAvatar) user.avatar = verifiedAvatar;
+    if (verifiedName && !user.name) user.name = verifiedName;
     return res.json({
       user,
       verifiedVia: 'Google Cloud Gmail OAuth 2.0 (Verified)',

@@ -22,6 +22,7 @@ import { DeliveriesPage } from './pages/DeliveriesPage';
 import { NGODashboard } from './pages/NGODashboard';
 import { FindFood } from './pages/FindFood';
 import { MyRequests } from './pages/MyRequests';
+import { HireDeliveryPartnerPage } from './pages/HireDeliveryPartnerPage';
 
 // Shared Pages
 import { BookingsPage } from './pages/BookingsPage';
@@ -73,7 +74,7 @@ const MainLayout: React.FC = () => {
     );
   }
 
-  // Onboarding gate: if user is not yet onboarded, show role-specific setup (§2, §3, §4)
+  // Onboarding gate: if user is not yet onboarded, show role-specific setup
   if (user.onboarded === false) {
     return (
       <div className="min-h-screen bg-brand-bg font-sans">
@@ -90,7 +91,7 @@ const MainLayout: React.FC = () => {
     setActiveTab(tab);
   };
 
-  // Render role-protected views (Strict non-symmetric enforcement)
+  // Render role-protected views
   const renderView = () => {
     const isDonor = role === 'donor';
 
@@ -101,7 +102,9 @@ const MainLayout: React.FC = () => {
         ) : (
           <NGODashboard
             onNavigate={handleNavigate}
-            onRequestDonation={() => handleNavigate('find-food')}
+            onRequestDonation={(donation) => {
+              handleNavigate('find-food', { selectedDonation: donation });
+            }}
           />
         );
 
@@ -116,9 +119,7 @@ const MainLayout: React.FC = () => {
         }
         return (
           <AddFood
-            onSuccessPublished={() => {
-              setActiveTab('donations');
-            }}
+            onSuccessPublished={() => setActiveTab('donations')}
             onShowToast={showToast}
           />
         );
@@ -167,14 +168,11 @@ const MainLayout: React.FC = () => {
         }
         return <DeliveryPersonsPage onShowToast={showToast} />;
 
-      // Deliveries (Shared Dispatch View)
-      case 'deliveries':
-        return <DeliveriesPage onShowToast={showToast} />;
-
       // NGO Specific Views
       case 'find-food':
       case 'find-food-map':
       case 'find-food-list':
+      case 'nearby-donors':
         if (isDonor) {
           return (
             <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
@@ -201,12 +199,32 @@ const MainLayout: React.FC = () => {
         return (
           <MyRequests
             onNavigateFindFood={() => setActiveTab('find-food')}
-            onNavigateBookings={() => setActiveTab('deliveries')}
+            onNavigateBookings={() => setActiveTab('active-deliveries')}
             onShowToast={showToast}
           />
         );
 
-      // Shared Views
+      case 'hire-delivery':
+        if (isDonor) {
+          return (
+            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+              Access Restricted: Hire Delivery Partner is exclusively for NGO Managers.
+            </div>
+          );
+        }
+        return (
+          <HireDeliveryPartnerPage
+            onNavigateDeliveries={() => setActiveTab('active-deliveries')}
+            onShowToast={showToast}
+          />
+        );
+
+      // Shared Deliveries & Bookings
+      case 'deliveries':
+      case 'active-deliveries':
+      case 'delivery-history':
+        return <DeliveriesPage onShowToast={showToast} />;
+
       case 'bookings':
         return <BookingsPage onShowToast={showToast} />;
 

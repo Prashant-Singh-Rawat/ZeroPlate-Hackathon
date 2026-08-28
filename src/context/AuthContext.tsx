@@ -110,6 +110,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (res.ok) {
         const data = await res.json();
+        if (data.user) {
+          data.user.role = selectedRole;
+        }
         setUser(data.user);
         return true;
       }
@@ -121,6 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ...(selectedRole === 'ngo' ? DEFAULT_NGO : DEFAULT_DONOR),
       email: customData?.email || customData?.payload?.email || (selectedRole === 'ngo' ? 'ngo@hope.org' : 'donor@spicevilla.com'),
       name: customData?.name || customData?.payload?.name || (selectedRole === 'ngo' ? 'Hope Foundation' : 'SpiceVilla Restaurant'),
+      role: selectedRole,
       emailVerified: true,
     };
     setUser(fallbackUser);
