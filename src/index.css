@@ -2,154 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =============================================
+   CSS VARIABLES — Single source of truth
+   ============================================= */
+:root {
+  --bg-page: #FFFCF7;
+  --bg-surface: #FFFFFF;
+  --bg-surface-alt: #F9FAFB;
+  --bg-input: #F9FAFB;
+  --text-primary: #1F2937;
+  --text-secondary: #6B7280;
+  --border-color: #FCE8D4;
+}
+
+html.dark {
+  --bg-page: #0B1120;
+  --bg-surface: #1E293B;
+  --bg-surface-alt: #0F172A;
+  --bg-input: #0F172A;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --border-color: #334155;
+}
+
 @layer base {
-  body {
-    @apply transition-colors duration-200;
+  html, body, #root {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    transition: background-color 0.2s ease, color 0.2s ease;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    background-color: #FFFCF7;
-    color: #1F2937;
   }
 
-  html.dark body {
-    background-color: #0B1120;
-    color: #F1F5F9;
+  /* Inputs always high-contrast */
+  input, textarea, select {
+    color: var(--text-primary);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #94A3B8;
   }
 }
 
 /* =============================================
-   LIGHT MODE — Force full white/warm styling
+   COMPONENT SURFACE OVERRIDES
+   These ensure ALL surfaces respect light/dark
    ============================================= */
-html:not(.dark) body,
-html:not(.dark) #root,
-html:not(.dark) .min-h-screen {
-  background-color: #FFFCF7 !important;
-  color: #1F2937 !important;
+
+/* Page background */
+.min-h-screen {
+  background-color: var(--bg-page);
 }
 
-/* Sidebar light mode */
-html:not(.dark) aside {
-  background-color: #FFFFFF !important;
-  border-right-color: #FDE8D0 !important;
+/* Sidebar */
+aside {
+  background-color: var(--bg-surface) !important;
+  border-right-color: var(--border-color) !important;
 }
 
-/* Navbar light mode */
-html:not(.dark) header {
-  background-color: #FFFFFF !important;
-  border-bottom-color: #FDE8D0 !important;
+/* Navbar / header */
+header {
+  background-color: var(--bg-surface) !important;
+  border-bottom-color: var(--border-color) !important;
 }
 
-/* Cards and sections */
-html:not(.dark) section,
-html:not(.dark) .bg-white,
-html:not(.dark) .bg-brand-bg {
-  background-color: #FFFFFF !important;
+/* White card surfaces */
+.bg-white {
+  background-color: var(--bg-surface) !important;
 }
 
-html:not(.dark) .text-brand-text {
-  color: #1F2937 !important;
+/* Light cream inputs/backgrounds */
+.bg-brand-cream,
+.bg-brand-cream\/60,
+.bg-brand-cream\/90,
+.bg-gray-50,
+.bg-gray-100 {
+  background-color: var(--bg-input) !important;
 }
 
-html:not(.dark) .text-brand-muted {
-  color: #6B7280 !important;
+/* Border colors */
+.border-amber-900\/5,
+.border-gray-100 {
+  border-color: var(--border-color) !important;
 }
 
-html:not(.dark) .border-gray-100,
-html:not(.dark) .border-slate-800,
-html:not(.dark) .border-slate-800\/80,
-html:not(.dark) .divide-gray-100 > * + * {
-  border-color: #F3E8DD !important;
+/* Text */
+.text-brand-text {
+  color: var(--text-primary) !important;
 }
 
-/* =============================================
-   DARK MODE — Force deep dark navy styling
-   ============================================= */
-html.dark body,
-html.dark #root,
-html.dark .min-h-screen {
-  background-color: #0B1120 !important;
-  color: #F1F5F9 !important;
-}
-
-html.dark aside {
-  background-color: #1E293B !important;
-  border-right-color: #334155 !important;
-}
-
-html.dark header {
-  background-color: #1E293B !important;
-  border-bottom-color: #334155 !important;
-}
-
-html.dark section,
-html.dark .bg-white {
-  background-color: #1E293B !important;
-}
-
-html.dark .text-brand-text {
-  color: #F8FAFC !important;
-}
-
-html.dark .text-brand-muted {
-  color: #94A3B8 !important;
-}
-
-html.dark .bg-brand-cream {
-  background-color: #0F172A !important;
-}
-
-html.dark .border-gray-100,
-html.dark .border-amber-900\/5 {
-  border-color: #334155 !important;
-}
-
-/* =============================================
-   INPUTS, TEXTAREAS & SELECTS
-   ============================================= */
-input,
-textarea,
-select {
-  color: #0F172A;
-}
-
-html.dark input,
-html.dark textarea,
-html.dark select {
-  color: #F8FAFC;
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: #94A3B8;
-}
-
-html.dark input::placeholder,
-html.dark textarea::placeholder {
-  color: #64748B;
+.text-brand-muted {
+  color: var(--text-secondary) !important;
 }
 
 /* =============================================
    CUSTOM SCROLLBAR
    ============================================= */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #FFFDF8;
-}
-html.dark ::-webkit-scrollbar-track {
-  background: #0B1120;
-}
-::-webkit-scrollbar-thumb {
-  background: #FDBA74;
-  border-radius: 9999px;
-}
-html.dark ::-webkit-scrollbar-thumb {
-  background: #475569;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #F97316;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-page); }
+::-webkit-scrollbar-thumb { background: #FDBA74; border-radius: 9999px; }
+html.dark ::-webkit-scrollbar-thumb { background: #475569; }
+::-webkit-scrollbar-thumb:hover { background: #F97316; }
 
 /* =============================================
    ANIMATIONS
@@ -158,7 +111,6 @@ html.dark ::-webkit-scrollbar-thumb {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.92; transform: scale(1.02); }
 }
-
 .animate-pulse-subtle {
   animation: pulse-subtle 3s ease-in-out infinite;
 }
@@ -167,7 +119,6 @@ html.dark ::-webkit-scrollbar-thumb {
   0% { transform: scale(0.95); opacity: 0.7; }
   100% { transform: scale(1); opacity: 1; }
 }
-
 .animate-status-pop {
   animation: status-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -176,7 +127,6 @@ html.dark ::-webkit-scrollbar-thumb {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 .animate-fadeIn {
   animation: fadeIn 0.25s ease-out forwards;
 }
@@ -185,7 +135,6 @@ html.dark ::-webkit-scrollbar-thumb {
   from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
-
 .animate-scaleUp {
   animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
