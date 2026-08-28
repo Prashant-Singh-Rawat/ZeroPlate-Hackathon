@@ -3,76 +3,94 @@
 @tailwind utilities;
 
 /* =============================================
-   LIGHT MODE — Maximum specificity overrides
-   Forces bg white on the structural elements ONLY
+   LIGHT MODE — Force EVERY element white/light
+   Uses wildcard * inside html:not(.dark) to
+   catch absolutely everything.
    ============================================= */
 
-/* Page backgrounds */
+/* Root page background */
+html:not(.dark),
 html:not(.dark) body,
 html:not(.dark) #root {
   background-color: #FFFFFF !important;
   color: #1F2937 !important;
 }
 
-html:not(.dark) .min-h-screen {
+/* Every div, section, aside, header, nav, main, article */
+html:not(.dark) div:not([class*="bg-orange"]):not([class*="bg-brand-orange"]):not([class*="bg-emerald"]):not([class*="bg-red"]):not([class*="bg-amber"]):not([class*="bg-green"]):not([class*="bg-teal"]):not([class*="bg-gradient"]),
+html:not(.dark) aside,
+html:not(.dark) header,
+html:not(.dark) main,
+html:not(.dark) nav,
+html:not(.dark) section,
+html:not(.dark) article,
+html:not(.dark) footer {
   background-color: #FFFFFF !important;
 }
 
-/* Structural chrome — sidebar, header, main */
-html:not(.dark) aside {
-  background-color: #FFFFFF !important;
-  border-right-color: #FDE8D0 !important;
+/* Tinted accent surfaces (cream/gray) */
+html:not(.dark) .bg-brand-light,
+html:not(.dark) .bg-brand-cream,
+html:not(.dark) .bg-orange-50,
+html:not(.dark) .bg-amber-50,
+html:not(.dark) .bg-gray-50 {
+  background-color: #FFF7ED !important;
 }
 
-html:not(.dark) header {
-  background-color: #FFFFFF !important;
-  border-bottom-color: #FDE8D0 !important;
+html:not(.dark) .bg-gray-100 {
+  background-color: #F3F4F6 !important;
 }
 
-html:not(.dark) main {
-  background-color: #FFFFFF !important;
+/* Text - remove any dark/slate text in light mode */
+html:not(.dark) .text-slate-100,
+html:not(.dark) .text-slate-200,
+html:not(.dark) .text-slate-300 {
+  color: #1F2937 !important;
 }
 
-/* Sidebar nav buttons — transparent by default in light mode */
-html:not(.dark) aside nav button:not(.bg-brand-orange):not([class*="bg-brand-orange"]) {
+html:not(.dark) .text-slate-400,
+html:not(.dark) .text-slate-500 {
+  color: #6B7280 !important;
+}
+
+/* Borders */
+html:not(.dark) .border-slate-700,
+html:not(.dark) .border-slate-800,
+html:not(.dark) .border-slate-800\/80,
+html:not(.dark) .border-amber-900\/5,
+html:not(.dark) .divide-slate-800 > * + * {
+  border-color: #FDE8D0 !important;
+}
+
+/* Buttons in sidebar that are NOT active (transparent background) */
+html:not(.dark) aside button:not([class*="bg-brand-orange"]):not([class*="bg-orange"]) {
   background-color: transparent !important;
 }
 
-/* Card surfaces */
-html:not(.dark) .bg-white {
-  background-color: #FFFFFF !important;
-}
-
-/* Inputs — light gray */
-html:not(.dark) input:not([class*="bg-orange"]):not([class*="bg-brand-orange"]),
+/* Inputs */
+html:not(.dark) input,
 html:not(.dark) textarea,
 html:not(.dark) select {
   background-color: #F9FAFB !important;
   color: #1F2937 !important;
+  border-color: #E5E7EB !important;
 }
 
-/* Text overrides for light mode dark text classes that bleed */
-html:not(.dark) .text-slate-100,
-html:not(.dark) .text-slate-200 {
-  color: #1F2937 !important;
-}
-
-html:not(.dark) .text-slate-400 {
-  color: #6B7280 !important;
+/* placeholder */
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: #9CA3AF !important;
 }
 
 /* =============================================
-   DARK MODE — Force deep navy on everything
+   DARK MODE — Force EVERYTHING dark navy
    ============================================= */
 
+html.dark,
 html.dark body,
 html.dark #root {
   background-color: #0B1120 !important;
   color: #F1F5F9 !important;
-}
-
-html.dark .min-h-screen {
-  background-color: #0B1120 !important;
 }
 
 html.dark aside {
@@ -89,47 +107,40 @@ html.dark main {
   background-color: #0B1120 !important;
 }
 
+html.dark section,
 html.dark .bg-white {
   background-color: #1E293B !important;
 }
 
-html.dark .text-brand-text {
-  color: #F8FAFC !important;
+html.dark .bg-gray-50,
+html.dark .bg-gray-100,
+html.dark .bg-brand-cream {
+  background-color: #0F172A !important;
 }
 
-html.dark .text-brand-muted {
-  color: #94A3B8 !important;
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+  border-color: #334155 !important;
 }
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748B !important;
+}
+
+html.dark .text-brand-text { color: #F8FAFC !important; }
+html.dark .text-brand-muted { color: #94A3B8 !important; }
 
 /* =============================================
-   GLOBAL BASE
+   BASE TRANSITIONS
    ============================================= */
-
 @layer base {
   body {
     transition: background-color 0.2s ease, color 0.2s ease;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  }
-
-  input, textarea, select {
-    color: #1F2937;
-  }
-
-  html.dark input,
-  html.dark textarea,
-  html.dark select {
-    color: #F8FAFC;
-    background-color: #0F172A;
-  }
-
-  input::placeholder,
-  textarea::placeholder {
-    color: #9CA3AF;
-  }
-
-  html.dark input::placeholder,
-  html.dark textarea::placeholder {
-    color: #64748B;
   }
 }
 
