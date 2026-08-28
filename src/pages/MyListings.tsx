@@ -102,9 +102,9 @@ export const MyListings: React.FC<MyListingsProps> = ({
         <LoadingState message="Loading food donation listings..." />
       ) : filtered.length === 0 ? (
         <EmptyState
-          title="No Food Donations in this view"
-          description="Publish a surplus food donation to connect with local NGOs."
-          actionLabel="Publish Food Donation"
+          title="No food donations yet."
+          description="Your surplus food listings will appear here."
+          actionLabel="Add Food"
           onAction={onNavigateAddFood}
         />
       ) : (

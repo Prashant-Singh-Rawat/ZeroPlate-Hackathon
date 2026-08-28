@@ -7,16 +7,15 @@ const router = Router();
 router.get('/', (req, res) => {
   const store = db.getStore();
 
-  const completedDonations = store.donations.filter(
-    (d) => d.status === 'COMPLETED' || d.status === 'CONFIRMED' || d.status === 'RESERVED'
-  );
+  const completedBookings = store.bookings.filter((b) => b.status === 'COMPLETED');
+  const confirmedBookings = store.bookings.filter((b) => b.status === 'CONFIRMED' || b.status === 'COMPLETED');
 
-  const totalMealsRescued = completedDonations.reduce((acc, curr) => acc + curr.mealCount, 0);
-  const successfulPickups = store.bookings.filter((b) => b.status === 'COMPLETED').length || 1;
+  const totalMealsRescued = confirmedBookings.reduce((acc, curr) => acc + curr.mealCount, 0);
+  const successfulPickups = completedBookings.length;
   const foodWastePreventedKg = Math.round(totalMealsRescued * 0.5);
   const peopleServed = Math.round(totalMealsRescued * 1.1);
 
-  // Recent activity log (§9)
+  // Recent activity log
   const recentActivity = store.bookings.map((b) => ({
     id: b.id,
     text: `${b.mealCount} meals from ${b.donorName} were successfully delivered to ${b.ngoName}.`,
@@ -24,20 +23,12 @@ router.get('/', (req, res) => {
     time: b.createdAt,
   }));
 
-  if (recentActivity.length === 0) {
-    recentActivity.push({
-      id: 'act_demo_1',
-      text: '80 meals from SpiceVilla Restaurant were successfully delivered to Hope Foundation.',
-      status: 'COMPLETED',
-      time: new Date().toISOString(),
-    });
-  }
-
   // Category breakdown
   const categoryMap: Record<string, number> = {};
   store.donations.forEach((d) => {
-    const cat = d.foodCategory || d.category || 'Cooked Meal';
-    categoryMap[cat] = (categoryMap[cat] || 0) + d.mealCount;
+    if (d.category) {
+      categoryMap[d.category] = (categoryMap[d.category] || 0) + d.mealCount;
+    }
   });
 
   const categoryData = Object.keys(categoryMap).map((cat) => ({
@@ -46,16 +37,12 @@ router.get('/', (req, res) => {
   }));
 
   return res.json({
-    totalMealsRescued: totalMealsRescued || 360,
-    peopleServed: peopleServed || 396,
-    foodWastePreventedKg: foodWastePreventedKg || 180,
+    totalMealsRescued,
+    peopleServed,
+    foodWastePreventedKg,
     successfulPickups,
     recentActivity,
-    categoryData: categoryData.length > 0 ? categoryData : [
-      { name: 'Main Course', meals: 180 },
-      { name: 'Combo Meal', meals: 120 },
-      { name: 'Curry & Bread', meals: 60 },
-    ],
+    categoryData,
   });
 });
 

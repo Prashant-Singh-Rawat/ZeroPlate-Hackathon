@@ -348,8 +348,6 @@ class Database {
       donation.mealCount,
       ngoReq?.requiredMeals || ngoEntity?.capacity || 80,
       donation.pickupDeadline,
-      donation.foodSpecifications || [donation.foodCategory || 'Cooked Food'],
-      ngoReq?.foodSpecifications || ['Cooked Food'],
       isPremium,
       ngoName
     );

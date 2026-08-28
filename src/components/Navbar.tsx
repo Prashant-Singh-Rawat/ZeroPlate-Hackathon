@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { UtensilsCrossed, Sparkles } from 'lucide-react';
+import { UtensilsCrossed, Bell, User as UserIcon, Sparkles } from 'lucide-react';
 
 interface NavbarProps {
   onToggleSidebar?: () => void;
@@ -9,6 +9,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, activeView }) => {
   const { user, role, subscriptionPlan } = useAuth();
+  const isDonor = role === 'donor';
 
   return (
     <header className="bg-white border-b border-amber-900/5 sticky top-0 z-30 shadow-warm-sm">
@@ -40,28 +41,31 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, activeView }) =
 
         {/* Header Right Controls */}
         <div className="flex items-center gap-3 sm:gap-4">
+          {/* Active Portal Badge (Role Locked) */}
+          <span className="px-3 py-1 bg-brand-light text-brand-deep rounded-full text-xs font-black border border-orange-200 uppercase tracking-wider">
+            {isDonor ? '🍽️ Food Donor Portal' : '❤️ NGO Manager Portal'}
+          </span>
+
           {/* Subscription Plan Badge */}
           {subscriptionPlan === 'premium' ? (
-            <span className="hidden sm:flex items-center gap-1 text-xs font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 rounded-full shadow-warm-sm">
+            <span className="hidden lg:flex items-center gap-1 text-xs font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 rounded-full shadow-warm-sm">
               <Sparkles className="w-3.5 h-3.5 fill-white" />
-              Priority Matching
+              Priority Plan
             </span>
           ) : (
-            <span className="hidden sm:inline-block text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full border">
+            <span className="hidden lg:inline-block text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full border">
               Standard Plan
             </span>
           )}
 
-          {/* User Profile Pill (Fixed Role, No Switcher) */}
+          {/* User Profile Pill */}
           <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
             <div className="w-8 h-8 rounded-full bg-brand-light text-brand-deep font-bold flex items-center justify-center text-sm border border-orange-200 shadow-warm-sm">
               {user?.name ? user.name.charAt(0) : 'U'}
             </div>
             <div className="hidden md:block text-left">
-              <p className="text-xs font-bold text-brand-text truncate max-w-[140px]">{user?.name}</p>
-              <p className="text-[10px] font-bold text-brand-orange uppercase">
-                {role === 'donor' ? 'Food Donor' : 'NGO Manager'}
-              </p>
+              <p className="text-xs font-bold text-brand-text truncate max-w-[130px]">{user?.name}</p>
+              <p className="text-[10px] font-semibold text-brand-orange uppercase">{isDonor ? 'Food Donor' : 'NGO Manager'}</p>
             </div>
           </div>
         </div>

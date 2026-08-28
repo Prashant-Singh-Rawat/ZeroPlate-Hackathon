@@ -58,7 +58,7 @@ export const ImpactDashboard: React.FC = () => {
           </div>
 
           <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shrink-0 text-center">
-            <span className="text-2xl font-black">{impactData?.totalMealsRescued || 360}</span>
+            <span className="text-2xl font-black">{impactData?.totalMealsRescued ?? 0}</span>
             <p className="text-xs text-orange-100 font-bold">Total Meals Saved</p>
           </div>
         </div>
@@ -72,28 +72,28 @@ export const ImpactDashboard: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               title="Meals Rescued"
-              value={impactData?.totalMealsRescued || 360}
+              value={impactData?.totalMealsRescued ?? 0}
               subtitle="Plates of surplus food saved"
               icon={Utensils}
               color="orange"
             />
             <StatCard
               title="People Served"
-              value={impactData?.peopleServed || 396}
+              value={impactData?.peopleServed ?? 0}
               subtitle="Individual meals delivered"
               icon={Heart}
               color="emerald"
             />
             <StatCard
               title="Food Waste Prevented"
-              value={`${impactData?.foodWastePreventedKg || 180} kg`}
+              value={`${impactData?.foodWastePreventedKg ?? 0} kg`}
               subtitle="CO₂ greenhouse reduction"
               icon={TrendingUp}
               color="blue"
             />
             <StatCard
               title="Successful Pickups"
-              value={impactData?.successfulPickups || 3}
+              value={impactData?.successfulPickups ?? 0}
               subtitle="Completed rescue drives"
               icon={CheckCircle}
               color="amber"
@@ -157,7 +157,7 @@ export const ImpactDashboard: React.FC = () => {
                   ))
                 ) : (
                   <div className="text-xs text-brand-muted p-4 text-center">
-                    80 meals successfully delivered to Hope Foundation.
+                    No activity recorded yet. Completed rescue drives will appear here.
                   </div>
                 )}
               </div>

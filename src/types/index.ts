@@ -255,6 +255,7 @@ export interface MatchScoreResult {
   matchScore: number;
   distanceScore: number;
   mealQuantityScore: number;
+  mealScore?: number;
   foodSpecScore: number;
   urgencyScore: number;
   premiumBonus: number;

@@ -6,22 +6,7 @@ import { MapView } from '../components/MapView';
 import { MatchScore } from '../components/MatchScore';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
-import {
-  Search,
-  MapPin,
-  List,
-  RefreshCw,
-  Filter,
-  Sparkles,
-  Clock,
-  Building,
-  ArrowRight,
-  X,
-  CheckCircle2,
-  ShieldCheck,
-  ToggleLeft,
-  ToggleRight,
-} from 'lucide-react';
+import { Search, MapPin, List, RefreshCw, Filter, Sparkles, Clock, Building, ArrowRight, X, CheckCircle2 } from 'lucide-react';
 
 interface FindFoodProps {
   initialViewMode?: 'map' | 'list';
@@ -41,14 +26,12 @@ export const FindFood: React.FC<FindFoodProps> = ({
   const [foodListings, setFoodListings] = useState<(FoodDonation & { match?: MatchScoreResult })[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Location Sharing Status (§7)
-  const [isLocationSharingActive, setIsLocationSharingActive] = useState(true);
-
   // Filters & Sorting (§3)
   const [searchTerm, setSearchTerm] = useState('');
-  const [radiusKm, setRadiusKm] = useState<number>(15);
+  const [radiusKm, setRadiusKm] = useState<number>(25);
   const [foodType, setFoodType] = useState<'all' | 'veg' | 'non-veg'>('all');
   const [minMeals, setMinMeals] = useState<number>(0);
+  const [urgencyFilter, setUrgencyFilter] = useState<'all' | 'urgent'>('all');
   const [sortBy, setSortBy] = useState<'best_match' | 'nearest' | 'most_meals' | 'most_urgent' | 'latest'>('best_match');
 
   // Modals
@@ -67,7 +50,7 @@ export const FindFood: React.FC<FindFoodProps> = ({
   const fetchFood = async () => {
     setIsLoading(true);
     try {
-      let query = `/api/donations?ngoId=${user?.id || 'ngo_hope'}&sortBy=${sortBy}`;
+      let query = `/api/donations?ngoId=${user?.id || 'ngo_hope'}&status=AVAILABLE&sortBy=${sortBy}`;
       if (foodType !== 'all') query += `&foodType=${foodType}`;
       if (minMeals > 0) query += `&minMeals=${minMeals}`;
       if (radiusKm > 0) query += `&radiusKm=${radiusKm}`;
@@ -82,24 +65,6 @@ export const FindFood: React.FC<FindFoodProps> = ({
       console.warn('Fetch food error', e);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const toggleLocationSharing = async () => {
-    const nextState = !isLocationSharingActive;
-    setIsLocationSharingActive(nextState);
-    try {
-      await fetch('/api/ngos/toggle-location-sharing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ngoId: user?.id || 'ngo_hope', enabled: nextState }),
-      });
-      onShowToast(
-        nextState ? 'success' : 'info',
-        nextState ? 'Location Sharing is Active.' : 'Location Sharing Paused (Approximate location used).'
-      );
-    } catch (e) {
-      console.warn('Location toggle error', e);
     }
   };
 
@@ -129,9 +94,10 @@ export const FindFood: React.FC<FindFoodProps> = ({
       const data = await res.json();
 
       if (res.ok) {
-        onShowToast('success', `Request sent to ${requestModalItem.donorName}! Awaiting donor approval.`);
+        onShowToast('success', `Request sent to ${requestModalItem.donorName}! Status is now REQUESTED/RESERVED.`);
         setRequestModalItem(null);
         setDetailModalItem(null);
+        fetchFood();
         onNavigateRequests();
       } else {
         onShowToast('error', data.error || 'Failed to submit request.');
@@ -143,38 +109,38 @@ export const FindFood: React.FC<FindFoodProps> = ({
     }
   };
 
+  // Client-side urgency filter
+  const filteredListings = foodListings.filter((item) => {
+    if (urgencyFilter === 'urgent') {
+      const deadlineHours = (new Date(item.pickupDeadline).getTime() - Date.now()) / (1000 * 60 * 60);
+      return deadlineHours <= 3;
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-6">
-      {/* Header & Controls */}
+      {/* Header & View Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-brand-text">Find Available Surplus Food</h1>
           <p className="text-xs font-medium text-brand-muted mt-1">
-            Discover nearby surplus food ranked dynamically by distance, capacity fit, food specifications, and urgency.
+            Discover nearby surplus food ranked dynamically by distance, capacity fit, and urgency.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Location Sharing Status Pill (§7) */}
+        {/* Refresh & Map/List View Toggle */}
+        <div className="flex items-center gap-3 self-start sm:self-auto">
           <button
-            type="button"
-            onClick={toggleLocationSharing}
-            className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all flex items-center gap-1.5 shadow-sm ${
-              isLocationSharingActive
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                : 'bg-gray-100 text-gray-600 border-gray-200'
-            }`}
-            title="Toggle NGO location sharing status"
+            onClick={() => fetchFood()}
+            disabled={isLoading}
+            className="px-3.5 py-2 bg-white hover:bg-orange-50 text-brand-orange border border-orange-200 rounded-2xl text-xs font-black transition-all flex items-center gap-1.5 shadow-warm-sm active:scale-95 disabled:opacity-50"
+            title="Refresh Food Listings"
           >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isLocationSharingActive ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'
-              }`}
-            />
-            <span>{isLocationSharingActive ? '🟢 Location Sharing Active' : '⚪ Location Sharing Paused'}</span>
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
           </button>
 
-          {/* Map / List View Toggle */}
           <div className="bg-brand-cream border border-orange-200 rounded-2xl p-1 flex items-center shadow-warm-sm">
             <button
               onClick={() => setViewMode('list')}
@@ -213,7 +179,7 @@ export const FindFood: React.FC<FindFoodProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchFood()}
-              placeholder="Search dishes, donors, or areas..."
+              placeholder="Search dishes, donors, or landmarks..."
               className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:border-brand-orange focus:outline-none"
             />
           </div>
@@ -262,30 +228,34 @@ export const FindFood: React.FC<FindFoodProps> = ({
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main View Mode Area */}
       {isLoading ? (
-        <LoadingState message="Calculating real-time distance and food specification match scores..." />
-      ) : foodListings.length === 0 ? (
+        <LoadingState message="Matching surplus food listings against your NGO location..." />
+      ) : filteredListings.length === 0 ? (
         <EmptyState
-          title="No Compatible Surplus Food Found"
-          description="No available surplus food matched your filter criteria. Try expanding your search radius."
-          actionLabel="Reset Filters"
-          onAction={() => {
-            setSearchTerm('');
-            setFoodType('all');
-            setRadiusKm(50);
-            setMinMeals(0);
-          }}
+          title="Fresh food is waiting to be shared."
+          description="Once a restaurant or food donor lists surplus food, compatible donations will appear here."
+          actionLabel="Refresh Listings"
+          onAction={() => fetchFood()}
         />
       ) : viewMode === 'map' ? (
+        /* Map View (§3) */
         <MapView
-          donations={foodListings}
+          donations={filteredListings}
+          ngoLocation={{
+            name: user?.name || 'Hope Foundation',
+            latitude: user?.latitude || 19.062,
+            longitude: user?.longitude || 72.854,
+          }}
+          radiusKm={radiusKm}
           onSelectDonation={(d) => setDetailModalItem(d)}
           onRequestDonation={(d) => openRequestModal(d)}
+          onRefresh={() => fetchFood()}
         />
       ) : (
+        /* List View (§3) */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {foodListings.map((item) => (
+          {filteredListings.map((item) => (
             <FoodCard
               key={item.id}
               donation={item}
@@ -334,20 +304,6 @@ export const FindFood: React.FC<FindFoodProps> = ({
               <p className="text-xs text-brand-muted leading-relaxed">{detailModalItem.description}</p>
             </div>
 
-            {/* Food Specifications tags */}
-            {detailModalItem.foodSpecifications && detailModalItem.foodSpecifications.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {detailModalItem.foodSpecifications.map((spec) => (
-                  <span
-                    key={spec}
-                    className="px-2 py-0.5 rounded-lg text-[10px] font-black bg-orange-50 text-brand-deep border border-orange-200"
-                  >
-                    {spec}
-                  </span>
-                ))}
-              </div>
-            )}
-
             {/* Donor & Pickup Info */}
             <div className="bg-brand-cream/80 p-4 rounded-2xl border border-orange-100 space-y-2 text-xs">
               <div className="flex items-center justify-between">
@@ -374,25 +330,22 @@ export const FindFood: React.FC<FindFoodProps> = ({
               </div>
             </div>
 
-            {/* Smart Match Breakdown (§3, §9) */}
+            {/* Smart Match Breakdown (§3, §5) */}
             {detailModalItem.match && (
               <div className="bg-white p-4 rounded-2xl border-2 border-orange-200 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black text-brand-deep">Smart Match Analysis</span>
                   <MatchScore score={detailModalItem.match.matchScore} size="md" />
                 </div>
-                <div className="grid grid-cols-4 gap-1.5 text-center text-[9px] font-bold text-brand-muted pt-1">
+                <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-bold text-brand-muted pt-1">
                   <div className="bg-orange-50 p-1.5 rounded-lg border border-orange-100">
-                    Distance: {detailModalItem.match.distanceScore}%
+                    Distance: {detailModalItem.match.distanceScore}/100
                   </div>
                   <div className="bg-orange-50 p-1.5 rounded-lg border border-orange-100">
-                    Quantity: {detailModalItem.match.mealQuantityScore}%
+                    Capacity: {detailModalItem.match.mealScore}/100
                   </div>
                   <div className="bg-orange-50 p-1.5 rounded-lg border border-orange-100">
-                    Food Spec: {detailModalItem.match.foodSpecScore}%
-                  </div>
-                  <div className="bg-orange-50 p-1.5 rounded-lg border border-orange-100">
-                    Urgency: {detailModalItem.match.urgencyScore}%
+                    Urgency: {detailModalItem.match.urgencyScore}/100
                   </div>
                 </div>
                 <p className="text-xs font-medium text-brand-text pt-1 leading-relaxed">
@@ -418,7 +371,7 @@ export const FindFood: React.FC<FindFoodProps> = ({
         </div>
       )}
 
-      {/* Request Confirmation Modal */}
+      {/* Request Confirmation Modal (§3) */}
       {requestModalItem && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-warm-lg animate-status-pop">

@@ -44,11 +44,11 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) =>
     }
   };
 
-  const totalMeals = donations.reduce((acc, item) => acc + item.mealCount, 0) || 360;
+  const totalMeals = donations.reduce((acc, item) => acc + item.mealCount, 0);
   const activeDonationsCount = donations.filter(
     (d) => d.status === 'AVAILABLE' || d.status === 'PENDING_REQUEST'
   ).length;
-  const completedPickupsCount = donations.filter((d) => d.status === 'COMPLETED').length || 1;
+  const completedPickupsCount = donations.filter((d) => d.status === 'COMPLETED').length;
 
   const urgentDonation = donations.find(
     (d) => d.status === 'AVAILABLE' || d.status === 'PENDING_REQUEST'

@@ -81,7 +81,6 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
       {/* Top Navbar */}
       <header className="w-full max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {/* Custom ZeroPlate Bowl Logo */}
           <div className="w-11 h-11 bg-[#F97316] rounded-2xl flex items-center justify-center shadow-md shadow-orange-500/20">
             <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white stroke-none">
               <path d="M12 3a3 3 0 0 0-3 3c0 .24.03.47.08.7A10.02 10.02 0 0 0 2 16a6 6 0 0 0 6 6h8a6 6 0 0 0 6-6 10.02 10.02 0 0 0-7.08-9.3c.05-.23.08-.46.08-.7a3 3 0 0 0-3-3zm-6 13a8 8 0 0 1 12 0H6z" />
@@ -97,7 +96,6 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Language Selector */}
           <div className="relative">
             <button
               type="button"
@@ -139,17 +137,15 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
         </div>
       </header>
 
-      {/* Main Content: Left Hero & Right Form */}
+      {/* Main Content */}
       <main className="w-full max-w-7xl mx-auto px-6 py-4 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-        {/* Left Column: Branding, Value Props & Hero Illustration */}
+        {/* Left Column */}
         <div className="lg:col-span-6 space-y-7 flex flex-col justify-center">
-          {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#FFF4EC] rounded-full border border-orange-200/60 w-fit">
             <span className="text-xs">🧡</span>
             <span className="text-xs font-bold text-[#EA580C]">Together, we can make a difference</span>
           </div>
 
-          {/* Heading */}
           <div className="space-y-3">
             <h1 className="text-4xl sm:text-5xl font-serif font-black tracking-tight text-[#1F2937] leading-[1.15]">
               Reduce Food Waste. <br />
@@ -160,7 +156,6 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
             </p>
           </div>
 
-          {/* 3 Benefit Pills */}
           <div className="space-y-3.5 max-w-md">
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-2xl bg-[#ECFDF5] text-[#059669] flex items-center justify-center shrink-0 border border-emerald-100">
@@ -192,44 +187,11 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               </div>
             </div>
           </div>
-
-          {/* Illustration Container */}
-          <div className="relative pt-2 max-w-md">
-            <div className="w-full h-48 sm:h-56 bg-gradient-to-t from-[#E2F1E8]/70 via-[#F3F9F5]/40 to-transparent rounded-3xl flex items-end justify-center p-4 relative overflow-hidden border border-emerald-100/50">
-              <div className="flex items-end justify-center gap-4 z-10 w-full px-2">
-                {/* Character 1 (Green Donor) */}
-                <div className="flex flex-col items-center">
-                  <div className="w-10 h-10 rounded-full bg-[#FED7AA] border-2 border-[#1E3A2F]" />
-                  <div className="w-14 h-16 bg-[#16A34A] rounded-t-2xl relative flex items-center justify-center mt-0.5">
-                    <div className="absolute -bottom-2 w-20 h-10 bg-[#86EFAC] border-2 border-[#16A34A] rounded-xl flex items-center justify-center shadow-md">
-                      <span className="text-[9px] font-black text-emerald-950">🥗 Fresh Meals</span>
-                    </div>
-                  </div>
-                  <div className="w-12 h-6 bg-[#1E293B] rounded-b-lg" />
-                </div>
-
-                {/* Character 2 (Orange NGO Volunteer) */}
-                <div className="flex flex-col items-center">
-                  <div className="w-10 h-10 rounded-full bg-[#FED7AA] border-2 border-[#7C2D12]" />
-                  <div className="w-14 h-16 bg-[#EA580C] rounded-t-2xl relative flex items-center justify-center mt-0.5">
-                    <div className="w-3.5 h-3.5 bg-white/90 rounded-full flex items-center justify-center mb-4">
-                      <span className="text-[7px]">🧡</span>
-                    </div>
-                    <div className="absolute -bottom-2 w-20 h-10 bg-[#FED7AA] border-2 border-[#EA580C] rounded-xl flex items-center justify-center shadow-md">
-                      <span className="text-[9px] font-black text-orange-950">DONATE</span>
-                    </div>
-                  </div>
-                  <div className="w-12 h-6 bg-[#1E293B] rounded-b-lg" />
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* Right Column: Exact White Card Form */}
+        {/* Right Column: Form */}
         <div className="lg:col-span-6 flex justify-center">
           <div className="w-full max-w-lg bg-white rounded-[32px] border border-gray-100 shadow-[0_10px_40px_rgba(0,0,0,0.06)] p-7 sm:p-9 space-y-6">
-            {/* Form Header */}
             <div className="text-center space-y-1.5">
               <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#1F2937]">
                 Welcome <span className="text-[#EA580C] font-black italic">Back!</span> 👋
@@ -238,7 +200,6 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                 Sign in with verified Google Cloud OAuth or enter your credentials
               </p>
 
-              {/* Heart Line Divider */}
               <div className="flex items-center justify-center gap-2 pt-1 pb-1">
                 <div className="w-8 h-[1px] bg-orange-300" />
                 <span className="text-xs text-[#EA580C]">🧡</span>
@@ -246,9 +207,8 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               </div>
             </div>
 
-            {/* Role Cards (§2, §3) */}
+            {/* Role Cards */}
             <div className="grid grid-cols-2 gap-3">
-              {/* Food Donor Role Card */}
               <button
                 type="button"
                 onClick={() => handleRoleSelect('donor')}
@@ -264,7 +224,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                 <div className="min-w-0">
                   <span className="text-[10px] text-[#6B7280] font-medium block">I'm a</span>
                   <strong className="text-xs font-black text-[#1F2937] block truncate">Food Donor</strong>
-                  <span className="text-[10px] text-[#6B7280] block truncate">Restaurant / Hotel / Home</span>
+                  <span className="text-[10px] text-[#6B7280] block truncate">Restaurant / Hotel</span>
                 </div>
                 {selectedRole === 'donor' && (
                   <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#16A34A] text-white flex items-center justify-center">
@@ -273,7 +233,6 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                 )}
               </button>
 
-              {/* NGO / Volunteer Role Card */}
               <button
                 type="button"
                 onClick={() => handleRoleSelect('ngo')}
@@ -288,8 +247,8 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                 </div>
                 <div className="min-w-0">
                   <span className="text-[10px] text-[#6B7280] font-medium block">I'm an</span>
-                  <strong className="text-xs font-black text-[#1F2937] block truncate">NGO / Volunteer</strong>
-                  <span className="text-[10px] text-[#6B7280] block truncate">Organization / Volunteer</span>
+                  <strong className="text-xs font-black text-[#1F2937] block truncate">NGO Manager</strong>
+                  <span className="text-[10px] text-[#6B7280] block truncate">Charity / Shelter</span>
                 </div>
                 {selectedRole === 'ngo' && (
                   <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#EA580C] text-white flex items-center justify-center">
@@ -299,21 +258,19 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               </button>
             </div>
 
-            {/* Error Message */}
             {errorMessage && (
               <div className="p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-xl border border-red-200">
                 {errorMessage}
               </div>
             )}
 
-            {/* Prominent Google Cloud OAuth 2.0 Button (Using Client ID from Google Cloud Console) */}
+            {/* Google OAuth Button */}
             <div>
               <button
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={googleLoading}
                 className="w-full py-3.5 px-4 bg-white hover:bg-orange-50/50 border-2 border-orange-200 hover:border-orange-400 rounded-2xl text-xs sm:text-sm font-extrabold text-gray-800 shadow-sm flex items-center justify-center gap-3 transition-all active:scale-95 group"
-                title="Sign in with Google Cloud OAuth 2.0 (Gmail Verification)"
               >
                 <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                   <path
@@ -333,11 +290,10 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-                <span>{googleLoading ? 'Opening Google Cloud Sign-In...' : 'Continue with Google (Gmail Verified)'}</span>
+                <span>{googleLoading ? 'Opening Google Sign-In...' : `Continue with Google (${selectedRole === 'donor' ? 'Food Donor' : 'NGO Manager'})`}</span>
               </button>
             </div>
 
-            {/* Social Divider */}
             <div className="relative flex items-center justify-center">
               <div className="w-full border-t border-gray-200" />
               <span className="absolute bg-white px-3 text-[11px] text-gray-400 font-medium">
@@ -345,9 +301,8 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               </span>
             </div>
 
-            {/* Input Form */}
+            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Email / Phone */}
               <div className="relative">
                 <Mail className="w-4 h-4 text-gray-400 absolute left-4 top-3.5" />
                 <input
@@ -360,7 +315,6 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                 />
               </div>
 
-              {/* Password */}
               <div className="relative">
                 <Lock className="w-4 h-4 text-gray-400 absolute left-4 top-3.5" />
                 <input
@@ -380,7 +334,6 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                 </button>
               </div>
 
-              {/* Remember me & Forgot Password */}
               <div className="flex items-center justify-between text-xs">
                 <label className="flex items-center gap-2 text-[#4B5563] font-medium cursor-pointer">
                   <input
@@ -400,41 +353,19 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                 </button>
               </div>
 
-              {/* Primary Log in Button */}
               <button
                 type="submit"
                 disabled={isLoading}
                 className="w-full py-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md shadow-orange-500/25 transition-all flex items-center justify-center gap-2 active:scale-95"
               >
                 <Lock className="w-4 h-4" />
-                <span>{isLoading ? 'Signing in...' : 'Log in'}</span>
+                <span>{isLoading ? 'Signing in...' : `Log in to ${selectedRole === 'donor' ? 'Food Donor' : 'NGO'} Portal`}</span>
               </button>
             </form>
-
-            {/* Safety Banner */}
-            <div className="bg-[#FFFBF5] rounded-2xl border border-orange-200/60 p-3.5 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-orange-100/80 text-[#EA580C] flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <h5 className="text-[11px] font-bold text-[#1F2937]">Google Cloud OAuth 2.0 Verified</h5>
-                  <p className="text-[10px] text-[#6B7280]">Official Google Cloud authorization enabled.</p>
-                </div>
-              </div>
-
-              <div className="relative shrink-0 pr-1">
-                <div className="w-8 h-8 rounded-xl bg-[#EA580C] text-white flex items-center justify-center shadow-sm">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <Sparkles className="w-3.5 h-3.5 text-amber-400 absolute -top-1 -right-1 fill-amber-300" />
-              </div>
-            </div>
           </div>
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="w-full max-w-7xl mx-auto px-6 py-6 text-center text-xs text-[#9CA3AF]">
         <div className="flex flex-wrap items-center justify-center gap-3">
           <span>© 2024 ZeroPlate. All rights reserved.</span>
