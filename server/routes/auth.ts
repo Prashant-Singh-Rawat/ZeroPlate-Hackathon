@@ -8,6 +8,9 @@ export const GOOGLE_CLIENT_ID =
   process.env.GOOGLE_CLIENT_ID ||
   '132721264540-tvqtl6nen6f2hsun0u1ejlqkqmr9640r.apps.googleusercontent.com';
 
+// In-memory OTP storage for Gmail verification
+const otpStore: Record<string, { code: string; expiresAt: number; role: UserRole }> = {};
+
 // Helper to decode JWT payload safely
 function decodeJwt(token: string): any {
   try {
@@ -20,31 +23,115 @@ function decodeJwt(token: string): any {
   }
 }
 
+// POST /api/auth/send-otp - Send Gmail 6-digit verification OTP
+router.post('/send-otp', (req, res) => {
+  const { email, role } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: 'Email address is required.' });
+  }
+
+  // Generate 6-digit OTP
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  otpStore[email.toLowerCase()] = {
+    code,
+    expiresAt: Date.now() + 5 * 60 * 1000, // 5 mins
+    role: role || 'donor',
+  };
+
+  console.log(`[ZeroPlate Auth] 📧 Gmail Verification Code for ${email}: ${code}`);
+
+  return res.json({
+    success: true,
+    message: `6-digit verification code generated for ${email}.`,
+    demoCode: code, // Provided for easy hackathon demo testing
+  });
+});
+
+// POST /api/auth/verify-otp - Verify Gmail OTP code
+router.post('/verify-otp', (req, res) => {
+  const { email, code, role } = req.body;
+
+  if (!email || !code) {
+    return res.status(400).json({ error: 'Email and verification code are required.' });
+  }
+
+  const record = otpStore[email.toLowerCase()];
+  if (!record) {
+    return res.status(400).json({ error: 'No verification code was requested for this email. Please request a code first.' });
+  }
+
+  if (Date.now() > record.expiresAt) {
+    delete otpStore[email.toLowerCase()];
+    return res.status(400).json({ error: 'Verification code has expired. Please request a new code.' });
+  }
+
+  if (record.code !== String(code).trim()) {
+    return res.status(400).json({ error: 'Incorrect 6-digit verification code. Please try again.' });
+  }
+
+  // Code is valid! Delete used OTP
+  delete otpStore[email.toLowerCase()];
+
+  const store = db.getStore();
+  let user = store.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+
+  if (user) {
+    user.emailVerified = true;
+    return res.json({
+      success: true,
+      user,
+      verifiedVia: 'Gmail OTP Verification',
+    });
+  }
+
+  // Create new verified user
+  const effectiveRole = role || record.role || 'donor';
+  const nameFromEmail = email.split('@')[0].replace(/[._]/g, ' ');
+  const capitalizedName = nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
+
+  const newUser = db.addUser({
+    name: capitalizedName || (effectiveRole === 'donor' ? 'Food Donor' : 'Hope NGO'),
+    email: email.toLowerCase(),
+    role: effectiveRole,
+    subscriptionPlan: 'free',
+    latitude: 19.076,
+    longitude: 72.8777,
+    emailVerified: true,
+    onboarded: false,
+  });
+
+  return res.json({
+    success: true,
+    user: newUser,
+    verifiedVia: 'Gmail OTP Verification',
+  });
+});
+
 // POST /api/auth/login
 router.post('/login', (req, res) => {
   const { email, role } = req.body;
   if (!email) {
-    return res.status(400).json({ error: 'Email or phone number is required.' });
+    return res.status(400).json({ error: 'Email is required.' });
   }
 
   const store = db.getStore();
   let user = store.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
 
   if (!user) {
-    return res.status(401).json({ error: 'Account not found. Please sign up or continue with Google.' });
+    return res.status(401).json({ error: 'Account not found. Please verify your Gmail or connect with Google.' });
   }
 
-  // Strictly enforce role at server-side
+  // Strictly enforce role
   if (role && user.role !== role) {
     return res.status(403).json({
-      error: `This account is registered as a ${user.role === 'donor' ? 'Food Donor' : 'NGO Manager'}. Please select the ${user.role === 'donor' ? 'Food Donor' : 'NGO / Volunteer'} card above.`,
+      error: `This account is registered as a ${user.role === 'donor' ? 'Food Donor' : 'NGO Manager'}. Please select the correct role card.`,
     });
   }
 
   return res.json({ user });
 });
 
-// POST /api/auth/google - Real Google OAuth & Gmail Verification
+// POST /api/auth/google - Google Cloud OAuth Verified Login
 router.post('/google', (req, res) => {
   const { role, googleToken, email, name, avatar } = req.body;
 
@@ -92,8 +179,8 @@ router.post('/google', (req, res) => {
     subscriptionPlan: 'free',
     latitude: 19.076,
     longitude: 72.8777,
-    emailVerified: true, // Marked verified via Google OAuth
-    onboarded: false, // Will prompt onboarding for location & specs
+    emailVerified: true,
+    onboarded: false,
   });
 
   return res.json({
@@ -169,12 +256,6 @@ router.post('/onboard/donor', (req, res) => {
   } catch (e: any) {
     return res.status(400).json({ error: e.message || 'Onboarding failed.' });
   }
-});
-
-// POST /api/auth/reset-demo
-router.post('/reset-demo', (req, res) => {
-  db.resetSeed();
-  return res.json({ message: 'Database reset to initial demo seed.' });
 });
 
 export default router;

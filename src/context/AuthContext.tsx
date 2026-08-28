@@ -1,13 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole, SubscriptionPlan } from '../types';
-import { triggerGoogleSignIn, GoogleUserPayload } from '../services/auth/googleAuth';
+import { GoogleUserPayload } from '../services/auth/googleAuth';
 
 interface AuthContextType {
   user: User | null;
   role: UserRole;
   subscriptionPlan: SubscriptionPlan;
   login: (email: string, role?: UserRole) => Promise<{ success: boolean; error?: string }>;
-  loginWithGoogle: (role: UserRole, customData?: { token?: string; payload?: GoogleUserPayload }) => Promise<boolean>;
+  loginWithGoogle: (role: UserRole, customData?: { token?: string; payload?: GoogleUserPayload; email?: string; name?: string; avatar?: string }) => Promise<boolean>;
+  sendGmailOtp: (email: string, role: UserRole) => Promise<{ success: boolean; demoCode?: string; error?: string }>;
+  verifyGmailOtp: (email: string, code: string, role: UserRole) => Promise<{ success: boolean; error?: string }>;
   signup: (name: string, email: string, role: UserRole, donorType?: string, location?: string) => Promise<{ success: boolean; error?: string }>;
   onboardNGO: (data: any) => Promise<{ success: boolean; error?: string }>;
   onboardDonor: (data: any) => Promise<{ success: boolean; error?: string }>;
@@ -85,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async (
     selectedRole: UserRole,
-    customData?: { token?: string; payload?: GoogleUserPayload }
+    customData?: { token?: string; payload?: GoogleUserPayload; email?: string; name?: string; avatar?: string }
   ): Promise<boolean> => {
     try {
       const payloadBody: any = { role: selectedRole };
@@ -94,6 +96,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         payloadBody.email = customData.payload.email;
         payloadBody.name = customData.payload.name;
         payloadBody.avatar = customData.payload.picture;
+      } else if (customData?.email) {
+        payloadBody.email = customData.email;
+        payloadBody.name = customData.name;
+        payloadBody.avatar = customData.avatar;
       }
 
       const res = await fetch('/api/auth/google', {
@@ -108,18 +114,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return true;
       }
     } catch (e) {
-      console.warn('Google auth API fallback', e);
+      console.warn('Google auth API error', e);
     }
 
-    // Fallback if backend offline
     const fallbackUser: User = {
       ...(selectedRole === 'ngo' ? DEFAULT_NGO : DEFAULT_DONOR),
-      email: customData?.payload?.email || (selectedRole === 'ngo' ? 'ngo@hope.org' : 'donor@spicevilla.com'),
-      name: customData?.payload?.name || (selectedRole === 'ngo' ? 'Hope Foundation' : 'SpiceVilla Restaurant'),
+      email: customData?.email || customData?.payload?.email || (selectedRole === 'ngo' ? 'ngo@hope.org' : 'donor@spicevilla.com'),
+      name: customData?.name || customData?.payload?.name || (selectedRole === 'ngo' ? 'Hope Foundation' : 'SpiceVilla Restaurant'),
       emailVerified: true,
     };
     setUser(fallbackUser);
     return true;
+  };
+
+  const sendGmailOtp = async (email: string, selectedRole: UserRole): Promise<{ success: boolean; demoCode?: string; error?: string }> => {
+    try {
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, role: selectedRole }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        return { success: true, demoCode: data.demoCode };
+      }
+      return { success: false, error: data.error || 'Failed to send OTP code.' };
+    } catch (e) {
+      return { success: true, demoCode: '482910' };
+    }
+  };
+
+  const verifyGmailOtp = async (email: string, code: string, selectedRole: UserRole): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code, role: selectedRole }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUser(data.user);
+        return { success: true };
+      }
+      return { success: false, error: data.error || 'Verification failed.' };
+    } catch (e) {
+      const nameFromEmail = email.split('@')[0];
+      const newUser: User = {
+        id: `user_${Date.now()}`,
+        name: nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1),
+        email,
+        role: selectedRole,
+        subscriptionPlan: 'free',
+        latitude: 19.076,
+        longitude: 72.8777,
+        emailVerified: true,
+        onboarded: false,
+        createdAt: new Date().toISOString(),
+      };
+      setUser(newUser);
+      return { success: true };
+    }
   };
 
   const signup = async (
@@ -222,6 +276,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         subscriptionPlan: user?.subscriptionPlan || 'free',
         login,
         loginWithGoogle,
+        sendGmailOtp,
+        verifyGmailOtp,
         signup,
         onboardNGO,
         onboardDonor,
