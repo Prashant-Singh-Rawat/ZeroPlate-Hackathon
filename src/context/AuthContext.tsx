@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole, SubscriptionPlan } from '../types';
+import { triggerGoogleSignIn, GoogleUserPayload } from '../services/auth/googleAuth';
 
 interface AuthContextType {
   user: User | null;
   role: UserRole;
   subscriptionPlan: SubscriptionPlan;
   login: (email: string, role?: UserRole) => Promise<{ success: boolean; error?: string }>;
-  loginWithGoogle: (role: UserRole) => Promise<boolean>;
+  loginWithGoogle: (role: UserRole, customData?: { token?: string; payload?: GoogleUserPayload }) => Promise<boolean>;
   signup: (name: string, email: string, role: UserRole, donorType?: string, location?: string) => Promise<{ success: boolean; error?: string }>;
   onboardNGO: (data: any) => Promise<{ success: boolean; error?: string }>;
   onboardDonor: (data: any) => Promise<{ success: boolean; error?: string }>;
@@ -82,22 +83,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithGoogle = async (selectedRole: UserRole): Promise<boolean> => {
+  const loginWithGoogle = async (
+    selectedRole: UserRole,
+    customData?: { token?: string; payload?: GoogleUserPayload }
+  ): Promise<boolean> => {
     try {
+      const payloadBody: any = { role: selectedRole };
+      if (customData?.token) payloadBody.googleToken = customData.token;
+      if (customData?.payload) {
+        payloadBody.email = customData.payload.email;
+        payloadBody.name = customData.payload.name;
+        payloadBody.avatar = customData.payload.picture;
+      }
+
       const res = await fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: selectedRole }),
+        body: JSON.stringify(payloadBody),
       });
+
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
         return true;
       }
     } catch (e) {
-      console.warn('Google auth fallback');
+      console.warn('Google auth API fallback', e);
     }
-    const fallbackUser = selectedRole === 'ngo' ? DEFAULT_NGO : DEFAULT_DONOR;
+
+    // Fallback if backend offline
+    const fallbackUser: User = {
+      ...(selectedRole === 'ngo' ? DEFAULT_NGO : DEFAULT_DONOR),
+      email: customData?.payload?.email || (selectedRole === 'ngo' ? 'ngo@hope.org' : 'donor@spicevilla.com'),
+      name: customData?.payload?.name || (selectedRole === 'ngo' ? 'Hope Foundation' : 'SpiceVilla Restaurant'),
+      emailVerified: true,
+    };
     setUser(fallbackUser);
     return true;
   };

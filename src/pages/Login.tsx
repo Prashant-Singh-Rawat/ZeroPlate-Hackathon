@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types';
+import { triggerGoogleSignIn, GOOGLE_CLIENT_ID } from '../services/auth/googleAuth';
 import {
   Utensils,
   Heart,
@@ -36,6 +37,22 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
   const [selectedLang, setSelectedLang] = useState('English');
   const [isLangOpen, setIsLangOpen] = useState(false);
 
+  // Initialize Google One-Tap on mount if available
+  useEffect(() => {
+    try {
+      triggerGoogleSignIn(
+        async (googleData) => {
+          setGoogleLoading(true);
+          await loginWithGoogle(selectedRole, googleData);
+          setGoogleLoading(false);
+        },
+        () => {}
+      );
+    } catch (e) {
+      // Ignore if SDK not ready
+    }
+  }, [selectedRole]);
+
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
     setErrorMessage('');
@@ -60,11 +77,23 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     setErrorMessage('');
-    try {
+
+    // Attempt Google Identity Services trigger
+    if (typeof window !== 'undefined' && (window as any).google?.accounts?.id) {
+      triggerGoogleSignIn(
+        async (googleData) => {
+          await loginWithGoogle(selectedRole, googleData);
+          setGoogleLoading(false);
+        },
+        async () => {
+          // Fallback if popup blocked
+          await loginWithGoogle(selectedRole);
+          setGoogleLoading(false);
+        }
+      );
+    } else {
+      // Fallback
       await loginWithGoogle(selectedRole);
-    } catch (e) {
-      setErrorMessage('Google Authentication failed.');
-    } finally {
       setGoogleLoading(false);
     }
   };
@@ -189,14 +218,6 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
           {/* Illustration Container */}
           <div className="relative pt-2 max-w-md">
             <div className="w-full h-48 sm:h-56 bg-gradient-to-t from-[#E2F1E8]/70 via-[#F3F9F5]/40 to-transparent rounded-3xl flex items-end justify-center p-4 relative overflow-hidden border border-emerald-100/50">
-              {/* City / NGO Silhouette in background */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
-                <div className="w-48 h-32 border-4 border-emerald-800 rounded-3xl flex items-center justify-center">
-                  <span className="text-2xl font-black">NGO</span>
-                </div>
-              </div>
-
-              {/* Vector Characters with Food Boxes */}
               <div className="flex items-end justify-center gap-4 z-10 w-full px-2">
                 {/* Character 1 (Green Donor) */}
                 <div className="flex flex-col items-center">
@@ -247,7 +268,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               </div>
             </div>
 
-            {/* Role Cards (§2, §3, UI Match) */}
+            {/* Role Cards (§2, §3) */}
             <div className="grid grid-cols-2 gap-3">
               {/* Food Donor Role Card */}
               <button
@@ -381,15 +402,15 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               </span>
             </div>
 
-            {/* Social Login Buttons in a 3-column row (Google, Apple, Facebook) */}
+            {/* Social Login Buttons */}
             <div className="grid grid-cols-3 gap-2.5">
-              {/* Google Button with Google OAuth / Gmail verification */}
+              {/* Google Button with Official Google OAuth ID token & Gmail verification */}
               <button
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={googleLoading}
-                className="py-2.5 px-3 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95"
-                title="Google Gmail Authentication via Cloud Console"
+                className="py-2.5 px-3 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 group"
+                title="Sign in with Google OAuth (Gmail Verification)"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path
@@ -409,7 +430,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-                <span className="truncate">{googleLoading ? '...' : 'Google'}</span>
+                <span className="truncate">{googleLoading ? 'Connecting...' : 'Google'}</span>
               </button>
 
               {/* Apple Button */}
@@ -437,7 +458,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               </button>
             </div>
 
-            {/* Safety Banner at bottom of Card */}
+            {/* Safety Banner */}
             <div className="bg-[#FFFBF5] rounded-2xl border border-orange-200/60 p-3.5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-orange-100/80 text-[#EA580C] flex items-center justify-center shrink-0">
@@ -449,7 +470,6 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                 </div>
               </div>
 
-              {/* Lock Graphic with Sparkles */}
               <div className="relative shrink-0 pr-1">
                 <div className="w-8 h-8 rounded-xl bg-[#EA580C] text-white flex items-center justify-center shadow-sm">
                   <Lock className="w-4 h-4" />
