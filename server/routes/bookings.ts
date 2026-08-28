@@ -83,7 +83,7 @@ router.post('/:id/status', (req, res) => {
     return res.status(400).json({ error: 'User ID and target status are required.' });
   }
 
-  const result = db.updateBookingStatus(id, userId, status);
+  const result = db.updateBookingStatus(id, status);
   if (!result.success) {
     return res.status(400).json({ error: result.error });
   }

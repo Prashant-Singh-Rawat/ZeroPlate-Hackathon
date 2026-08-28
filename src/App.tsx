@@ -15,6 +15,8 @@ import { DonorDashboard } from './pages/DonorDashboard';
 import { AddFood } from './pages/AddFood';
 import { MyListings } from './pages/MyListings';
 import { DonorRequests } from './pages/DonorRequests';
+import { DeliveryPersonsPage } from './pages/DeliveryPersonsPage';
+import { DeliveriesPage } from './pages/DeliveriesPage';
 
 // NGO Pages
 import { NGODashboard } from './pages/NGODashboard';
@@ -103,7 +105,7 @@ const MainLayout: React.FC = () => {
           />
         );
 
-      // Donor Specific Views (§4)
+      // Donor Specific Views
       case 'add-food':
         if (!isDonor) {
           return (
@@ -150,12 +152,26 @@ const MainLayout: React.FC = () => {
         }
         return (
           <DonorRequests
-            onNavigateBookings={() => setActiveTab('bookings')}
+            onNavigateBookings={() => setActiveTab('deliveries')}
             onShowToast={showToast}
           />
         );
 
-      // NGO Specific Views (§3)
+      case 'delivery-persons':
+        if (!isDonor) {
+          return (
+            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+              Access Restricted: Delivery fleet management is available to Food Donors.
+            </div>
+          );
+        }
+        return <DeliveryPersonsPage onShowToast={showToast} />;
+
+      // Deliveries (Shared Dispatch View)
+      case 'deliveries':
+        return <DeliveriesPage onShowToast={showToast} />;
+
+      // NGO Specific Views
       case 'find-food':
       case 'find-food-map':
       case 'find-food-list':
@@ -185,12 +201,12 @@ const MainLayout: React.FC = () => {
         return (
           <MyRequests
             onNavigateFindFood={() => setActiveTab('find-food')}
-            onNavigateBookings={() => setActiveTab('bookings')}
+            onNavigateBookings={() => setActiveTab('deliveries')}
             onShowToast={showToast}
           />
         );
 
-      // Shared Views (§6, §11)
+      // Shared Views
       case 'bookings':
         return <BookingsPage onShowToast={showToast} />;
 

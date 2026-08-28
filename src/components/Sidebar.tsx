@@ -2,39 +2,30 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard,
+  UtensilsCrossed,
   PlusCircle,
-  Search,
-  ListFilter,
+  Clock,
+  CheckCircle,
   Inbox,
-  CalendarDays,
-  MessageSquare,
+  CalendarCheck,
+  Search,
+  MapPin,
+  ClipboardList,
   Sparkles,
-  TrendingUp,
+  BarChart3,
+  MessageSquare,
+  CreditCard,
+  User,
   Settings,
   LogOut,
-  Building2,
-  MapPin,
-  UtensilsCrossed,
-  User,
+  X,
+  Truck,
+  Users,
 } from 'lucide-react';
-
-interface SubNavItem {
-  id: string;
-  label: string;
-  icon: any;
-}
-
-interface NavItem {
-  id: string;
-  label: string;
-  icon: any;
-  badge?: number;
-  subLinks?: SubNavItem[];
-}
 
 interface SidebarProps {
   activeTab: string;
-  onSelectTab: (tab: string, extraData?: any) => void;
+  onSelectTab: (tab: string) => void;
   isOpenMobile?: boolean;
   onCloseMobile?: () => void;
   pendingRequestsCount?: number;
@@ -50,189 +41,206 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { role, logout, user } = useAuth();
   const isDonor = role === 'donor';
 
-  const donorLinks: NavItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    {
-      id: 'donations',
-      label: 'Food Donations',
-      icon: UtensilsCrossed,
-      subLinks: [
-        { id: 'add-food', label: 'Add Food', icon: PlusCircle },
-        { id: 'donations-available', label: 'Available', icon: ListFilter },
-        { id: 'donations-reserved', label: 'Reserved / Pending', icon: ListFilter },
-        { id: 'donations-completed', label: 'Completed', icon: ListFilter },
-      ],
-    },
-    {
-      id: 'requests',
-      label: 'NGO Requests',
-      icon: Inbox,
-      badge: pendingRequestsCount > 0 ? pendingRequestsCount : undefined,
-    },
-    { id: 'bookings', label: 'Bookings', icon: CalendarDays },
-    { id: 'impact', label: 'Impact Dashboard', icon: TrendingUp },
-    { id: 'messages', label: 'Messages', icon: MessageSquare },
-  ];
-
-  const ngoLinks: NavItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    {
-      id: 'find-food',
-      label: 'Find Food',
-      icon: Search,
-      subLinks: [
-        { id: 'find-food-map', label: 'Map View', icon: MapPin },
-        { id: 'find-food-list', label: 'List View', icon: ListFilter },
-      ],
-    },
-    { id: 'my-requests', label: 'My Requests', icon: Inbox },
-    { id: 'bookings', label: 'Bookings', icon: CalendarDays },
-    { id: 'messages', label: 'Messages', icon: MessageSquare },
-    { id: 'impact', label: 'Impact Dashboard', icon: TrendingUp },
-  ];
-
-  const mainLinks = isDonor ? donorLinks : ngoLinks;
-
-  const secondaryLinks = [
-    { id: 'subscription', label: 'Subscription', icon: Sparkles },
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'settings', label: 'Settings', icon: Settings },
-  ];
+  const navItemClass = (id: string) => `
+    w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all
+    ${
+      activeTab === id
+        ? 'bg-brand-orange text-white shadow-warm-sm font-extrabold'
+        : 'text-brand-muted hover:text-brand-text hover:bg-brand-light'
+    }
+  `;
 
   return (
     <>
+      {/* Mobile Backdrop */}
       {isOpenMobile && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
           onClick={onCloseMobile}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
         />
       )}
 
+      {/* Sidebar Container */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-amber-900/5 flex flex-col justify-between transition-transform duration-300 transform ${
-          isOpenMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`
+          fixed md:static top-0 bottom-0 left-0 z-40 w-64 bg-white border-r border-amber-900/5 p-4 flex flex-col justify-between
+          transition-transform duration-300 ease-in-out md:translate-x-0
+          ${isOpenMobile ? 'translate-x-0' : '-translate-x-full'}
+        `}
       >
-        <div className="p-4 space-y-5 overflow-y-auto">
-          {/* Portal Identifier Badge */}
-          <div className="px-3.5 py-2.5 bg-brand-light rounded-2xl border border-orange-200/60 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-brand-orange" />
-              <span className="text-xs font-black text-brand-deep uppercase tracking-wider">
-                {isDonor ? 'Food Donor Portal' : 'NGO Rescue Portal'}
-              </span>
-            </div>
+        <div className="space-y-6">
+          {/* Mobile Header & Close */}
+          <div className="flex items-center justify-between md:hidden pb-2 border-b border-gray-100">
+            <span className="font-extrabold text-sm text-brand-text">Navigation</span>
+            <button
+              onClick={onCloseMobile}
+              className="p-1.5 rounded-lg text-brand-muted hover:text-brand-text"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          {/* Main Role-Specific Navigation Tree */}
+          {/* Role Header Banner (Fixed Role) */}
+          <div className="px-3 py-2 bg-brand-light rounded-2xl border border-orange-200">
+            <span className="text-[10px] font-black uppercase text-brand-deep tracking-wider block">
+              {isDonor ? 'Food Donor Portal' : 'NGO Manager Portal'}
+            </span>
+            <strong className="text-xs font-bold text-brand-text truncate block mt-0.5">
+              {user?.name || (isDonor ? 'SpiceVilla Restaurant' : 'Hope Foundation')}
+            </strong>
+          </div>
+
+          {/* Navigation Links */}
           <nav className="space-y-1">
-            {mainLinks.map((item) => {
-              const Icon = item.icon;
-              const isActive =
-                activeTab === item.id ||
-                (item.subLinks && item.subLinks.some((sub) => activeTab === sub.id));
+            {/* 1. Dashboard */}
+            <button onClick={() => onSelectTab('dashboard')} className={navItemClass('dashboard')}>
+              <div className="flex items-center gap-2.5">
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Dashboard</span>
+              </div>
+            </button>
 
-              return (
-                <div key={item.id} className="space-y-1">
-                  <button
-                    onClick={() => {
-                      onSelectTab(item.id);
-                      if (onCloseMobile) onCloseMobile();
-                    }}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-extrabold text-sm transition-all ${
-                      isActive
-                        ? 'bg-brand-orange text-white shadow-warm-sm'
-                        : 'text-brand-muted hover:bg-brand-light hover:text-brand-orange'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />
-                      <span>{item.label}</span>
-                    </div>
-
-                    {item.badge !== undefined && (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-black bg-white text-brand-deep shadow-sm">
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-
-                  {/* Sub-links if active */}
-                  {item.subLinks && isActive && (
-                    <div className="pl-6 space-y-1 pt-1 border-l-2 border-orange-200 ml-4">
-                      {item.subLinks.map((sub) => {
-                        const SubIcon = sub.icon;
-                        const isSubActive = activeTab === sub.id;
-
-                        return (
-                          <button
-                            key={sub.id}
-                            onClick={() => {
-                              onSelectTab(sub.id);
-                              if (onCloseMobile) onCloseMobile();
-                            }}
-                            className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                              isSubActive
-                                ? 'text-brand-orange bg-orange-50 font-black'
-                                : 'text-brand-muted hover:text-brand-text'
-                            }`}
-                          >
-                            <SubIcon className="w-3.5 h-3.5" />
-                            <span>{sub.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+            {/* DONOR NAVIGATION (§5, §8) */}
+            {isDonor && (
+              <>
+                <div className="pt-3 pb-1 px-3 text-[10px] font-black uppercase text-brand-muted tracking-wider">
+                  Food Donations
                 </div>
-              );
-            })}
-          </nav>
 
-          <hr className="border-gray-100" />
-
-          {/* Secondary Links */}
-          <nav className="space-y-1">
-            {secondaryLinks.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    onSelectTab(item.id);
-                    if (onCloseMobile) onCloseMobile();
-                  }}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-xl font-bold text-xs transition-all ${
-                    isActive
-                      ? 'bg-brand-orange text-white shadow-warm-sm'
-                      : 'text-brand-muted hover:bg-brand-light hover:text-brand-orange'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />
-                  <span>{item.label}</span>
+                <button onClick={() => onSelectTab('add-food')} className={navItemClass('add-food')}>
+                  <div className="flex items-center gap-2.5">
+                    <PlusCircle className="w-4 h-4 text-brand-orange" />
+                    <span>Publish Food</span>
+                  </div>
                 </button>
-              );
-            })}
+
+                <button onClick={() => onSelectTab('donations')} className={navItemClass('donations')}>
+                  <div className="flex items-center gap-2.5">
+                    <UtensilsCrossed className="w-4 h-4" />
+                    <span>My Food Listings</span>
+                  </div>
+                </button>
+
+                <button onClick={() => onSelectTab('requests')} className={navItemClass('requests')}>
+                  <div className="flex items-center gap-2.5">
+                    <Inbox className="w-4 h-4" />
+                    <span>NGO Requests</span>
+                  </div>
+                  {pendingRequestsCount > 0 && (
+                    <span className="px-2 py-0.5 text-[10px] font-extrabold bg-brand-orange text-white rounded-full">
+                      {pendingRequestsCount} new
+                    </span>
+                  )}
+                </button>
+
+                <div className="pt-3 pb-1 px-3 text-[10px] font-black uppercase text-brand-muted tracking-wider">
+                  Deliveries & Fleet
+                </div>
+
+                <button onClick={() => onSelectTab('deliveries')} className={navItemClass('deliveries')}>
+                  <div className="flex items-center gap-2.5">
+                    <Truck className="w-4 h-4 text-brand-orange" />
+                    <span>Active Deliveries</span>
+                  </div>
+                </button>
+
+                <button onClick={() => onSelectTab('delivery-persons')} className={navItemClass('delivery-persons')}>
+                  <div className="flex items-center gap-2.5">
+                    <Users className="w-4 h-4" />
+                    <span>Delivery Fleet</span>
+                  </div>
+                </button>
+
+                <button onClick={() => onSelectTab('bookings')} className={navItemClass('bookings')}>
+                  <div className="flex items-center gap-2.5">
+                    <CalendarCheck className="w-4 h-4" />
+                    <span>Confirmed Bookings</span>
+                  </div>
+                </button>
+              </>
+            )}
+
+            {/* NGO NAVIGATION (§5, §8) */}
+            {!isDonor && (
+              <>
+                <div className="pt-3 pb-1 px-3 text-[10px] font-black uppercase text-brand-muted tracking-wider">
+                  Food Rescue
+                </div>
+
+                <button onClick={() => onSelectTab('find-food')} className={navItemClass('find-food')}>
+                  <div className="flex items-center gap-2.5">
+                    <Search className="w-4 h-4 text-brand-orange" />
+                    <span>Find Food</span>
+                  </div>
+                </button>
+
+                <button onClick={() => onSelectTab('my-requests')} className={navItemClass('my-requests')}>
+                  <div className="flex items-center gap-2.5">
+                    <ClipboardList className="w-4 h-4" />
+                    <span>My Requests</span>
+                  </div>
+                </button>
+
+                <div className="pt-3 pb-1 px-3 text-[10px] font-black uppercase text-brand-muted tracking-wider">
+                  Live Dispatch
+                </div>
+
+                <button onClick={() => onSelectTab('deliveries')} className={navItemClass('deliveries')}>
+                  <div className="flex items-center gap-2.5">
+                    <Truck className="w-4 h-4 text-emerald-600" />
+                    <span>Track Deliveries</span>
+                  </div>
+                </button>
+
+                <button onClick={() => onSelectTab('bookings')} className={navItemClass('bookings')}>
+                  <div className="flex items-center gap-2.5">
+                    <CalendarCheck className="w-4 h-4" />
+                    <span>Confirmed Bookings</span>
+                  </div>
+                </button>
+              </>
+            )}
+
+            {/* SHARED SECTION */}
+            <div className="pt-3 pb-1 px-3 text-[10px] font-black uppercase text-brand-muted tracking-wider">
+              General
+            </div>
+
+            <button onClick={() => onSelectTab('impact')} className={navItemClass('impact')}>
+              <div className="flex items-center gap-2.5">
+                <BarChart3 className="w-4 h-4" />
+                <span>Impact Dashboard</span>
+              </div>
+            </button>
+
+            <button onClick={() => onSelectTab('messages')} className={navItemClass('messages')}>
+              <div className="flex items-center gap-2.5">
+                <MessageSquare className="w-4 h-4" />
+                <span>Messages</span>
+              </div>
+            </button>
+
+            <button onClick={() => onSelectTab('subscription')} className={navItemClass('subscription')}>
+              <div className="flex items-center gap-2.5">
+                <CreditCard className="w-4 h-4" />
+                <span>Subscription</span>
+              </div>
+            </button>
           </nav>
         </div>
 
-        {/* User profile summary & logout */}
-        <div className="p-4 border-t border-gray-100 space-y-2">
-          <div className="px-2 py-1 flex items-center gap-2 text-xs">
-            <div className="w-7 h-7 rounded-full bg-brand-light text-brand-deep font-bold flex items-center justify-center border border-orange-200">
-              {user?.name ? user.name.charAt(0) : 'U'}
+        {/* Footer Settings & Logout */}
+        <div className="pt-4 border-t border-gray-100 space-y-1">
+          <button onClick={() => onSelectTab('profile')} className={navItemClass('profile')}>
+            <div className="flex items-center gap-2.5">
+              <User className="w-4 h-4" />
+              <span>Profile & Settings</span>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-bold text-brand-text truncate">{user?.name}</p>
-              <p className="text-[10px] text-brand-muted capitalize">{isDonor ? user?.donorType || 'Donor' : 'NGO Manager'}</p>
-            </div>
-          </div>
+          </button>
 
           <button
             onClick={logout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold text-xs text-red-600 hover:bg-red-50 transition-all"
+            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-red-600 hover:bg-red-50 transition-all"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>

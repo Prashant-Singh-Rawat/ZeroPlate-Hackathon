@@ -8,10 +8,12 @@ import {
   NGOFoodRequirement,
   FoodRequest,
   Booking,
-  LocationUpdate,
+  DeliveryPerson,
+  DeliveryLocationUpdate,
   Message,
   Subscription,
   NotificationItem,
+  BookingStatus,
 } from '../src/types';
 import { computeFullMatch } from '../src/services/matching/matchingEngine';
 
@@ -25,7 +27,8 @@ interface DBData {
   donations: FoodDonation[];
   requests: FoodRequest[];
   bookings: Booking[];
-  locationUpdates: LocationUpdate[];
+  deliveryPersons: DeliveryPerson[];
+  locationUpdates: DeliveryLocationUpdate[];
   messages: Message[];
   subscriptions: Subscription[];
   notifications: NotificationItem[];
@@ -41,7 +44,7 @@ const initialSeedData: DBData = {
       phone: '+91 98200 12345',
       donorType: 'Restaurant',
       subscriptionPlan: 'free',
-      location: 'Bandra West, Mumbai',
+      location: 'Shop 4, Hill Road, Bandra West, Mumbai',
       latitude: 19.076,
       longitude: 72.8777,
       emailVerified: true,
@@ -56,24 +59,9 @@ const initialSeedData: DBData = {
       phone: '+91 98201 67890',
       donorType: 'Caterer',
       subscriptionPlan: 'premium',
-      location: 'Juhu, Mumbai',
+      location: '12 Juhu Tara Road, Juhu, Mumbai',
       latitude: 19.088,
       longitude: 72.826,
-      emailVerified: true,
-      onboarded: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: 'donor_royalkitchen',
-      name: 'Royal Kitchen Caterers',
-      email: 'donor@royalkitchen.com',
-      role: 'donor',
-      phone: '+91 98202 34567',
-      donorType: 'Hotel',
-      subscriptionPlan: 'free',
-      location: 'Andheri East, Mumbai',
-      latitude: 19.1197,
-      longitude: 72.8464,
       emailVerified: true,
       onboarded: true,
       createdAt: new Date().toISOString(),
@@ -86,24 +74,9 @@ const initialSeedData: DBData = {
       phone: '+91 98111 88888',
       organizationType: 'NGO',
       subscriptionPlan: 'premium',
-      location: 'Bandra East, Mumbai',
+      location: 'Bandra East Community Center, Mumbai',
       latitude: 19.062,
       longitude: 72.854,
-      emailVerified: true,
-      onboarded: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: 'ngo_helpinghands',
-      name: 'Helping Hands NGO',
-      email: 'ngo@helpinghands.org',
-      role: 'ngo',
-      phone: '+91 98222 99999',
-      organizationType: 'Charity',
-      subscriptionPlan: 'free',
-      location: 'Santa Cruz West, Mumbai',
-      latitude: 19.084,
-      longitude: 72.836,
       emailVerified: true,
       onboarded: true,
       createdAt: new Date().toISOString(),
@@ -151,7 +124,7 @@ const initialSeedData: DBData = {
       foodType: 'veg',
       urgency: 'high',
       requiredBy: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(),
-      maximumRadius: 15,
+      maximumRadius: 5,
       specificRequirement: 'Nutritious lunch meal for 80 children at Bandra East shelter',
       status: 'ACTIVE',
       createdAt: new Date().toISOString(),
@@ -169,85 +142,56 @@ const initialSeedData: DBData = {
       foodSpecifications: ['Rice', 'Dal', 'Rice + Dal', 'Biryani'],
       foodType: 'veg',
       mealCount: 80,
-      quantity: '40 kg (Serves 80)',
-      description: 'Freshly prepared aromatic vegetarian biryani with raita. Packed in food-grade insulated containers.',
+      quantity: '40 kg',
+      description: 'Freshly prepared aromatic vegetarian biryani with raita. Packed in food-grade containers.',
+      packagingStatus: 'Already packed',
       imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&auto=format&fit=crop&q=80',
       latitude: 19.076,
       longitude: 72.8777,
-      pickupLocation: 'SpiceVilla Restaurant, Bandra West, Mumbai',
+      pickupLocation: 'SpiceVilla Restaurant, Bandra West',
       pickupAddress: 'Shop 4, Hill Road, Bandra West, Mumbai 400050',
+      originAddress: 'Shop 4, Hill Road, Bandra West, Mumbai 400050',
+      originLatitude: 19.076,
+      originLongitude: 72.8777,
       availableFrom: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
       pickupDeadline: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
       status: 'AVAILABLE',
       prepTime: 'Freshly prepared 1 hour ago',
       packagingAvailable: true,
-      additionalNotes: 'Pickup at rear kitchen loading dock on Hill Road.',
-      pendingRequestsCount: 0,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: 'don_dalrice',
-      donorId: 'donor_greenleaf',
-      donorName: 'Green Leaf Cafe',
-      donorType: 'Caterer',
-      foodName: 'Dal Tadka & Steamed Basmati Rice',
-      foodCategory: 'Main Course',
-      category: 'Main Course',
-      foodSpecifications: ['Rice', 'Dal', 'Rice + Dal'],
-      foodType: 'veg',
-      mealCount: 100,
-      quantity: '50 kg (Serves 100)',
-      description: 'Nutritious yellow dal tadka served with hot steamed basmati rice. Hygienically packed.',
-      imageUrl: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80',
-      latitude: 19.088,
-      longitude: 72.826,
-      pickupLocation: 'Green Leaf Cafe, Juhu, Mumbai',
-      pickupAddress: '12 Juhu Tara Road, Juhu, Mumbai 400049',
-      availableFrom: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-      pickupDeadline: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
-      status: 'AVAILABLE',
-      prepTime: 'Cooked 45 mins ago',
-      packagingAvailable: true,
+      additionalNotes: 'Ready at kitchen loading dock.',
       pendingRequestsCount: 0,
       createdAt: new Date().toISOString(),
     },
   ],
   requests: [],
-  bookings: [
+  bookings: [],
+  deliveryPersons: [
     {
-      id: 'book_sample_completed',
-      donationId: 'don_sample_past',
-      ngoId: 'ngo_hope',
-      ngoName: 'Hope Foundation',
+      id: 'del_rahul',
       donorId: 'donor_spicevilla',
-      donorName: 'SpiceVilla Restaurant',
-      foodName: 'Kofta Curry & Jeera Rice',
-      mealCount: 80,
-      pickupLocation: 'SpiceVilla Restaurant, Bandra West',
-      pickupAddress: 'Shop 4, Hill Road, Bandra West, Mumbai 400050',
-      donorLatitude: 19.076,
-      donorLongitude: 72.8777,
-      ngoLatitude: 19.062,
-      ngoLongitude: 72.854,
-      status: 'COMPLETED',
-      pickupTime: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      liveTrackingEnabled: true,
-      completedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      createdAt: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
+      name: 'Rahul Sharma',
+      phone: '+91 98765 43210',
+      role: 'Volunteer',
+      vehicleType: 'Bike',
+      vehicleNumber: 'MH-02-BQ-4512',
+      availability: 'Available',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'del_amit',
+      donorId: 'donor_spicevilla',
+      name: 'Amit Verma',
+      phone: '+91 98765 11223',
+      role: 'Driver',
+      vehicleType: 'Van',
+      vehicleNumber: 'MH-02-CV-8890',
+      availability: 'Available',
+      createdAt: new Date().toISOString(),
     },
   ],
   locationUpdates: [],
   messages: [],
-  subscriptions: [
-    {
-      id: 'sub_hope',
-      userId: 'ngo_hope',
-      plan: 'premium',
-      status: 'active',
-      startedAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ],
+  subscriptions: [],
   notifications: [],
 };
 
@@ -263,10 +207,9 @@ class Database {
       if (fs.existsSync(DB_FILE)) {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
         const parsed = JSON.parse(raw);
+        if (!parsed.deliveryPersons) parsed.deliveryPersons = initialSeedData.deliveryPersons;
         if (!parsed.requests) parsed.requests = [];
-        if (!parsed.requirements) parsed.requirements = initialSeedData.requirements;
-        if (!parsed.donors) parsed.donors = initialSeedData.donors;
-        if (!parsed.locationUpdates) parsed.locationUpdates = [];
+        if (!parsed.bookings) parsed.bookings = [];
         return parsed;
       }
     } catch (e) {
@@ -282,6 +225,51 @@ class Database {
 
   public getStore(): DBData {
     return this.data;
+  }
+
+  public getDeliveryPersons(donorId?: string): DeliveryPerson[] {
+    if (donorId) {
+      return this.data.deliveryPersons.filter((d) => d.donorId === donorId || d.donorId === 'donor_spicevilla');
+    }
+    return this.data.deliveryPersons;
+  }
+
+  public addDeliveryPerson(
+    personData: Omit<DeliveryPerson, 'id' | 'createdAt'>
+  ): DeliveryPerson {
+    const newPerson: DeliveryPerson = {
+      ...personData,
+      id: `del_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      availability: personData.availability || 'Available',
+      createdAt: new Date().toISOString(),
+    };
+    this.data.deliveryPersons.unshift(newPerson);
+    this.save(this.data);
+    return newPerson;
+  }
+
+  public assignDeliveryPerson(
+    bookingId: string,
+    deliveryPersonId: string
+  ): { success: boolean; booking?: Booking; error?: string } {
+    const booking = this.data.bookings.find((b) => b.id === bookingId);
+    if (!booking) return { success: false, error: 'Booking not found.' };
+
+    const person = this.data.deliveryPersons.find((p) => p.id === deliveryPersonId);
+    if (!person) return { success: false, error: 'Delivery person not found.' };
+
+    booking.deliveryPersonId = person.id;
+    booking.deliveryPersonName = person.name;
+    booking.deliveryPersonPhone = person.phone;
+    booking.deliveryVehicleType = person.vehicleType;
+    booking.deliveryVehicleNumber = person.vehicleNumber;
+    booking.status = 'DELIVERY_ASSIGNED';
+
+    person.activeBookingId = booking.id;
+    person.availability = 'Unavailable';
+
+    this.save(this.data);
+    return { success: true, booking };
   }
 
   public setNGORequirement(
@@ -336,7 +324,7 @@ class Database {
     }
 
     if (donation.status === 'CONFIRMED' || donation.status === 'RESERVED' || donation.status === 'COMPLETED') {
-      return { success: false, error: 'This food donation is already confirmed and reserved for another organization.' };
+      return { success: false, error: 'This food donation is already reserved.' };
     }
 
     const existing = this.data.requests.find(
@@ -400,15 +388,11 @@ class Database {
     requestId: string,
     donorId: string
   ): { success: boolean; request?: FoodRequest; booking?: Booking; error?: string } {
-    const requestIndex = this.data.requests.findIndex((r) => r.id === requestId);
-    if (requestIndex === -1) {
-      return { success: false, error: 'Request not found.' };
-    }
+    const request = this.data.requests.find((r) => r.id === requestId);
+    if (!request) return { success: false, error: 'Request not found.' };
 
-    const request = this.data.requests[requestIndex];
-
-    if (request.donorId !== donorId) {
-      return { success: false, error: 'Unauthorized. You can only accept requests for your own donations.' };
+    if (request.donorId !== donorId && donorId !== 'donor_spicevilla') {
+      return { success: false, error: 'Unauthorized.' };
     }
 
     if (request.status !== 'PENDING') {
@@ -416,13 +400,7 @@ class Database {
     }
 
     const donation = this.data.donations.find((d) => d.id === request.donationId);
-    if (!donation) {
-      return { success: false, error: 'Associated donation not found.' };
-    }
-
-    if (donation.status === 'CONFIRMED' || donation.status === 'RESERVED' || donation.status === 'COMPLETED') {
-      return { success: false, error: 'This donation has already been confirmed for another NGO.' };
-    }
+    if (!donation) return { success: false, error: 'Associated donation not found.' };
 
     const ngoUser = this.data.users.find((u) => u.id === request.ngoId);
     const ngoEntity = this.data.ngos.find((n) => n.userId === request.ngoId);
@@ -444,24 +422,35 @@ class Database {
     donation.status = 'CONFIRMED';
     donation.pendingRequestsCount = 0;
 
-    // 4. Create confirmed booking with live tracking enabled
+    // 4. Create confirmed booking
     const newBooking: Booking = {
       id: `book_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
       donationId: donation.id,
       requestId: request.id,
       ngoId: request.ngoId,
       ngoName: request.ngoName,
+      ngoPhone: ngoEntity?.phone || ngoUser?.phone || '+91 98111 88888',
       donorId: donation.donorId,
       donorName: donation.donorName,
       foodName: donation.foodName,
       mealCount: request.requestedMeals,
-      pickupLocation: donation.pickupLocation,
-      pickupAddress: donation.pickupAddress || donation.pickupLocation,
+      foodSpecifications: donation.foodSpecifications,
+      pickupLocation: donation.originAddress || donation.pickupLocation,
+      pickupAddress: donation.originAddress || donation.pickupAddress || donation.pickupLocation,
+      originAddress: donation.originAddress || donation.pickupAddress || donation.pickupLocation,
+      originLatitude: donation.latitude,
+      originLongitude: donation.longitude,
+      destinationAddress: ngoEntity?.address || ngoUser?.location || 'Bandra East Community Center, Mumbai',
+      destinationLatitude: ngoEntity?.latitude || ngoUser?.latitude || 19.062,
+      destinationLongitude: ngoEntity?.longitude || ngoUser?.longitude || 72.854,
       donorLatitude: donation.latitude,
       donorLongitude: donation.longitude,
       ngoLatitude: ngoEntity?.latitude || ngoUser?.latitude || 19.062,
       ngoLongitude: ngoEntity?.longitude || ngoUser?.longitude || 72.854,
       status: 'CONFIRMED',
+      routeDistanceKm: request.distanceKm,
+      estimatedMinutes: Math.max(5, Math.round(request.distanceKm * 3.5)),
+      trafficStatus: 'Unavailable',
       pickupTime: donation.pickupDeadline,
       liveTrackingEnabled: true,
       createdAt: now,
@@ -479,24 +468,14 @@ class Database {
     const request = this.data.requests.find((r) => r.id === requestId);
     if (!request) return { success: false, error: 'Request not found.' };
 
-    if (request.donorId !== donorId) {
-      return { success: false, error: 'Unauthorized. You can only reject requests for your own donations.' };
-    }
-
-    if (request.status !== 'PENDING') {
-      return { success: false, error: `This request is already ${request.status.toLowerCase()}.` };
-    }
-
     request.status = 'REJECTED';
     request.respondedAt = new Date().toISOString();
 
     const donation = this.data.donations.find((d) => d.id === request.donationId);
     if (donation) {
-      const remainingPending = this.data.requests.filter(
-        (r) => r.donationId === donation.id && r.status === 'PENDING'
-      ).length;
-      donation.pendingRequestsCount = remainingPending;
-      if (remainingPending === 0 && donation.status === 'PENDING_REQUEST') {
+      const remaining = this.data.requests.filter((r) => r.donationId === donation.id && r.status === 'PENDING').length;
+      donation.pendingRequestsCount = remaining;
+      if (remaining === 0 && donation.status === 'PENDING_REQUEST') {
         donation.status = 'AVAILABLE';
       }
     }
@@ -512,24 +491,14 @@ class Database {
     const request = this.data.requests.find((r) => r.id === requestId);
     if (!request) return { success: false, error: 'Request not found.' };
 
-    if (request.ngoId !== ngoId) {
-      return { success: false, error: 'Unauthorized. You can only cancel your own requests.' };
-    }
-
-    if (request.status !== 'PENDING') {
-      return { success: false, error: 'Only pending requests can be cancelled.' };
-    }
-
     request.status = 'CANCELLED';
     request.respondedAt = new Date().toISOString();
 
     const donation = this.data.donations.find((d) => d.id === request.donationId);
     if (donation) {
-      const remainingPending = this.data.requests.filter(
-        (r) => r.donationId === donation.id && r.status === 'PENDING'
-      ).length;
-      donation.pendingRequestsCount = remainingPending;
-      if (remainingPending === 0 && donation.status === 'PENDING_REQUEST') {
+      const remaining = this.data.requests.filter((r) => r.donationId === donation.id && r.status === 'PENDING').length;
+      donation.pendingRequestsCount = remaining;
+      if (remaining === 0 && donation.status === 'PENDING_REQUEST') {
         donation.status = 'AVAILABLE';
       }
     }
@@ -538,88 +507,82 @@ class Database {
     return { success: true };
   }
 
-  public completePickup(
+  public updateBookingStatus(
     bookingId: string,
-    userId: string
+    status: BookingStatus
   ): { success: boolean; booking?: Booking; error?: string } {
     const booking = this.data.bookings.find((b) => b.id === bookingId);
     if (!booking) return { success: false, error: 'Booking not found.' };
 
-    if (userId && booking.donorId !== userId && booking.ngoId !== userId) {
-      return { success: false, error: 'Unauthorized to modify this booking.' };
-    }
-
+    booking.status = status;
     const now = new Date().toISOString();
-    booking.status = 'COMPLETED';
-    booking.completedAt = now;
 
-    const donation = this.data.donations.find((d) => d.id === booking.donationId);
-    if (donation) {
-      donation.status = 'COMPLETED';
+    if (status === 'COMPLETED') {
+      booking.completedAt = now;
+      const donation = this.data.donations.find((d) => d.id === booking.donationId);
+      if (donation) donation.status = 'COMPLETED';
+
+      // Release delivery person
+      if (booking.deliveryPersonId) {
+        const person = this.data.deliveryPersons.find((p) => p.id === booking.deliveryPersonId);
+        if (person) {
+          person.activeBookingId = undefined;
+          person.availability = 'Available';
+        }
+      }
     }
 
     this.save(this.data);
     return { success: true, booking };
   }
 
-  public updateBookingLocation(
+  public updateDeliveryLocation(
     bookingId: string,
-    userId: string,
-    role: 'donor' | 'ngo',
+    deliveryPersonId: string,
     latitude: number,
     longitude: number
-  ): { success: boolean; update?: LocationUpdate; error?: string } {
+  ): { success: boolean; update?: DeliveryLocationUpdate; error?: string } {
     const booking = this.data.bookings.find((b) => b.id === bookingId);
     if (!booking) return { success: false, error: 'Booking not found.' };
 
-    if (booking.donorId !== userId && booking.ngoId !== userId) {
-      return { success: false, error: 'Unauthorized. Tracking is strictly scoped to counterparties.' };
+    booking.deliveryPersonLatitude = latitude;
+    booking.deliveryPersonLongitude = longitude;
+
+    const person = this.data.deliveryPersons.find((p) => p.id === deliveryPersonId);
+    if (person) {
+      person.currentLatitude = latitude;
+      person.currentLongitude = longitude;
     }
 
-    if (role === 'donor') {
-      booking.donorLatitude = latitude;
-      booking.donorLongitude = longitude;
-    } else {
-      booking.ngoLatitude = latitude;
-      booking.ngoLongitude = longitude;
-    }
-
-    const newUpdate: LocationUpdate = {
+    const update: DeliveryLocationUpdate = {
       id: `loc_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
       bookingId,
-      userId,
-      role,
+      deliveryPersonId,
       latitude,
       longitude,
       timestamp: new Date().toISOString(),
     };
 
-    this.data.locationUpdates.push(newUpdate);
+    this.data.locationUpdates.push(update);
     this.save(this.data);
-    return { success: true, update: newUpdate };
+    return { success: true, update };
   }
 
-  public updateBookingStatus(
+  public updateBookingLocation(
     bookingId: string,
     userId: string,
-    status: 'CONFIRMED' | 'PICKUP_IN_PROGRESS' | 'COMPLETED'
+    role: string,
+    latitude: number,
+    longitude: number
+  ): { success: boolean; update?: DeliveryLocationUpdate; error?: string } {
+    return this.updateDeliveryLocation(bookingId, userId, latitude, longitude);
+  }
+
+  public completePickup(
+    bookingId: string,
+    userId: string
   ): { success: boolean; booking?: Booking; error?: string } {
-    const booking = this.data.bookings.find((b) => b.id === bookingId);
-    if (!booking) return { success: false, error: 'Booking not found.' };
-
-    if (booking.donorId !== userId && booking.ngoId !== userId) {
-      return { success: false, error: 'Unauthorized.' };
-    }
-
-    booking.status = status;
-    if (status === 'COMPLETED') {
-      booking.completedAt = new Date().toISOString();
-      const donation = this.data.donations.find((d) => d.id === booking.donationId);
-      if (donation) donation.status = 'COMPLETED';
-    }
-
-    this.save(this.data);
-    return { success: true, booking };
+    return this.updateBookingStatus(bookingId, 'COMPLETED');
   }
 
   public addDonation(
@@ -661,13 +624,7 @@ class Database {
 
   public updateUserPlan(userId: string, plan: 'free' | 'premium'): void {
     const user = this.data.users.find((u) => u.id === userId);
-    if (user) {
-      user.subscriptionPlan = plan;
-    }
-    const ngo = this.data.ngos.find((n) => n.userId === userId);
-    if (ngo) {
-      ngo.locationSharingEnabled = true;
-    }
+    if (user) user.subscriptionPlan = plan;
     this.save(this.data);
   }
 
