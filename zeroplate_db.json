@@ -99,6 +99,19 @@
       "emailVerified": true,
       "id": "user_1787944033808_403",
       "createdAt": "2026-08-28T19:07:13.808Z"
+    },
+    {
+      "name": "Prashant singh Rawat",
+      "email": "rawatnaksh67@gmail.com",
+      "role": "donor",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocJpztkV8xMiBV37trfZUgRe34Ol5qaW9RmSGxztqhbs5oiDyn4=s96-c",
+      "subscriptionPlan": "free",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "emailVerified": true,
+      "onboarded": false,
+      "id": "user_1787949240946_479",
+      "createdAt": "2026-08-28T20:34:00.946Z"
     }
   ],
   "ngos": [
@@ -530,5 +543,42 @@
       "requestedAt": "2026-08-28T19:08:36.799Z",
       "respondedAt": "2026-08-28T19:10:59.001Z"
     }
-  ]
+  ],
+  "requirements": [
+    {
+      "id": "req_hope_default",
+      "ngoId": "ngo_hope",
+      "requiredMeals": 80,
+      "foodSpecifications": [
+        "Rice",
+        "Dal",
+        "Rice + Dal",
+        "Biryani"
+      ],
+      "foodType": "veg",
+      "urgency": "high",
+      "requiredBy": "2026-08-29T02:31:02.075Z",
+      "maximumRadius": 15,
+      "specificRequirement": "Nutritious lunch meal for 80 children at Bandra East shelter",
+      "status": "ACTIVE",
+      "createdAt": "2026-08-28T20:31:02.075Z"
+    }
+  ],
+  "donors": [
+    {
+      "id": "donor_entity_spicevilla",
+      "userId": "donor_spicevilla",
+      "donorType": "Restaurant",
+      "organizationName": "SpiceVilla Restaurant",
+      "contactPerson": "Chef Vikram Malhotra",
+      "phone": "+91 98200 12345",
+      "email": "donor@spicevilla.com",
+      "address": "Shop 4, Hill Road, Bandra West, Mumbai 400050",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "isHousehold": false,
+      "createdAt": "2026-08-28T20:31:02.075Z"
+    }
+  ],
+  "locationUpdates": []
 }

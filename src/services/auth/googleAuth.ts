@@ -42,7 +42,7 @@ export function triggerGoogleSignIn(
     google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
       callback: (response: any) => {
-        if (response.credential) {
+        if (response?.credential) {
           const payload = decodeGoogleJwt(response.credential);
           onSuccess({ token: response.credential, payload: payload || undefined });
         } else {
@@ -55,12 +55,10 @@ export function triggerGoogleSignIn(
 
     google.accounts.id.prompt((notification: any) => {
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        // Fallback to standard popup
-        console.info('Google One-Tap dismissed or not displayed, user can click directly.');
+        if (onError) onError(new Error(notification.getNotDisplayedReason() || 'Prompt skipped'));
       }
     });
   } else {
-    console.info('Google GSI SDK loading or unavailable, using fallback flow.');
     if (onError) onError(new Error('Google SDK not loaded'));
   }
 }
