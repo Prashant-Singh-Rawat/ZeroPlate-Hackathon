@@ -56,7 +56,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('zeroplate_user');
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+    try {
+      const u = JSON.parse(saved);
+      if (u.location && (u.location.includes('Bandra West') || u.location.includes('Bandra East'))) {
+        u.location = 'Live GPS Location (Updating...)';
+      }
+      return u;
+    } catch (e) {
+      return null;
+    }
   });
 
   useEffect(() => {
@@ -74,20 +83,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (gps && gps.address) {
           setUser((prev) => {
             if (!prev) return null;
-            if (
-              !prev.location ||
-              prev.location.includes('Bandra West') ||
-              prev.location.includes('Bandra East') ||
-              prev.location.includes('Detecting')
-            ) {
-              return {
-                ...prev,
-                location: gps.address,
-                latitude: gps.latitude,
-                longitude: gps.longitude,
-              };
-            }
-            return prev;
+            const updated = {
+              ...prev,
+              location: gps.address,
+              latitude: gps.latitude,
+              longitude: gps.longitude,
+            };
+            localStorage.setItem('zeroplate_user', JSON.stringify(updated));
+            return updated;
           });
         }
       })
@@ -100,12 +103,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (gps && gps.address) {
         setUser((prev) => {
           if (!prev) return null;
-          return {
+          const updated = {
             ...prev,
             location: gps.address,
             latitude: gps.latitude,
             longitude: gps.longitude,
           };
+          localStorage.setItem('zeroplate_user', JSON.stringify(updated));
+          return updated;
         });
         return gps.address;
       }
