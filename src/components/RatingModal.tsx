@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Star, X, CheckCircle2, Utensils, Truck, Scale, Sparkles, AlertCircle, ShieldCheck, Heart } from 'lucide-react';
+import { Star, X, CheckCircle2, Utensils, Truck, Scale, Sparkles, AlertCircle, ShieldCheck } from 'lucide-react';
 import { Booking, DonorRatingFeedback } from '../types';
 import { submitDonorRating, getRatingForBooking } from '../services/ratingStorage';
 import confetti from 'canvas-confetti';
@@ -38,11 +38,9 @@ export const RatingModal: React.FC<RatingModalProps> = ({
     };
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
     }
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
     };
   }, [isOpen, onClose]);
 
@@ -91,7 +89,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
     const activeValue = hoverValue > 0 ? hoverValue : value;
 
     return (
-      <div className="flex items-center justify-between gap-2 flex-wrap">
+      <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
         <div className="flex items-center gap-1" onMouseLeave={() => onHover(0)}>
           {[1, 2, 3, 4, 5].map((star) => {
             const isFilled = activeValue >= star;
@@ -119,7 +117,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
           })}
         </div>
         <span
-          className={`text-xs font-black px-2.5 py-1 rounded-lg transition-colors ${
+          className={`text-xs font-black px-2 py-0.5 rounded-md ${
             value > 0
               ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border border-amber-300/60 dark:border-amber-700/60'
               : 'text-gray-400 dark:text-slate-500 font-semibold'
@@ -170,15 +168,15 @@ export const RatingModal: React.FC<RatingModalProps> = ({
     }
   };
 
-  // Render via createPortal directly into document.body to prevent any container clipping
+  // Render via createPortal directly into document.body with full scrollability
   const modalContent = (
     <div
-      className="fixed inset-0 z-[99999] w-full h-full bg-black/80 backdrop-blur-md overflow-y-auto overscroll-contain flex flex-col md:items-center md:justify-center p-3 sm:p-6 animate-fadeIn"
+      className="fixed inset-0 z-[99999] w-full h-full bg-black/80 backdrop-blur-md overflow-y-auto overscroll-contain flex flex-col justify-start md:justify-center items-center p-3 sm:p-6 py-6 sm:py-8 animate-fadeIn"
       style={{ margin: 0, top: 0, left: 0 }}
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#1E293B] rounded-3xl md:rounded-[28px] max-w-4xl w-full shadow-2xl border border-orange-200/80 dark:border-slate-700 my-auto flex flex-col md:grid md:grid-cols-12 transition-all relative md:max-h-[90vh] md:overflow-hidden shrink-0"
+        className="bg-white dark:bg-[#1E293B] rounded-3xl md:rounded-[28px] max-w-4xl w-full shadow-2xl border border-orange-200/80 dark:border-slate-700 flex flex-col md:grid md:grid-cols-12 transition-all relative md:max-h-[90vh] md:overflow-hidden my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ══════════════════ LEFT PANEL: Food Details & Live Score (38%) ══════════════════ */}
@@ -188,9 +186,18 @@ export const RatingModal: React.FC<RatingModalProps> = ({
           <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-orange-400/20 rounded-full blur-2xl pointer-events-none" />
 
           <div className="space-y-3 sm:space-y-4 relative z-10">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-black tracking-wider uppercase border border-white/20">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Verified Impact Review</span>
+            <div className="flex items-center justify-between">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-black tracking-wider uppercase border border-white/20">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>Verified Impact Review</span>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="md:hidden p-1.5 text-white/80 hover:text-white rounded-lg bg-black/20"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             <div>
@@ -225,7 +232,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
             </div>
           </div>
 
-          <div className="pt-4 sm:pt-6 relative z-10 border-t border-white/15 text-[11px] text-orange-100 space-y-1 hidden sm:block">
+          <div className="pt-4 sm:pt-6 relative z-10 border-t border-white/15 text-[11px] text-orange-100 space-y-1 hidden md:block">
             <div className="flex items-center gap-1.5 font-bold text-white">
               <ShieldCheck className="w-4 h-4 text-emerald-300" />
               <span>Transparent Reputation Engine</span>
@@ -240,7 +247,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
         <div className="md:col-span-7 p-5 sm:p-8 flex flex-col justify-between space-y-4 bg-white dark:bg-[#1E293B] md:overflow-y-auto md:max-h-[88vh]">
           <div className="space-y-4">
             {/* Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-slate-800">
+            <div className="hidden md:flex items-center justify-between pb-2 border-b border-gray-100 dark:border-slate-800">
               <div>
                 <h3 className="text-lg font-black text-brand-text dark:text-slate-100">
                   Rate Food Donor
@@ -269,7 +276,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
             {/* The 3 Evaluation Questions */}
             <div className="space-y-3">
               {/* Question 1: Food Quality */}
-              <div className="p-3.5 rounded-2xl bg-orange-50/50 dark:bg-slate-800/60 border border-orange-100 dark:border-slate-700 space-y-1.5">
+              <div className="p-3.5 rounded-2xl bg-orange-50/50 dark:bg-slate-800/60 border border-orange-100 dark:border-slate-700 space-y-1">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-lg bg-orange-500 text-white flex items-center justify-center shadow-sm shrink-0">
                     <Utensils className="w-3.5 h-3.5" />
@@ -283,13 +290,11 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                     </p>
                   </div>
                 </div>
-                <div className="pt-0.5">
-                  {renderStarSelector(foodQuality, hoverQuality, setFoodQuality, setHoverQuality, 'text-amber-400')}
-                </div>
+                {renderStarSelector(foodQuality, hoverQuality, setFoodQuality, setHoverQuality, 'text-amber-400')}
               </div>
 
               {/* Question 2: Delivery Experience */}
-              <div className="p-3.5 rounded-2xl bg-blue-50/50 dark:bg-slate-800/60 border border-blue-100 dark:border-slate-700 space-y-1.5">
+              <div className="p-3.5 rounded-2xl bg-blue-50/50 dark:bg-slate-800/60 border border-blue-100 dark:border-slate-700 space-y-1">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm shrink-0">
                     <Truck className="w-3.5 h-3.5" />
@@ -303,13 +308,11 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                     </p>
                   </div>
                 </div>
-                <div className="pt-0.5">
-                  {renderStarSelector(deliveryExperience, hoverDelivery, setDeliveryExperience, setHoverDelivery, 'text-blue-500')}
-                </div>
+                {renderStarSelector(deliveryExperience, hoverDelivery, setDeliveryExperience, setHoverDelivery, 'text-blue-500')}
               </div>
 
               {/* Question 3: Quantity Accuracy */}
-              <div className="p-3.5 rounded-2xl bg-emerald-50/50 dark:bg-slate-800/60 border border-emerald-100 dark:border-slate-700 space-y-1.5">
+              <div className="p-3.5 rounded-2xl bg-emerald-50/50 dark:bg-slate-800/60 border border-emerald-100 dark:border-slate-700 space-y-1">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-sm shrink-0">
                     <Scale className="w-3.5 h-3.5" />
@@ -323,9 +326,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                     </p>
                   </div>
                 </div>
-                <div className="pt-0.5">
-                  {renderStarSelector(quantityAccuracy, hoverQuantity, setQuantityAccuracy, setHoverQuantity, 'text-emerald-500')}
-                </div>
+                {renderStarSelector(quantityAccuracy, hoverQuantity, setQuantityAccuracy, setHoverQuantity, 'text-emerald-500')}
               </div>
             </div>
 
@@ -345,11 +346,11 @@ export const RatingModal: React.FC<RatingModalProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-slate-800 shrink-0">
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-gray-100 dark:border-slate-800 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-bold text-brand-muted hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-bold text-brand-muted hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer text-center"
             >
               Cancel
             </button>
@@ -357,10 +358,10 @@ export const RatingModal: React.FC<RatingModalProps> = ({
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>Submit Evaluation</span>
+              <span>Submit Evaluation & Update Rating</span>
             </button>
           </div>
         </div>
