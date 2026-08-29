@@ -171,7 +171,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
   // Render via createPortal directly into document.body
   const modalContent = (
     <div
-      className="fixed inset-0 z-[99999] w-full h-full bg-black/80 backdrop-blur-md overflow-y-auto overscroll-contain flex flex-col justify-start md:justify-center items-center p-2.5 sm:p-6 py-3 sm:py-8 animate-fadeIn"
+      className="fixed inset-0 z-[99999] w-full h-full bg-black/80 backdrop-blur-md overflow-y-auto overscroll-contain flex flex-col justify-start md:justify-center items-center p-3 sm:p-6 py-4 sm:py-8 animate-fadeIn"
       style={{ margin: 0, top: 0, left: 0 }}
       onClick={onClose}
     >
@@ -179,58 +179,43 @@ export const RatingModal: React.FC<RatingModalProps> = ({
         className="bg-white dark:bg-[#1E293B] rounded-3xl md:rounded-[28px] max-w-4xl w-full shadow-2xl border border-orange-200/80 dark:border-slate-700 flex flex-col md:grid md:grid-cols-12 transition-all relative overflow-hidden my-auto shrink-0"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ══════════════════ LEFT PANEL: Desktop Hero / Mobile Banner ══════════════════ */}
-        <div className="md:col-span-5 bg-gradient-to-br from-brand-deep via-orange-600 to-amber-600 text-white p-4 sm:p-6 md:p-8 flex flex-col justify-between relative overflow-hidden shrink-0">
+        {/* ══════════════════ LEFT PANEL: DESKTOP ONLY HERO (Hidden on Mobile) ══════════════════ */}
+        <div className="hidden md:flex md:col-span-5 bg-gradient-to-br from-brand-deep via-orange-600 to-amber-600 text-white p-6 md:p-8 flex-col justify-between relative overflow-hidden shrink-0">
           {/* Ambient decorative glow */}
           <div className="absolute -top-12 -right-12 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none" />
           <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-orange-400/20 rounded-full blur-2xl pointer-events-none" />
 
-          <div className="space-y-2.5 sm:space-y-4 relative z-10">
-            {/* Top row with badge and mobile close button */}
-            <div className="flex items-center justify-between">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-white/15 backdrop-blur-md rounded-full text-[11px] sm:text-xs font-black tracking-wider uppercase border border-white/20">
-                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-300" />
-                <span>Verified Impact Review</span>
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="md:hidden p-1 rounded-lg bg-black/20 hover:bg-black/30 text-white transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+          <div className="space-y-4 relative z-10">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-black tracking-wider uppercase border border-white/20">
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>Verified Impact Review</span>
             </div>
 
             <div>
-              <h2 className="text-lg sm:text-2xl font-black tracking-tight leading-snug">
+              <h2 className="text-2xl font-black tracking-tight leading-snug">
                 {booking.foodName}
               </h2>
-              <p className="text-xs sm:text-sm text-orange-100 font-medium mt-0.5">
+              <p className="text-sm text-orange-100 font-medium mt-1">
                 {booking.mealCount} Meals • Donated by{' '}
                 <strong className="text-white underline decoration-amber-300 font-bold">{booking.donorName}</strong>
               </p>
             </div>
 
             {/* Live Auto-Calculated Score Card */}
-            <div className="p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 space-y-1 sm:space-y-1.5 mt-1 sm:mt-3">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-200 block">
-                  Live Calculated Score
-                </span>
-                <span className="text-[10px] text-orange-100 font-semibold md:hidden">
-                  (Avg of 3 Factors)
-                </span>
-              </div>
+            <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 space-y-1.5 mt-3">
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-200 block">
+                Live Calculated Score
+              </span>
               <div className="flex items-baseline gap-2">
                 <div className="flex items-center gap-1 text-amber-300">
-                  <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-amber-300 drop-shadow" />
+                  <Star className="w-6 h-6 fill-amber-300 drop-shadow" />
                 </div>
-                <span className="text-2xl sm:text-3xl font-black tracking-tight">
+                <span className="text-3xl font-black tracking-tight">
                   {isAllRated ? overallScore : isAnyRated ? overallScore : '0.0'}
                 </span>
                 <span className="text-xs font-bold text-orange-100">/ 5.0</span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-orange-100 font-medium hidden md:block">
+              <p className="text-[11px] text-orange-100 font-medium">
                 {isAllRated
                   ? '⭐ Average of Quality, Delivery & Quantity Accuracy'
                   : 'Tap all 3 star ratings to calculate overall rating'}
@@ -238,7 +223,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
             </div>
           </div>
 
-          <div className="pt-4 relative z-10 border-t border-white/15 text-[11px] text-orange-100 space-y-1 hidden md:block">
+          <div className="pt-4 relative z-10 border-t border-white/15 text-[11px] text-orange-100 space-y-1">
             <div className="flex items-center gap-1.5 font-bold text-white">
               <ShieldCheck className="w-4 h-4 text-emerald-300" />
               <span>Transparent Reputation Engine</span>
@@ -249,10 +234,10 @@ export const RatingModal: React.FC<RatingModalProps> = ({
           </div>
         </div>
 
-        {/* ══════════════════ RIGHT PANEL: The 3 Evaluation Questions (62%) ══════════════════ */}
-        <div className="md:col-span-7 p-4 sm:p-6 md:p-8 flex flex-col justify-between space-y-3.5 sm:space-y-4 bg-white dark:bg-[#1E293B]">
-          <div className="space-y-3 sm:space-y-4">
-            {/* Header (Desktop only) */}
+        {/* ══════════════════ RIGHT PANEL: All 3 Evaluation Questions ══════════════════ */}
+        <div className="w-full md:col-span-7 p-4 sm:p-6 md:p-8 flex flex-col justify-between space-y-3.5 bg-white dark:bg-[#1E293B]">
+          <div className="space-y-3">
+            {/* Desktop Header */}
             <div className="hidden md:flex items-center justify-between pb-2 border-b border-gray-100 dark:border-slate-800">
               <div>
                 <h3 className="text-lg font-black text-brand-text dark:text-slate-100">
@@ -266,6 +251,31 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                 type="button"
                 onClick={onClose}
                 className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Mobile Header (Clean & Compact) */}
+            <div className="md:hidden flex items-center justify-between pb-2.5 border-b border-gray-100 dark:border-slate-800">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
+                  <h3 className="text-sm sm:text-base font-black text-brand-text dark:text-slate-100">
+                    Rate {booking.foodName} ({booking.mealCount} Meals)
+                  </h3>
+                </div>
+                <p className="text-[11px] text-brand-muted dark:text-slate-400 mt-0.5">
+                  Donor: <strong className="text-brand-text dark:text-slate-200">{booking.donorName}</strong> • Live Score:{' '}
+                  <strong className="text-brand-orange font-black">
+                    {isAllRated ? overallScore : isAnyRated ? overallScore : '0.0'}★
+                  </strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
