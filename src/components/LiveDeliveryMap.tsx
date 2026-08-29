@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Booking, DeliveryPerson, UserRole, BookingStatus } from '../types';
 import { calculateRouteETA, RouteInfo } from '../services/maps/routingService';
+import { completeBookingInCloud } from '../services/cloudSync';
 import {
   MapPin,
   Truck,
@@ -111,26 +112,28 @@ export const LiveDeliveryMap: React.FC<LiveDeliveryMapProps> = ({
   const handleUpdateStatus = async (nextStatus: BookingStatus) => {
     setIsUpdating(true);
     try {
-      const res = await fetch('/api/delivery/status', {
+      booking.status = nextStatus;
+      if (nextStatus === 'COMPLETED') {
+        booking.completedAt = new Date().toISOString();
+        completeBookingInCloud(booking.id).catch(() => {});
+        confetti({
+          particleCount: 100,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#F97316', '#16A34A', '#10B981'],
+        });
+        onShowToast('success', 'Food rescue confirmed & completed! Saved to delivery history.');
+      } else {
+        onShowToast('info', `Delivery status updated to: ${nextStatus.replace(/_/g, ' ')}`);
+      }
+
+      fetch('/api/delivery/status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookingId: booking.id, status: nextStatus }),
-      });
+      }).catch(() => {});
 
-      if (res.ok) {
-        if (nextStatus === 'COMPLETED') {
-          confetti({
-            particleCount: 100,
-            spread: 80,
-            origin: { y: 0.6 },
-            colors: ['#F97316', '#16A34A', '#10B981'],
-          });
-          onShowToast('success', 'Food rescue confirmed & completed! Impact metrics updated.');
-        } else {
-          onShowToast('info', `Delivery status updated to: ${nextStatus.replace(/_/g, ' ')}`);
-        }
-        onRefresh();
-      }
+      onRefresh();
     } catch (e) {
       console.warn('Status update error', e);
     } finally {

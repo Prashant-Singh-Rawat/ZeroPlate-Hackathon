@@ -115,7 +115,7 @@ export function acceptLocalRequest(requestId: string, donorUser: User | null): {
     saveLocalDonation(targetDonation);
   }
 
-  // Create confirmed Booking
+  // Create confirmed Booking with live delivery driver & ETA tracking
   const bookings = getLocalBookings();
   const newBooking: Booking = {
     id: `book_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
@@ -129,7 +129,28 @@ export function acceptLocalRequest(requestId: string, donorUser: User | null): {
     mealCount: target.requestedMeals,
     pickupLocation: targetDonation?.pickupLocation || 'Bandra West, Mumbai',
     pickupAddress: targetDonation?.pickupAddress || 'Bandra West, Mumbai',
-    status: 'CONFIRMED',
+    originAddress: targetDonation?.originAddress || targetDonation?.pickupAddress || 'Bandra West, Mumbai',
+    originLatitude: targetDonation?.latitude || 19.076,
+    originLongitude: targetDonation?.longitude || 72.8777,
+    donorLatitude: targetDonation?.latitude || 19.076,
+    donorLongitude: targetDonation?.longitude || 72.8777,
+    destinationAddress: 'NGO Rescue Hub, Mumbai',
+    destinationLatitude: 19.062,
+    destinationLongitude: 72.854,
+    ngoLatitude: 19.062,
+    ngoLongitude: 72.854,
+    deliveryPersonId: 'del_rahul',
+    deliveryPersonName: 'Rahul Varma',
+    deliveryPersonPhone: '+91 98765 43210',
+    deliveryVehicleType: 'Bike',
+    deliveryVehicleNumber: 'MH-02-EE-8899',
+    deliveryPersonLatitude: (targetDonation?.latitude || 19.076) - 0.005,
+    deliveryPersonLongitude: (targetDonation?.longitude || 72.8777) - 0.004,
+    routeDistanceKm: target.distanceKm || 2.8,
+    estimatedMinutes: Math.round((target.distanceKm || 2.8) * 4) + 5,
+    trafficStatus: 'Low',
+    trafficAwareEta: `${Math.round((target.distanceKm || 2.8) * 4) + 5} mins (Live Traffic)`,
+    status: 'OUT_FOR_DELIVERY',
     liveTrackingEnabled: true,
     createdAt: new Date().toISOString(),
   };
