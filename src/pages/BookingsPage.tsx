@@ -185,7 +185,12 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
                       <Building className="w-4 h-4 text-brand-orange shrink-0" />
                       <div className="flex items-center gap-2 flex-wrap">
                         <span>Food Donor: <strong className="text-brand-text dark:text-slate-200">{b.donorName}</strong></span>
-                        <DonorRatingBadge donorId={b.donorId} size="sm" showDetails />
+                        <DonorRatingBadge
+                          donorId={b.donorId}
+                          size="sm"
+                          showDetails
+                          onRateClick={() => setSelectedRatingBooking(b)}
+                        />
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

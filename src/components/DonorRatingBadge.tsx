@@ -6,12 +6,14 @@ interface DonorRatingBadgeProps {
   donorId?: string;
   size?: 'sm' | 'md' | 'lg';
   showDetails?: boolean;
+  onRateClick?: () => void;
 }
 
 export const DonorRatingBadge: React.FC<DonorRatingBadgeProps> = ({
   donorId,
   size = 'md',
   showDetails = false,
+  onRateClick,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const summary = getDonorRatingSummary(donorId);
@@ -105,6 +107,21 @@ export const DonorRatingBadge: React.FC<DonorRatingBadgeProps> = ({
                 </span>
               </div>
             </div>
+
+            {onRateClick && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(false);
+                  onRateClick();
+                }}
+                className="w-full mt-2 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+              >
+                <Star className="w-3.5 h-3.5 fill-white" />
+                <span>⭐ Rate This Donor (3 Questions)</span>
+              </button>
+            )}
 
             <div className="pt-1.5 border-t border-gray-100 dark:border-slate-800 text-[10px] text-gray-400 dark:text-slate-400 text-center font-medium">
               Evaluated by verified NGO pickup partners
