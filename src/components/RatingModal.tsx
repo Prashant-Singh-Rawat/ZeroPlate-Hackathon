@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Star, X, CheckCircle2, Utensils, Truck, Scale, Sparkles, AlertCircle, ShieldCheck, Heart } from 'lucide-react';
 import { Booking, DonorRatingFeedback } from '../types';
 import { submitDonorRating, getRatingForBooking } from '../services/ratingStorage';
@@ -19,7 +20,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
 }) => {
   const existing = getRatingForBooking(booking.id);
 
-  // Initial zero stars (0) so user chooses actively
+  // Initialize with 0 stars so the evaluator actively chooses
   const [foodQuality, setFoodQuality] = useState<number>(existing?.foodQualityScore || 0);
   const [deliveryExperience, setDeliveryExperience] = useState<number>(existing?.deliveryScore || 0);
   const [quantityAccuracy, setQuantityAccuracy] = useState<number>(existing?.quantityAccuracyScore || 0);
@@ -29,6 +30,21 @@ export const RatingModal: React.FC<RatingModalProps> = ({
   const [feedbackNotes, setFeedbackNotes] = useState<string>(existing?.feedbackNotes || '');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -88,13 +104,13 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                   setErrorMessage('');
                   onChange(star);
                 }}
-                className="p-1 sm:p-1.5 rounded-lg hover:bg-orange-100/50 dark:hover:bg-slate-700/50 transition-all active:scale-90 cursor-pointer focus:outline-none"
+                className="p-1 sm:p-1.5 rounded-xl hover:bg-orange-100/60 dark:hover:bg-slate-700/60 transition-all active:scale-90 cursor-pointer focus:outline-none"
                 title={`Rate ${star} Star${star > 1 ? 's' : ''}`}
               >
                 <Star
-                  className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-150 ${
+                  className={`w-6 h-6 sm:w-7 sm:h-7 transition-all duration-150 ${
                     isFilled
-                      ? `${colorClass} fill-current scale-110 drop-shadow-sm`
+                      ? `${colorClass} fill-current scale-110 drop-shadow-md`
                       : 'text-gray-300 dark:text-slate-600 hover:text-amber-400'
                   }`}
                 />
@@ -103,10 +119,10 @@ export const RatingModal: React.FC<RatingModalProps> = ({
           })}
         </div>
         <span
-          className={`text-xs font-black px-2 py-0.5 rounded-md ${
+          className={`text-xs font-black px-2.5 py-1 rounded-lg transition-colors ${
             value > 0
-              ? 'bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300'
-              : 'text-gray-400 dark:text-slate-500 font-medium'
+              ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border border-amber-300/60 dark:border-amber-700/60'
+              : 'text-gray-400 dark:text-slate-500 font-semibold'
           }`}
         >
           {getStarLabel(value)}
@@ -119,7 +135,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
     e.preventDefault();
 
     if (foodQuality === 0 || deliveryExperience === 0 || quantityAccuracy === 0) {
-      setErrorMessage('Please select a star rating (1–5) for all 3 evaluation questions.');
+      setErrorMessage('⚠️ Please select a star rating (1–5) for all 3 evaluation questions.');
       return;
     }
 
@@ -139,9 +155,9 @@ export const RatingModal: React.FC<RatingModalProps> = ({
       });
 
       confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 },
+        particleCount: 140,
+        spread: 90,
+        origin: { y: 0.5 },
         colors: ['#F59E0B', '#F97316', '#10B981'],
       });
 
@@ -154,20 +170,22 @@ export const RatingModal: React.FC<RatingModalProps> = ({
     }
   };
 
-  return (
+  // Render via createPortal directly into document.body to prevent any container clipping
+  const modalContent = (
     <div
-      className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn"
+      className="fixed inset-0 z-[99999] w-screen h-screen bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn"
+      style={{ margin: 0, top: 0, left: 0 }}
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#1E293B] rounded-[28px] max-w-4xl w-full shadow-2xl border border-orange-200/60 dark:border-slate-700/80 overflow-hidden my-auto grid grid-cols-1 md:grid-cols-12 transition-all"
+        className="bg-white dark:bg-[#1E293B] rounded-[28px] max-w-4xl w-full max-h-[92vh] shadow-2xl border border-orange-200/80 dark:border-slate-700 overflow-hidden my-auto grid grid-cols-1 md:grid-cols-12 transition-all relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ══════════════════ LEFT PANEL: Overview & Live Score (38%) ══════════════════ */}
+        {/* ══════════════════ LEFT PANEL: Food Details & Live Score (38%) ══════════════════ */}
         <div className="md:col-span-5 bg-gradient-to-br from-brand-deep via-orange-600 to-amber-600 text-white p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
-          {/* Subtle decorative glow circles */}
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-orange-400/20 rounded-full blur-2xl pointer-events-none" />
+          {/* Ambient decorative glow */}
+          <div className="absolute -top-12 -right-12 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-orange-400/20 rounded-full blur-2xl pointer-events-none" />
 
           <div className="space-y-4 relative z-10">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-black tracking-wider uppercase border border-white/20">
@@ -202,7 +220,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
               <p className="text-[11px] text-orange-100 font-medium">
                 {isAllRated
                   ? '⭐ Average of Quality, Delivery & Quantity Accuracy'
-                  : 'Select all 3 star ratings to finalize score'}
+                  : 'Tap all 3 star ratings to calculate overall rating'}
               </p>
             </div>
           </div>
@@ -210,25 +228,25 @@ export const RatingModal: React.FC<RatingModalProps> = ({
           <div className="pt-6 relative z-10 border-t border-white/15 text-[11px] text-orange-100 space-y-1">
             <div className="flex items-center gap-1.5 font-bold text-white">
               <ShieldCheck className="w-4 h-4 text-emerald-300" />
-              <span>Transparent Reputation System</span>
+              <span>Transparent Reputation Engine</span>
             </div>
             <p className="leading-relaxed opacity-90">
-              Your evaluation directly updates this donor's rating across all future listings on the platform.
+              Your rating updates this donor's score across all active listings on ZeroPlate.
             </p>
           </div>
         </div>
 
-        {/* ══════════════════ RIGHT PANEL: 3 Questions Form (62%) ══════════════════ */}
-        <div className="md:col-span-7 p-6 sm:p-8 flex flex-col justify-between space-y-5 bg-white dark:bg-[#1E293B]">
+        {/* ══════════════════ RIGHT PANEL: The 3 Evaluation Questions (62%) ══════════════════ */}
+        <div className="md:col-span-7 p-6 sm:p-8 flex flex-col justify-between space-y-4 bg-white dark:bg-[#1E293B] overflow-y-auto max-h-[85vh]">
           <div className="space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-slate-800">
               <div>
                 <h3 className="text-lg font-black text-brand-text dark:text-slate-100">
-                  Rate Experience
+                  Rate Food Donor
                 </h3>
                 <p className="text-xs text-brand-muted dark:text-slate-400">
-                  Evaluate each question on a 1–5 star scale
+                  Tap stars to evaluate on a 1–5 scale
                 </p>
               </div>
               <button
@@ -248,7 +266,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
               </div>
             )}
 
-            {/* 3 Questions */}
+            {/* The 3 Evaluation Questions */}
             <div className="space-y-3">
               {/* Question 1: Food Quality */}
               <div className="p-3.5 rounded-2xl bg-orange-50/50 dark:bg-slate-800/60 border border-orange-100 dark:border-slate-700 space-y-1.5">
@@ -301,7 +319,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                       3) Quantity Accuracy (Promised vs Received)
                     </h4>
                     <p className="text-[10px] sm:text-[11px] font-medium text-brand-muted dark:text-slate-400">
-                      Did donor provide the full quantity promised ({booking.mealCount} meals)?
+                      Did donor provide full quantity promised ({booking.mealCount} meals)?
                     </p>
                   </div>
                 </div>
@@ -327,7 +345,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-slate-800 shrink-0">
             <button
               type="button"
               onClick={onClose}
@@ -349,4 +367,6 @@ export const RatingModal: React.FC<RatingModalProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 };
