@@ -32,6 +32,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-app.listen(PORT, () => {
-  console.log(`ZeroPlate Backend API running on http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`ZeroPlate Backend API running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
