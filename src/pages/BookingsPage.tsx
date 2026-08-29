@@ -8,6 +8,7 @@ import { MapPin, Building, CheckCircle2, Clock, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 import { getLocalBookings, saveLocalBookings } from '../services/requestStorage';
+import { syncCloudBookings, completeBookingInCloud } from '../services/cloudSync';
 
 interface BookingsPageProps {
   onShowToast?: (type: 'success' | 'error' | 'warning' | 'info', msg: string) => void;
@@ -16,10 +17,30 @@ interface BookingsPageProps {
 export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
   const { user, role } = useAuth();
   const { t } = useLanguage();
+
+  const isMatchingBooking = (b: Booking) => {
+    const userEmail = user?.email?.toLowerCase();
+    const userId = user?.id?.toLowerCase();
+    if (role === 'ngo') {
+      const bNgoId = b.ngoId?.toLowerCase();
+      return (
+        (userEmail && bNgoId === userEmail) ||
+        (userId && bNgoId === userId) ||
+        (!userEmail && bNgoId === 'ngo_hope')
+      );
+    } else {
+      const bDonorId = b.donorId?.toLowerCase();
+      return (
+        (userEmail && bDonorId === userEmail) ||
+        (userId && bDonorId === userId) ||
+        (!userEmail && bDonorId === 'donor_spicevilla')
+      );
+    }
+  };
+
   const [bookings, setBookings] = useState<Booking[]>(() => {
     const local = getLocalBookings();
-    const currentId = user?.id || (role === 'ngo' ? 'ngo_hope' : 'donor_spicevilla');
-    return local.filter((b) => (role === 'ngo' ? b.ngoId === currentId || currentId === 'ngo_hope' : b.donorId === currentId || currentId === 'donor_spicevilla'));
+    return local.filter(isMatchingBooking);
   });
   const [activeTab, setActiveTab] = useState<'all' | 'confirmed' | 'completed'>('all');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,22 +48,16 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
 
   useEffect(() => {
     fetchBookings();
+    const interval = setInterval(() => {
+      fetchBookings();
+    }, 8000);
+    return () => clearInterval(interval);
   }, [user, role]);
 
   const fetchBookings = async () => {
     try {
-      const currentId = user?.id || (role === 'ngo' ? 'ngo_hope' : 'donor_spicevilla');
-      const local = getLocalBookings();
-      const filtered = local.filter((b) => (role === 'ngo' ? b.ngoId === currentId || currentId === 'ngo_hope' : b.donorId === currentId || currentId === 'donor_spicevilla'));
-      setBookings(filtered);
-
-      const res = await fetch(`/api/bookings?userId=${currentId}&role=${role}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setBookings(data);
-        }
-      }
+      const allBookings = await syncCloudBookings();
+      setBookings(allBookings.filter(isMatchingBooking));
     } catch (e) {
       console.warn('Fetch bookings error', e);
     }
@@ -50,28 +65,22 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
 
   const handleCompletePickup = async (bookingId: string) => {
     setCompletingId(bookingId);
-    try {
-      const res = await fetch(`/api/bookings/${bookingId}/complete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id || 'donor_spicevilla' }),
-      });
+    completeBookingInCloud(bookingId).catch(() => {});
+    fetch(`/api/bookings/${bookingId}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user?.id || 'donor_spicevilla' }),
+    }).catch(() => {});
 
-      if (res.ok) {
-        confetti({
-          particleCount: 100,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ['#F97316', '#16A34A', '#10B981'],
-        });
-        if (onShowToast) onShowToast('success', 'Pickup confirmed as COMPLETED! Impact metrics updated.');
-        fetchBookings();
-      }
-    } catch (e) {
-      console.warn('Complete pickup error', e);
-    } finally {
-      setCompletingId(null);
-    }
+    confetti({
+      particleCount: 100,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors: ['#F97316', '#16A34A', '#10B981'],
+    });
+    if (onShowToast) onShowToast('success', 'Pickup confirmed as COMPLETED! Impact metrics updated.');
+    fetchBookings();
+    setCompletingId(null);
   };
 
   const filteredBookings = bookings.filter((b) => {

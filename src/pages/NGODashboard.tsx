@@ -19,6 +19,10 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
+import { computeFullMatch } from '../services/matching/matchingEngine';
+import { syncCloudDonations, syncCloudRequests } from '../services/cloudSync';
+import { getLocalDonations } from '../services/donationStorage';
+
 interface NGODashboardProps {
   onNavigate: (tab: string, extraData?: any) => void;
   onRequestDonation: (donation: FoodDonation) => void;
@@ -29,11 +33,33 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
   onRequestDonation,
 }) => {
   const { user, subscriptionPlan } = useAuth();
-  const [nearbyFood, setNearbyFood] = useState<(FoodDonation & { match?: MatchScoreResult })[]>([]);
+  
+  const mapDonationsWithScores = (donationsList: FoodDonation[]) => {
+    const ngoLat = user?.latitude || 19.062;
+    const ngoLng = user?.longitude || 72.854;
+    return donationsList
+      .filter((d) => d.status === 'AVAILABLE' || d.status === 'PENDING_REQUEST')
+      .map((d) => {
+        const match = computeFullMatch(
+          { lat: d.latitude, lng: d.longitude },
+          { lat: ngoLat, lng: ngoLng },
+          d.mealCount,
+          100,
+          d.pickupDeadline,
+          subscriptionPlan === 'premium',
+          user?.name || 'Hope Foundation'
+        );
+        return { ...d, match };
+      });
+  };
+
+  const [nearbyFood, setNearbyFood] = useState<(FoodDonation & { match?: MatchScoreResult })[]>(() => {
+    return mapDonationsWithScores(getLocalDonations());
+  });
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [requirement, setRequirement] = useState<NGOFoodRequirement | null>(null);
   const [selectedDonor, setSelectedDonor] = useState<FoodDonation | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Requirements Modal State with LocalStorage Persistence
   const cacheKey = `zeroplate_req_${user?.id || 'ngo_hope'}`;
@@ -60,52 +86,37 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
 
   useEffect(() => {
     fetchNGOData();
+    const interval = setInterval(() => {
+      fetchNGOData();
+    }, 8000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const fetchNGOData = async () => {
-    setIsLoading(true);
     try {
-      const [donationsRes, requestsRes, reqRes] = await Promise.all([
-        fetch(`/api/donations?ngoId=${user?.id || 'ngo_hope'}`),
-        fetch(`/api/requests?ngoId=${user?.id || 'ngo_hope'}&status=PENDING`),
-        fetch(`/api/ngos/requirements?ngoId=${user?.id || 'ngo_hope'}`),
+      const [allDonations, allRequests] = await Promise.all([
+        syncCloudDonations(),
+        syncCloudRequests(),
       ]);
 
-      if (donationsRes.ok) {
-        const dData = await donationsRes.json();
-        setNearbyFood(dData);
-        if (dData.length > 0) setSelectedDonor(dData[0]);
+      const mappedFood = mapDonationsWithScores(allDonations);
+      setNearbyFood(mappedFood);
+      if (mappedFood.length > 0 && !selectedDonor) {
+        setSelectedDonor(mappedFood[0]);
       }
 
-      if (requestsRes.ok) {
-        const rData = await requestsRes.json();
-        setPendingRequestsCount(rData.length);
-      }
-
-      if (reqRes.ok) {
-        const reqData = await reqRes.json();
-        if (reqData) {
-          setRequirement(reqData);
-          if (reqData.requiredMeals) setReqMeals(reqData.requiredMeals);
-          if (reqData.maximumRadius) setReqRadius(reqData.maximumRadius);
-          if (reqData.foodType) setReqFoodType(reqData.foodType);
-
-          let parsedWeight = 60;
-          if (reqData.estWeight) {
-            parsedWeight = reqData.estWeight;
-          } else if (reqData.specificRequirement && reqData.specificRequirement.includes('Est. weight:')) {
-            const m = reqData.specificRequirement.match(/(\d+)/);
-            if (m) parsedWeight = Number(m[1]);
-          } else if (reqData.requiredMeals) {
-            parsedWeight = Math.round(reqData.requiredMeals * 0.5);
-          }
-          setReqWeight(parsedWeight);
-        }
-      }
+      const userEmail = user?.email?.toLowerCase();
+      const userId = user?.id?.toLowerCase();
+      const myPending = allRequests.filter((r) => {
+        const rNgo = r.ngoId?.toLowerCase();
+        return (
+          ((userEmail && rNgo === userEmail) || (userId && rNgo === userId) || (!userEmail && rNgo === 'ngo_hope')) &&
+          r.status === 'PENDING'
+        );
+      });
+      setPendingRequestsCount(myPending.length);
     } catch (e) {
       console.warn('NGO Dashboard fetch error', e);
-    } finally {
-      setIsLoading(false);
     }
   };
 

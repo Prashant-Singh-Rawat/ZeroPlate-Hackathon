@@ -11,7 +11,7 @@ import {
   Building2,
   Info,
 } from 'lucide-react';
-import { saveLocalDonation } from '../services/donationStorage';
+import { publishDonationToCloud } from '../services/cloudSync';
 
 interface AddFoodProps {
   onSuccessPublished: () => void;
@@ -81,9 +81,13 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
     if (!validate()) return;
 
     setIsSubmitting(true);
+    const donorIdentifier = user?.email || user?.id || 'donor_spicevilla';
+    const donorDisplayName = user?.name || (user?.email ? user.email.split('@')[0] : 'Food Donor');
+
     const payload = {
-      donorId: user?.id || 'donor_spicevilla',
-      donorName: user?.name || 'Food Donor',
+      id: `don_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      donorId: donorIdentifier,
+      donorName: donorDisplayName,
       donorType: user?.donorType || 'Restaurant',
       foodName: foodName.trim(),
       foodCategory,
@@ -101,13 +105,15 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
       originAddress: savedOriginAddress,
       availableFrom: availableFrom === 'Now' ? new Date().toISOString() : availableFrom,
       pickupDeadline: new Date(pickupDeadline).toISOString(),
+      status: 'AVAILABLE' as const,
       packagingAvailable: packagingStatus === 'Already packed',
+      createdAt: new Date().toISOString(),
     };
 
-    // 1. Immediately persist locally for instant UI update
-    saveLocalDonation(payload);
+    // 1. Immediately persist locally and push to multi-device cloud database
+    publishDonationToCloud(payload as any);
 
-    // 2. Sync to backend in background (won't block UI)
+    // 2. Sync to backend API in background
     fetch('/api/donations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -116,9 +122,9 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
 
     setTimeout(() => {
       setIsSubmitting(false);
-      onShowToast('success', 'Your food donation has been published! Nearby NGOs will now receive alerts.');
+      onShowToast('success', 'Your food donation has been published! Nearby NGOs across all devices will now receive alerts.');
       onSuccessPublished();
-    }, 400);
+    }, 350);
   };
 
   return (

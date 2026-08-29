@@ -8,6 +8,7 @@ import { EmptyState } from '../components/EmptyState';
 import { PlusCircle } from 'lucide-react';
 
 import { getLocalDonations } from '../services/donationStorage';
+import { syncCloudDonations } from '../services/cloudSync';
 
 interface MyListingsProps {
   initialTab?: string;
@@ -32,10 +33,20 @@ export const MyListings: React.FC<MyListingsProps> = ({
       : 'all'
   );
 
+  const isMatchingDonor = (d: FoodDonation) => {
+    const userEmail = user?.email?.toLowerCase();
+    const userId = user?.id?.toLowerCase();
+    const dDonorId = d.donorId?.toLowerCase();
+    return (
+      (userEmail && dDonorId === userEmail) ||
+      (userId && dDonorId === userId) ||
+      (!userEmail && dDonorId === 'donor_spicevilla')
+    );
+  };
+
   const [donations, setDonations] = useState<FoodDonation[]>(() => {
     const local = getLocalDonations();
-    const currentDonorId = user?.id || 'donor_spicevilla';
-    return local.filter((d) => d.donorId === currentDonorId || d.donorId === 'donor_spicevilla' || currentDonorId === 'donor_spicevilla');
+    return local.filter(isMatchingDonor);
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,18 +56,8 @@ export const MyListings: React.FC<MyListingsProps> = ({
 
   const fetchDonations = async () => {
     try {
-      const currentDonorId = user?.id || 'donor_spicevilla';
-      const local = getLocalDonations();
-      const donorLocal = local.filter((d) => d.donorId === currentDonorId || d.donorId === 'donor_spicevilla' || currentDonorId === 'donor_spicevilla');
-      setDonations(donorLocal);
-
-      const res = await fetch(`/api/donations?donorId=${currentDonorId}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setDonations(data);
-        }
-      }
+      const allDonations = await syncCloudDonations();
+      setDonations(allDonations.filter(isMatchingDonor));
     } catch (e) {
       console.warn('Fetch donations error', e);
     }

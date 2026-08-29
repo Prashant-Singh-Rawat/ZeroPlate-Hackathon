@@ -9,6 +9,7 @@ import { Inbox, CheckCircle2, XCircle, MapPin, Building } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 import { getLocalRequests, acceptLocalRequest, saveLocalRequests } from '../services/requestStorage';
+import { syncCloudRequests } from '../services/cloudSync';
 
 interface DonorRequestsProps {
   onNavigateBookings: () => void;
@@ -20,32 +21,37 @@ export const DonorRequests: React.FC<DonorRequestsProps> = ({
 }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
+
+  const isMatchingDonor = (r: FoodRequest) => {
+    const userEmail = user?.email?.toLowerCase();
+    const userId = user?.id?.toLowerCase();
+    const rDonorId = r.donorId?.toLowerCase();
+    return (
+      (userEmail && rDonorId === userEmail) ||
+      (userId && rDonorId === userId) ||
+      (!userEmail && rDonorId === 'donor_spicevilla')
+    );
+  };
+
   const [requests, setRequests] = useState<FoodRequest[]>(() => {
     const local = getLocalRequests();
-    const currentDonorId = user?.id || 'donor_spicevilla';
-    return local.filter((r) => r.donorId === currentDonorId || r.donorId === 'donor_spicevilla' || currentDonorId === 'donor_spicevilla');
+    return local.filter(isMatchingDonor);
   });
   const [isLoading, setIsLoading] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRequests();
+    const interval = setInterval(() => {
+      fetchRequests();
+    }, 8000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const fetchRequests = async () => {
     try {
-      const currentDonorId = user?.id || 'donor_spicevilla';
-      const local = getLocalRequests();
-      const donorLocal = local.filter((r) => r.donorId === currentDonorId || r.donorId === 'donor_spicevilla' || currentDonorId === 'donor_spicevilla');
-      setRequests(donorLocal);
-
-      const res = await fetch(`/api/requests?donorId=${currentDonorId}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setRequests(data);
-        }
-      }
+      const allRequests = await syncCloudRequests();
+      setRequests(allRequests.filter(isMatchingDonor));
     } catch (e) {
       console.warn('Fetch donor requests error', e);
     }

@@ -9,8 +9,8 @@ import { EmptyState } from '../components/EmptyState';
 import { Search, MapPin, List, RefreshCw, Filter, Sparkles, Clock, Building, ArrowRight, X, CheckCircle2 } from 'lucide-react';
 import { getLocalDonations } from '../services/donationStorage';
 import { computeFullMatch } from '../services/matching/matchingEngine';
-
 import { createLocalRequest } from '../services/requestStorage';
+import { syncCloudDonations } from '../services/cloudSync';
 
 interface FindFoodProps {
   initialViewMode?: 'map' | 'list';
@@ -28,11 +28,10 @@ export const FindFood: React.FC<FindFoodProps> = ({
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'map' | 'list'>(initialViewMode);
   
-  const getMappedLocalDonations = () => {
-    const local = getLocalDonations();
+  const mapDonationsWithScores = (donationsList: FoodDonation[]) => {
     const ngoLat = user?.latitude || 19.062;
     const ngoLng = user?.longitude || 72.854;
-    return local
+    return donationsList
       .filter((d) => d.status === 'AVAILABLE' || d.status === 'PENDING_REQUEST')
       .map((d) => {
         const match = computeFullMatch(
@@ -48,7 +47,9 @@ export const FindFood: React.FC<FindFoodProps> = ({
       });
   };
 
-  const [foodListings, setFoodListings] = useState<(FoodDonation & { match?: MatchScoreResult })[]>(getMappedLocalDonations);
+  const [foodListings, setFoodListings] = useState<(FoodDonation & { match?: MatchScoreResult })[]>(() => {
+    return mapDonationsWithScores(getLocalDonations());
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   // Filters & Sorting (§3)
@@ -70,24 +71,17 @@ export const FindFood: React.FC<FindFoodProps> = ({
 
   useEffect(() => {
     fetchFood();
+    // Live cloud polling every 8s so new donations across devices appear automatically
+    const interval = setInterval(() => {
+      fetchFood();
+    }, 8000);
+    return () => clearInterval(interval);
   }, [user, foodType, minMeals, radiusKm, sortBy]);
 
   const fetchFood = async () => {
     try {
-      setFoodListings(getMappedLocalDonations());
-      let query = `/api/donations?ngoId=${user?.id || 'ngo_hope'}&sortBy=${sortBy}`;
-      if (foodType !== 'all') query += `&foodType=${foodType}`;
-      if (minMeals > 0) query += `&minMeals=${minMeals}`;
-      if (radiusKm > 0) query += `&radiusKm=${radiusKm}`;
-      if (searchTerm) query += `&search=${encodeURIComponent(searchTerm)}`;
-
-      const res = await fetch(query);
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setFoodListings(data);
-        }
-      }
+      const allDonations = await syncCloudDonations();
+      setFoodListings(mapDonationsWithScores(allDonations));
     } catch (e) {
       console.warn('Fetch food error', e);
     }

@@ -7,6 +7,7 @@ import { EmptyState } from '../components/EmptyState';
 import { Inbox, Clock, CheckCircle2, XCircle, Building, MapPin, ArrowRight } from 'lucide-react';
 
 import { getLocalRequests, cancelLocalRequest } from '../services/requestStorage';
+import { syncCloudRequests } from '../services/cloudSync';
 
 interface MyRequestsProps {
   onNavigateFindFood: () => void;
@@ -20,31 +21,36 @@ export const MyRequests: React.FC<MyRequestsProps> = ({
   onShowToast,
 }) => {
   const { user } = useAuth();
+
+  const isMatchingNgo = (r: FoodRequest) => {
+    const userEmail = user?.email?.toLowerCase();
+    const userId = user?.id?.toLowerCase();
+    const rNgoId = r.ngoId?.toLowerCase();
+    return (
+      (userEmail && rNgoId === userEmail) ||
+      (userId && rNgoId === userId) ||
+      (!userEmail && rNgoId === 'ngo_hope')
+    );
+  };
+
   const [requests, setRequests] = useState<FoodRequest[]>(() => {
     const local = getLocalRequests();
-    const currentNgoId = user?.id || 'ngo_hope';
-    return local.filter((r) => r.ngoId === currentNgoId || r.ngoId === 'ngo_hope' || currentNgoId === 'ngo_hope');
+    return local.filter(isMatchingNgo);
   });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchRequests();
+    const interval = setInterval(() => {
+      fetchRequests();
+    }, 8000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const fetchRequests = async () => {
     try {
-      const currentNgoId = user?.id || 'ngo_hope';
-      const local = getLocalRequests();
-      const ngoLocal = local.filter((r) => r.ngoId === currentNgoId || r.ngoId === 'ngo_hope' || currentNgoId === 'ngo_hope');
-      setRequests(ngoLocal);
-
-      const res = await fetch(`/api/requests?ngoId=${currentNgoId}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setRequests(data);
-        }
-      }
+      const allRequests = await syncCloudRequests();
+      setRequests(allRequests.filter(isMatchingNgo));
     } catch (e) {
       console.warn('Fetch NGO requests error', e);
     }

@@ -1,6 +1,7 @@
 import { FoodRequest, Booking, FoodDonation, User } from '../types';
 import { getLocalDonations, saveLocalDonation } from './donationStorage';
 import { computeFullMatch } from './matching/matchingEngine';
+import { submitRequestToCloud, updateRequestStatusInCloud } from './cloudSync';
 
 const REQUESTS_KEY = 'zeroplate_requests';
 const BOOKINGS_KEY = 'zeroplate_bookings';
@@ -94,6 +95,7 @@ export function createLocalRequest(
 
   const updated = [newRequest, ...existing];
   saveLocalRequests(updated);
+  submitRequestToCloud(newRequest).catch(() => {});
 
   // Update donation status to PENDING_REQUEST
   const donations = getLocalDonations();
@@ -152,6 +154,10 @@ export function acceptLocalRequest(requestId: string, donorUser: User | null): {
   };
 
   saveLocalBookings([newBooking, ...bookings]);
+
+  // Sync acceptance and new booking to global cloud database
+  updateRequestStatusInCloud(requestId, 'ACCEPTED', newBooking).catch(() => {});
+
   return { success: true, booking: newBooking };
 }
 
@@ -161,6 +167,7 @@ export function cancelLocalRequest(requestId: string): boolean {
   if (!target) return false;
   target.status = 'CANCELLED';
   saveLocalRequests(requests);
+  updateRequestStatusInCloud(requestId, 'CANCELLED').catch(() => {});
   return true;
 }
 

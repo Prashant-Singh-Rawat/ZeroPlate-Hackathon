@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 import { getLocalDonations } from '../services/donationStorage';
+import { syncCloudDonations, syncCloudRequests } from '../services/cloudSync';
 
 interface DonorDashboardProps {
   onNavigate: (tab: string, extraData?: any) => void;
@@ -19,37 +20,43 @@ interface DonorDashboardProps {
 export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
+
+  const isMatchingDonor = (d: { donorId?: string }) => {
+    const userEmail = user?.email?.toLowerCase();
+    const userId = user?.id?.toLowerCase();
+    const dDonorId = d.donorId?.toLowerCase();
+    return (
+      (userEmail && dDonorId === userEmail) ||
+      (userId && dDonorId === userId) ||
+      (!userEmail && dDonorId === 'donor_spicevilla')
+    );
+  };
+
   const [donations, setDonations] = useState<FoodDonation[]>(() => {
     const local = getLocalDonations();
-    const currentDonorId = user?.id || 'donor_spicevilla';
-    return local.filter((d) => d.donorId === currentDonorId || d.donorId === 'donor_spicevilla' || currentDonorId === 'donor_spicevilla');
+    return local.filter(isMatchingDonor);
   });
-  const [pendingRequestsCount, setPendingRequestsCount] = useState(1);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 8000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const fetchDashboardData = async () => {
     try {
-      const currentDonorId = user?.id || 'donor_spicevilla';
-      const local = getLocalDonations();
-      const donorLocal = local.filter((d) => d.donorId === currentDonorId || d.donorId === 'donor_spicevilla' || currentDonorId === 'donor_spicevilla');
-      setDonations(donorLocal);
-
-      const [donationsRes, requestsRes] = await Promise.all([
-        fetch(`/api/donations?donorId=${currentDonorId}`),
-        fetch(`/api/requests?donorId=${currentDonorId}&status=PENDING`),
+      const [allDonations, allRequests] = await Promise.all([
+        syncCloudDonations(),
+        syncCloudRequests(),
       ]);
-      if (donationsRes.ok) {
-        const dJson = await donationsRes.json();
-        if (Array.isArray(dJson) && dJson.length > 0) setDonations(dJson);
-      }
-      if (requestsRes.ok) {
-        const rJson = await requestsRes.json();
-        if (Array.isArray(rJson)) setPendingRequestsCount(rJson.length);
-      }
+      const myDonations = allDonations.filter(isMatchingDonor);
+      const myPendingRequests = allRequests.filter((r) => isMatchingDonor(r) && r.status === 'PENDING');
+      setDonations(myDonations);
+      setPendingRequestsCount(myPendingRequests.length);
     } catch (e) {
       console.warn('Dashboard fetch error', e);
     }
