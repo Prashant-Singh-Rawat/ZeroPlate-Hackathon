@@ -54,6 +54,9 @@ const MainLayout: React.FC = () => {
 
   // Keep pending requests count fresh for donors
   useEffect(() => {
+    if (activeTab === 'messages') {
+      setActiveTab('dashboard');
+    }
     if (user && role === 'donor') {
       fetch(`/api/requests?donorId=${user.id}&status=PENDING`)
         .then((res) => res.json())

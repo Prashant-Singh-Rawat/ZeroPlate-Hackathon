@@ -8,7 +8,6 @@ import {
   ListFilter,
   Inbox,
   CalendarDays,
-  MessageSquare,
   Sparkles,
   TrendingUp,
   Settings,
