@@ -10,6 +10,7 @@ interface FoodCardProps {
   onRequest?: (donation: FoodDonation) => void;
   onViewRequests?: (donation: FoodDonation) => void;
   onViewDetails?: (donation: FoodDonation) => void;
+  onCancelDonation?: (donation: FoodDonation) => void;
   showMatchScore?: boolean;
 }
 
@@ -19,6 +20,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({
   onRequest,
   onViewRequests,
   onViewDetails,
+  onCancelDonation,
   showMatchScore = true,
 }) => {
   const isDonor = role === 'donor';
@@ -144,9 +146,9 @@ export const FoodCard: React.FC<FoodCardProps> = ({
         )}
 
         {/* Action Buttons */}
-        <div className="pt-1 mt-auto grid grid-cols-2 gap-2">
+        <div className="pt-1 mt-auto">
           {!isDonor && (
-            <>
+            <div className="grid grid-cols-2 gap-2">
               {onViewDetails && (
                 <button
                   onClick={() => onViewDetails(donation)}
@@ -172,17 +174,30 @@ export const FoodCard: React.FC<FoodCardProps> = ({
                   {donation.status === 'CONFIRMED' ? '✓ Confirmed' : 'Unavailable'}
                 </div>
               )}
-            </>
+            </div>
           )}
 
-          {isDonor && onViewRequests && (
-            <button
-              onClick={() => onViewRequests(donation)}
-              className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-600 hover:to-amber-500 text-white font-extrabold text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95"
-            >
-              <Inbox className="w-3.5 h-3.5" />
-              View NGO Requests ({donation.pendingRequestsCount || 0})
-            </button>
+          {isDonor && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {onViewRequests && (
+                <button
+                  onClick={() => onViewRequests(donation)}
+                  className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-600 hover:to-amber-500 text-white font-extrabold text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                >
+                  <Inbox className="w-3.5 h-3.5 shrink-0" />
+                  <span>Requests ({donation.pendingRequestsCount || 0})</span>
+                </button>
+              )}
+
+              {onCancelDonation && isAvailable && (
+                <button
+                  onClick={() => onCancelDonation(donation)}
+                  className="w-full py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/60 font-extrabold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                >
+                  <span>✕ Cancel Listing</span>
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>

@@ -117,6 +117,43 @@ export async function publishDonationToCloud(donation: FoodDonation): Promise<Fo
   return donation;
 }
 
+export async function cancelDonationInCloud(donationId: string, reason?: string): Promise<boolean> {
+  const local = getLocalDonations();
+  const updatedLocal = local.map((d) =>
+    d.id === donationId ? { ...d, status: 'CANCELLED' as const } : d
+  );
+  saveAllLocalDonations(updatedLocal);
+
+  // Auto-reject any pending requests for this cancelled food
+  const requests = getLocalRequests();
+  const updatedRequests = requests.map((r) =>
+    r.donationId === donationId && r.status === 'PENDING'
+      ? { ...r, status: 'REJECTED' as const, respondedAt: new Date().toISOString() }
+      : r
+  );
+  saveLocalRequests(updatedRequests);
+
+  try {
+    const { data: current, sha } = await fetchGithubFile<FoodDonation>('cloud_donations.json', local);
+    const updated = current.map((d) =>
+      d.id === donationId ? { ...d, status: 'CANCELLED' as const } : d
+    );
+    await writeGithubFile('cloud_donations.json', updated, sha);
+
+    const { data: currentReqs, sha: reqSha } = await fetchGithubFile<FoodRequest>('cloud_requests.json', requests);
+    const updatedCloudReqs = currentReqs.map((r) =>
+      r.donationId === donationId && r.status === 'PENDING'
+        ? { ...r, status: 'REJECTED' as const, respondedAt: new Date().toISOString() }
+        : r
+    );
+    await writeGithubFile('cloud_requests.json', updatedCloudReqs, reqSha);
+    return true;
+  } catch (e) {
+    console.warn('Cancel donation in cloud failed', e);
+  }
+  return false;
+}
+
 // ─────────────────────────────────────────────────────────────
 // REQUESTS CLOUD SYNC
 // ─────────────────────────────────────────────────────────────

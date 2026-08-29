@@ -156,6 +156,7 @@ const MainLayout: React.FC = () => {
             initialTab={activeTab}
             onNavigateAddFood={() => setActiveTab('add-food')}
             onNavigateRequests={() => setActiveTab('requests')}
+            onShowToast={showToast}
           />
         );
 
