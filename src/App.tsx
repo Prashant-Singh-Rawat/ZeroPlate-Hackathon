@@ -311,7 +311,7 @@ const MainLayout: React.FC = () => {
         onNavigateHome={() => setActiveTab('dashboard')}
       />
 
-      <div className="flex-1 flex w-full max-w-[1680px] mx-auto min-h-0">
+      <div className="flex-1 flex w-full min-h-0">
         <Sidebar
           activeTab={activeTab}
           onSelectTab={(tab) => {
@@ -323,7 +323,7 @@ const MainLayout: React.FC = () => {
           pendingRequestsCount={pendingCount}
         />
 
-        <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 min-w-0 overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 xl:p-10 min-w-0 overflow-y-auto overflow-x-hidden w-full">
           {renderView()}
         </main>
       </div>
