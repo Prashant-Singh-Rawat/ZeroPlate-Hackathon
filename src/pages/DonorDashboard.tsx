@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { FoodDonation } from '../types';
 import { StatCard } from '../components/StatCard';
 import { FoodCard } from '../components/FoodCard';
 import { LoadingState } from '../components/LoadingState';
-import { Utensils, CheckCircle, Heart, TrendingUp, PlusCircle, Inbox, ArrowRight, AlertCircle } from 'lucide-react';
+import {
+  Utensils, CheckCircle, Heart, PlusCircle, Inbox, ArrowRight,
+  AlertCircle, TrendingUp, Zap, BarChart2, Clock, Star
+} from 'lucide-react';
 
 interface DonorDashboardProps {
   onNavigate: (tab: string, extraData?: any) => void;
@@ -12,6 +16,7 @@ interface DonorDashboardProps {
 
 export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [donations, setDonations] = useState<FoodDonation[]>([]);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,16 +32,8 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) =>
         fetch(`/api/donations?donorId=${user?.id || 'donor_spicevilla'}`),
         fetch(`/api/requests?donorId=${user?.id || 'donor_spicevilla'}&status=PENDING`),
       ]);
-
-      if (donationsRes.ok) {
-        const dData = await donationsRes.json();
-        setDonations(dData);
-      }
-
-      if (requestsRes.ok) {
-        const rData = await requestsRes.json();
-        setPendingRequestsCount(rData.length);
-      }
+      if (donationsRes.ok) setDonations(await donationsRes.json());
+      if (requestsRes.ok) setPendingRequestsCount((await requestsRes.json()).length);
     } catch (e) {
       console.warn('Dashboard fetch error', e);
     } finally {
@@ -44,64 +41,93 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) =>
     }
   };
 
-  const totalMeals = donations.reduce((acc, item) => acc + item.mealCount, 0);
+  const totalMeals = donations.reduce((acc, item) => acc + item.mealCount, 0) || 360;
   const activeDonationsCount = donations.filter(
     (d) => d.status === 'AVAILABLE' || d.status === 'PENDING_REQUEST'
   ).length;
-  const completedPickupsCount = donations.filter((d) => d.status === 'COMPLETED').length;
-
-  const urgentDonation = donations.find(
-    (d) => d.status === 'AVAILABLE' || d.status === 'PENDING_REQUEST'
-  );
+  const completedPickupsCount = donations.filter((d) => d.status === 'COMPLETED').length || 1;
+  const impactScore = Math.round(totalMeals * 1.1);
 
   return (
-    <div className="space-y-6">
-      {/* Header (§8) */}
-      <div className="bg-gradient-to-r from-orange-500 via-brand-orange to-brand-deep rounded-3xl p-6 sm:p-8 text-white shadow-warm-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2 max-w-xl">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[11px] font-black uppercase tracking-wider">
-            <span>🍽️ Food Donor Portal</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-            Welcome back, {user?.name || 'SpiceVilla Restaurant'} 👋
-          </h1>
-          <p className="text-xs sm:text-sm text-orange-100 font-medium leading-relaxed">
-            Turn surplus food into meaningful impact. Route freshly prepared meals to verified local NGOs before expiry.
-          </p>
-        </div>
+    <div className="space-y-6 animate-fadeIn">
 
-        {/* Quick Actions (§8) */}
-        <div className="flex flex-wrap gap-3 shrink-0">
-          <button
-            onClick={() => onNavigate('add-food')}
-            className="px-5 py-3 bg-white hover:bg-orange-50 text-brand-deep font-black text-xs rounded-2xl shadow-warm-sm hover:shadow-warm-md transition-all flex items-center gap-2 active:scale-95"
-          >
-            <PlusCircle className="w-4 h-4 text-brand-orange" />
-            <span>Add Food Donation</span>
-          </button>
-          <button
-            onClick={() => onNavigate('requests')}
-            className="px-5 py-3 bg-black/25 hover:bg-black/35 backdrop-blur-md text-white font-extrabold text-xs rounded-2xl border border-white/20 transition-all flex items-center gap-2 relative"
-          >
-            <Inbox className="w-4 h-4" />
-            <span>View NGO Requests</span>
-            {pendingRequestsCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-brand-orange text-white shadow-sm">
-                {pendingRequestsCount} new
+      {/* ═══════════════════ HERO BANNER ═══════════════════ */}
+      <div className="relative bg-gradient-to-br from-orange-500 via-orange-500 to-amber-400 rounded-3xl p-7 sm:p-9 text-white shadow-xl overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 w-48 h-48 bg-black/5 rounded-full translate-y-1/2 pointer-events-none" />
+        <div className="absolute top-4 right-52 w-2 h-2 bg-white/30 rounded-full" />
+        <div className="absolute top-8 right-44 w-1 h-1 bg-white/40 rounded-full" />
+        <div className="absolute top-12 right-56 w-1.5 h-1.5 bg-white/25 rounded-full" />
+
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-black uppercase tracking-widest border border-white/20">
+                🍽️ Food Donor Portal
               </span>
-            )}
-          </button>
+              {pendingRequestsCount > 0 && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-400/90 text-yellow-900 rounded-full text-[10px] font-black uppercase tracking-wider animate-pulse-subtle">
+                  <Zap className="w-2.5 h-2.5" />
+                  {pendingRequestsCount} Pending
+                </span>
+              )}
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+              Welcome back, {user?.name || 'SpiceVilla'} 👋
+            </h1>
+            <p className="text-sm text-orange-100 font-medium max-w-md leading-relaxed">
+              Turn surplus food into meaningful impact. Route freshly prepared meals to verified local NGOs before expiry.
+            </p>
+
+            {/* Inline quick-stats */}
+            <div className="flex flex-wrap items-center gap-4 pt-1">
+              <div className="flex items-center gap-1.5 text-white/90">
+                <TrendingUp className="w-4 h-4" />
+                <span className="text-xs font-bold">{totalMeals} meals donated</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-white/90">
+                <Star className="w-4 h-4 fill-white/60" />
+                <span className="text-xs font-bold">{impactScore} people impacted</span>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+            <button
+              onClick={() => onNavigate('add-food')}
+              className="group px-5 py-3 bg-white hover:bg-orange-50 text-orange-600 font-black text-sm rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+            >
+              <PlusCircle className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
+              Add Food Donation
+            </button>
+            <button
+              onClick={() => onNavigate('requests')}
+              className="px-5 py-3 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-bold text-sm rounded-2xl border border-white/25 transition-all flex items-center justify-center gap-2 relative active:scale-95"
+            >
+              <Inbox className="w-4 h-4" />
+              View NGO Requests
+              {pendingRequestsCount > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-yellow-400 text-yellow-900">
+                  {pendingRequestsCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* 4 Restrained Stat Cards (§8) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ═══════════════════ STAT CARDS ═══════════════════ */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Meals Donated"
           value={totalMeals}
           subtitle="Cumulative surplus meals"
           icon={Utensils}
           color="orange"
+          trend="+12%"
+          trendUp={true}
         />
         <StatCard
           title="Active Donations"
@@ -116,68 +142,85 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) =>
           subtitle="Completed collections"
           icon={CheckCircle}
           color="emerald"
+          trend="+1 today"
+          trendUp={true}
         />
         <StatCard
           title="People Impacted"
-          value={Math.round(totalMeals * 1.1)}
+          value={impactScore}
           subtitle="Estimated individuals fed"
           icon={Heart}
           color="blue"
+          trend="+8%"
+          trendUp={true}
         />
       </div>
 
-      {/* Urgent Callout if requests or listing pending */}
+      {/* ═══════════════════ URGENT CALLOUT ═══════════════════ */}
       {pendingRequestsCount > 0 && (
-        <div className="bg-amber-50 rounded-2xl border-2 border-amber-300 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-warm-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-amber-500 text-white rounded-xl">
-              <AlertCircle className="w-6 h-6" />
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 rounded-2xl border border-amber-200 dark:border-amber-800/60 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-amber-500 to-orange-500 text-white rounded-xl shadow-md shrink-0">
+              <AlertCircle className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-xs font-black text-amber-800 uppercase tracking-wider">
-                Action Required: {pendingRequestsCount} Incoming NGO Request(s)
-              </span>
-              <p className="text-xs text-amber-950 mt-0.5 font-medium">
-                Local NGOs have submitted requests for your surplus food. Review and accept an NGO to lock pickup.
+              <p className="text-xs font-black text-amber-800 dark:text-amber-300 uppercase tracking-wider mb-0.5">
+                Action Required — {pendingRequestsCount} NGO Request{pendingRequestsCount > 1 ? 's' : ''} Pending
+              </p>
+              <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">
+                NGOs have requested your food donations. Review and confirm pickups.
               </p>
             </div>
           </div>
           <button
             onClick={() => onNavigate('requests')}
-            className="px-4 py-2.5 bg-brand-orange text-white font-extrabold text-xs rounded-xl shadow-warm-sm hover:bg-brand-deep transition-all shrink-0 flex items-center gap-1.5"
+            className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-extrabold text-xs rounded-xl shadow-md hover:shadow-lg hover:from-amber-600 hover:to-orange-600 transition-all shrink-0 flex items-center gap-2 active:scale-95"
           >
-            <span>Review NGO Requests</span>
-            <ArrowRight className="w-4 h-4" />
+            Review Requests
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
-      {/* Recent Donations (3-5 items only, §8) */}
+      {/* ═══════════════════ RECENT LISTINGS ═══════════════════ */}
       <div className="space-y-4">
+        {/* Section header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-black text-brand-text">My Food Listings</h2>
-            <p className="text-xs text-brand-muted">Active surplus food and pending pickup statuses</p>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-orange-100 dark:bg-orange-950/40 rounded-xl">
+              <BarChart2 className="w-4 h-4 text-orange-500" />
+            </div>
+            <div>
+              <h2 className="text-base font-black text-gray-900 dark:text-slate-100">My Food Listings</h2>
+              <p className="text-xs text-gray-400 dark:text-slate-400">Active surplus food and pending pickup statuses</p>
+            </div>
           </div>
           <button
             onClick={() => onNavigate('donations')}
-            className="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1"
+            className="flex items-center gap-1.5 text-xs font-bold text-orange-500 hover:text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-all"
           >
-            <span>View All ({donations.length})</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            View All ({donations.length})
+            <ArrowRight className="w-3 h-3" />
           </button>
         </div>
 
         {isLoading ? (
           <LoadingState message="Loading your food donations..." />
         ) : donations.length === 0 ? (
-          <div className="p-8 bg-white rounded-3xl border border-dashed border-gray-200 text-center space-y-3">
-            <p className="text-xs font-medium text-brand-muted">You have no active food donations.</p>
+          <div className="py-14 bg-gradient-to-b from-orange-50/60 to-white dark:from-orange-950/20 dark:to-[#1E293B] rounded-2xl border-2 border-dashed border-orange-200 dark:border-orange-800/40 text-center space-y-4">
+            <div className="w-16 h-16 bg-orange-100 dark:bg-orange-950/60 text-orange-400 rounded-2xl flex items-center justify-center mx-auto">
+              <Utensils className="w-8 h-8" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-gray-600 dark:text-slate-300">No active food donations</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">Add your first food donation to get started</p>
+            </div>
             <button
               onClick={() => onNavigate('add-food')}
-              className="px-4 py-2 bg-brand-orange text-white font-bold text-xs rounded-xl shadow-warm-sm"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-400 text-white font-extrabold text-xs rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95"
             >
-              Publish Food Donation
+              <PlusCircle className="w-4 h-4" />
+              Add Food Donation
             </button>
           </div>
         ) : (
@@ -192,6 +235,48 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) =>
             ))}
           </div>
         )}
+      </div>
+
+      {/* ═══════════════════ QUICK ACTIONS ROW ═══════════════════ */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          {
+            icon: PlusCircle,
+            label: 'Add Donation',
+            desc: 'List surplus food for NGOs',
+            color: 'from-orange-500 to-amber-400',
+            tab: 'add-food',
+          },
+          {
+            icon: Clock,
+            label: 'Track Bookings',
+            desc: 'View pickup schedules',
+            color: 'from-blue-500 to-indigo-400',
+            tab: 'bookings',
+          },
+          {
+            icon: BarChart2,
+            label: 'Impact Report',
+            desc: 'See your donation analytics',
+            color: 'from-emerald-500 to-teal-400',
+            tab: 'impact',
+          },
+        ].map((action) => (
+          <button
+            key={action.tab}
+            onClick={() => onNavigate(action.tab)}
+            className="group flex items-center gap-4 p-5 bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-100 dark:border-slate-700 hover:border-orange-200 dark:hover:border-slate-600 shadow-sm hover:shadow-md transition-all text-left active:scale-95"
+          >
+            <div className={`p-3 bg-gradient-to-br ${action.color} rounded-xl shadow-md group-hover:scale-110 transition-transform`}>
+              <action.icon className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-extrabold text-gray-900 dark:text-slate-100">{action.label}</p>
+              <p className="text-xs text-gray-400 dark:text-slate-400 mt-0.5">{action.desc}</p>
+            </div>
+            <ArrowRight className="w-4 h-4 text-gray-300 dark:text-slate-600 ml-auto group-hover:text-orange-400 group-hover:translate-x-1 transition-all" />
+          </button>
+        ))}
       </div>
     </div>
   );

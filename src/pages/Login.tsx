@@ -16,6 +16,8 @@ import {
   Check,
   ChevronDown,
   Sparkles,
+  KeyRound,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface LoginProps {
@@ -24,21 +26,29 @@ interface LoginProps {
 }
 
 export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot }) => {
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, sendGmailOtp, verifyGmailOtp } = useAuth();
   const [selectedRole, setSelectedRole] = useState<UserRole>('donor');
   const [emailOrPhone, setEmailOrPhone] = useState('donor@spicevilla.com');
   const [password, setPassword] = useState('password123');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [selectedLang, setSelectedLang] = useState('English');
   const [isLangOpen, setIsLangOpen] = useState(false);
 
+  // Gmail 6-Digit OTP Mode
+  const [isOtpMode, setIsOtpMode] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
     setErrorMessage('');
+    setSuccessMessage('');
     if (role === 'donor') {
       setEmailOrPhone('donor@spicevilla.com');
     } else {
@@ -50,6 +60,21 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage('');
+    setSuccessMessage('');
+
+    if (isOtpMode) {
+      if (!otpCode.trim()) {
+        setErrorMessage('Please enter the 6-digit verification code.');
+        setIsLoading(false);
+        return;
+      }
+      const result = await verifyGmailOtp(emailOrPhone, otpCode, selectedRole);
+      if (!result.success) {
+        setErrorMessage(result.error || 'Invalid verification code.');
+      }
+      setIsLoading(false);
+      return;
+    }
 
     const result = await login(emailOrPhone, selectedRole);
     if (!result.success) {
@@ -58,9 +83,32 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
     setIsLoading(false);
   };
 
+  const handleSendOtp = async () => {
+    if (!emailOrPhone || !emailOrPhone.includes('@')) {
+      setErrorMessage('Please enter a valid Gmail / Email address to receive the verification code.');
+      return;
+    }
+
+    setIsSendingOtp(true);
+    setErrorMessage('');
+    const res = await sendGmailOtp(emailOrPhone, selectedRole);
+    setIsSendingOtp(false);
+
+    if (res.success) {
+      setOtpSent(true);
+      setSuccessMessage(`Verification code sent! Demo code: ${res.demoCode || '482910'}`);
+      if (res.demoCode) {
+        setOtpCode(res.demoCode);
+      }
+    } else {
+      setErrorMessage(res.error || 'Failed to send OTP code.');
+    }
+  };
+
   const handleGoogleLogin = () => {
     setGoogleLoading(true);
     setErrorMessage('');
+    setSuccessMessage('');
 
     launchGoogleOAuthPopup(
       selectedRole,
@@ -68,9 +116,9 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
         await loginWithGoogle(selectedRole, googleUserData);
         setGoogleLoading(false);
       },
-      async (err) => {
-        console.warn('Google popup error, falling back:', err);
-        await loginWithGoogle(selectedRole);
+      (err) => {
+        console.warn('Google popup error:', err);
+        setErrorMessage(err.message || 'Google account selector closed. Please try again.');
         setGoogleLoading(false);
       }
     );
@@ -152,7 +200,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               <span className="text-[#EA580C]">Feed More Lives.</span>
             </h1>
             <p className="text-sm sm:text-base text-[#6B7280] font-normal max-w-md leading-relaxed">
-              ZeroPlate connects food donors with NGOs to ensure no good food goes to waste.
+              ZeroPlate connects verified food donors with local NGOs to ensure surplus meals reach communities in need.
             </p>
           </div>
 
@@ -163,7 +211,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               </div>
               <div>
                 <h4 className="text-xs font-bold text-[#1F2937]">Meals Saved Daily</h4>
-                <p className="text-[11px] text-[#6B7280]">Making a real impact</p>
+                <p className="text-[11px] text-[#6B7280]">Making an immediate social impact</p>
               </div>
             </div>
 
@@ -172,8 +220,8 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-[#1F2937]">Verified & Trusted NGOs</h4>
-                <p className="text-[11px] text-[#6B7280]">You can trust</p>
+                <h4 className="text-xs font-bold text-[#1F2937]">Google Cloud OAuth 2.0 Verified</h4>
+                <p className="text-[11px] text-[#6B7280]">Secure identity verification for donors and NGOs</p>
               </div>
             </div>
 
@@ -183,7 +231,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               </div>
               <div>
                 <h4 className="text-xs font-bold text-[#1F2937]">Stronger Communities</h4>
-                <p className="text-[11px] text-[#6B7280]">Better together</p>
+                <p className="text-[11px] text-[#6B7280]">Real-time GPS routing & dispatch</p>
               </div>
             </div>
           </div>
@@ -197,7 +245,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                 Welcome <span className="text-[#EA580C] font-black italic">Back!</span> 👋
               </h2>
               <p className="text-xs text-[#6B7280]">
-                Sign in with verified Google Cloud OAuth or enter your credentials
+                Choose your portal role and sign in with Google Cloud Account Chooser
               </p>
 
               <div className="flex items-center justify-center gap-2 pt-1 pb-1">
@@ -207,7 +255,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               </div>
             </div>
 
-            {/* Role Cards */}
+            {/* Role Cards (§2, §3) */}
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -258,19 +306,27 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               </button>
             </div>
 
+            {/* Error & Success Messages */}
             {errorMessage && (
               <div className="p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-xl border border-red-200">
                 {errorMessage}
               </div>
             )}
+            {successMessage && (
+              <div className="p-3 bg-emerald-50 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{successMessage}</span>
+              </div>
+            )}
 
-            {/* Google OAuth Button */}
+            {/* Prominent Google Cloud OAuth Button (Opens native account picker) */}
             <div>
               <button
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={googleLoading}
                 className="w-full py-3.5 px-4 bg-white hover:bg-orange-50/50 border-2 border-orange-200 hover:border-orange-400 rounded-2xl text-xs sm:text-sm font-extrabold text-gray-800 shadow-sm flex items-center justify-center gap-3 transition-all active:scale-95 group"
+                title="Select your Google account via Google Cloud OAuth 2.0 popup"
               >
                 <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                   <path
@@ -290,76 +346,113 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-                <span>{googleLoading ? 'Opening Google Sign-In...' : `Continue with Google (${selectedRole === 'donor' ? 'Food Donor' : 'NGO Manager'})`}</span>
+                <span>{googleLoading ? 'Opening Google Account Chooser...' : `Continue with Google (${selectedRole === 'donor' ? 'Food Donor' : 'NGO Manager'})`}</span>
               </button>
             </div>
 
             <div className="relative flex items-center justify-center">
               <div className="w-full border-t border-gray-200" />
               <span className="absolute bg-white px-3 text-[11px] text-gray-400 font-medium">
-                or sign in with credentials
+                or sign in with verified credentials
               </span>
             </div>
 
-            {/* Form */}
+            {/* Email / OTP / Password Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="relative">
                 <Mail className="w-4 h-4 text-gray-400 absolute left-4 top-3.5" />
                 <input
-                  type="text"
+                  type="email"
                   value={emailOrPhone}
                   onChange={(e) => setEmailOrPhone(e.target.value)}
                   required
-                  placeholder="Email or Phone Number"
+                  placeholder="name@gmail.com"
                   className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-xs font-medium text-[#1F2937] placeholder-gray-400 focus:border-[#EA580C] focus:ring-1 focus:ring-[#EA580C] focus:outline-none transition-all"
                 />
               </div>
 
-              <div className="relative">
-                <Lock className="w-4 h-4 text-gray-400 absolute left-4 top-3.5" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  placeholder="Password"
-                  className="w-full pl-11 pr-11 py-3 bg-white border border-gray-200 rounded-xl text-xs font-medium text-[#1F2937] placeholder-gray-400 focus:border-[#EA580C] focus:ring-1 focus:ring-[#EA580C] focus:outline-none transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4 text-gray-400" />}
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <label className="flex items-center gap-2 text-[#4B5563] font-medium cursor-pointer">
+              {isOtpMode ? (
+                /* 6-Digit OTP Input */
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-brand-text uppercase">
+                      6-Digit Gmail Verification Code
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleSendOtp}
+                      disabled={isSendingOtp}
+                      className="text-[11px] font-bold text-[#EA580C] hover:underline"
+                    >
+                      {isSendingOtp ? 'Sending code...' : otpSent ? 'Resend Code' : 'Send Code to Gmail'}
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 text-gray-400 absolute left-4 top-3.5" />
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value)}
+                      placeholder="Enter 6-digit code"
+                      className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-xs font-mono font-bold tracking-widest text-[#1F2937] placeholder-gray-400 focus:border-[#EA580C] focus:outline-none"
+                    />
+                  </div>
+                </div>
+              ) : (
+                /* Password Input */
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-gray-400 absolute left-4 top-3.5" />
                   <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 text-[#EA580C] rounded border-gray-300 focus:ring-[#EA580C]"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="Password"
+                    className="w-full pl-11 pr-11 py-3 bg-white border border-gray-200 rounded-xl text-xs font-medium text-[#1F2937] placeholder-gray-400 focus:border-[#EA580C] focus:ring-1 focus:ring-[#EA580C] focus:outline-none transition-all"
                   />
-                  <span>Remember me</span>
-                </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4 text-gray-400" />}
+                  </button>
+                </div>
+              )}
+
+              {/* Toggle OTP / Password verification */}
+              <div className="flex items-center justify-between text-xs">
                 <button
                   type="button"
-                  onClick={onNavigateForgot}
+                  onClick={() => {
+                    setIsOtpMode(!isOtpMode);
+                    setErrorMessage('');
+                    setSuccessMessage('');
+                  }}
                   className="font-bold text-[#EA580C] hover:underline"
                 >
-                  Forgot password?
+                  {isOtpMode ? 'Use Password Sign-In instead' : 'Sign in with Gmail Verification Code (OTP)'}
                 </button>
+                {!isOtpMode && (
+                  <button
+                    type="button"
+                    onClick={onNavigateForgot}
+                    className="font-bold text-gray-500 hover:underline"
+                  >
+                    Forgot?
+                  </button>
+                )}
               </div>
 
+              {/* Submit CTA */}
               <button
                 type="submit"
                 disabled={isLoading}
                 className="w-full py-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md shadow-orange-500/25 transition-all flex items-center justify-center gap-2 active:scale-95"
               >
                 <Lock className="w-4 h-4" />
-                <span>{isLoading ? 'Signing in...' : `Log in to ${selectedRole === 'donor' ? 'Food Donor' : 'NGO'} Portal`}</span>
+                <span>{isLoading ? 'Verifying...' : `Enter ${selectedRole === 'donor' ? 'Food Donor' : 'NGO'} Portal`}</span>
               </button>
             </form>
           </div>

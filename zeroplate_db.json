@@ -50,11 +50,12 @@
       "name": "Hope Foundation",
       "email": "ngo@hope.org",
       "role": "ngo",
-      "subscriptionPlan": "premium",
+      "subscriptionPlan": "free",
       "location": "Bandra East, Mumbai",
       "latitude": 19.062,
       "longitude": 72.854,
-      "createdAt": "2026-08-28T18:24:24.625Z"
+      "createdAt": "2026-08-28T18:24:24.625Z",
+      "emailVerified": true
     },
     {
       "id": "ngo_helpinghands",
@@ -102,33 +103,20 @@
       "createdAt": "2026-08-28T19:07:13.808Z"
     },
     {
-      "name": "Prashant singh Rawat",
-      "email": "rawatnaksh67@gmail.com",
-      "role": "donor",
-      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocJpztkV8xMiBV37trfZUgRe34Ol5qaW9RmSGxztqhbs5oiDyn4=s96-c",
-      "subscriptionPlan": "free",
-      "latitude": 19.076,
-      "longitude": 72.8777,
-      "emailVerified": true,
-      "onboarded": false,
-      "id": "user_1787949240946_479",
-      "createdAt": "2026-08-28T20:34:00.946Z"
-    },
-    {
       "name": "TONY STARK",
       "email": "tonystark06032007@gmail.com",
-      "role": "ngo",
+      "role": "donor",
       "avatar": "https://lh3.googleusercontent.com/a/ACg8ocLHvAgO1K-YAIVzz0mIeoM5wkJQBheGhtbiDNA7myKXjTBQhQ=s96-c",
-      "subscriptionPlan": "premium",
-      "latitude": 31.25450417220089,
-      "longitude": 75.70560717210654,
+      "subscriptionPlan": "free",
+      "latitude": 31.254552306303577,
+      "longitude": 75.70562946955306,
       "emailVerified": true,
       "onboarded": true,
-      "id": "user_1787950082389_290",
-      "createdAt": "2026-08-28T20:48:02.389Z",
+      "id": "user_1787954502070_257",
+      "createdAt": "2026-08-28T22:01:42.070Z",
       "donorType": "Household",
       "phone": "+919119341195",
-      "location": "GPS Location (31.2545, 75.7056) - Bandra, Mumbai"
+      "location": "NH44, Phagwara, Punjab, 144411"
     }
   ],
   "ngos": [
@@ -136,7 +124,7 @@
       "id": "ngo_entity_hope",
       "userId": "ngo_hope",
       "organizationName": "Hope Foundation",
-      "capacity": 120,
+      "capacity": 150,
       "latitude": 19.062,
       "longitude": 72.854,
       "availability": true,
@@ -194,6 +182,61 @@
       "donorId": "donor_spicevilla",
       "donorName": "SpiceVilla Restaurant",
       "donorType": "Restaurant",
+      "foodName": "chapati",
+      "foodCategory": "Main Course",
+      "category": "Main Course",
+      "foodSpecifications": [
+        "Rice + Dal"
+      ],
+      "foodType": "veg",
+      "mealCount": 50,
+      "quantity": "5",
+      "description": "Fresh surplus food ready for NGO rescue.",
+      "imageUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "pickupLocation": "Bandra West, Mumbai",
+      "pickupAddress": "Bandra West, Mumbai",
+      "availableFrom": "2026-08-29T00:14:16.712Z",
+      "pickupDeadline": "2026-08-29T00:43:00.000Z",
+      "packagingAvailable": true,
+      "id": "don_1787962456716_912",
+      "status": "AVAILABLE",
+      "pendingRequestsCount": 0,
+      "createdAt": "2026-08-29T00:14:16.716Z"
+    },
+    {
+      "donorId": "user_1787954502070_257",
+      "donorName": "TONY STARK",
+      "donorType": "Household",
+      "foodName": "veg biryani",
+      "foodCategory": "Roti / Chapati",
+      "category": "Roti / Chapati",
+      "foodSpecifications": [
+        "Rice + Dal",
+        "Roti / Chapati"
+      ],
+      "foodType": "veg",
+      "mealCount": 40,
+      "quantity": "28/42",
+      "description": "Fresh surplus food ready for NGO rescue.",
+      "imageUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
+      "latitude": 31.254552306303577,
+      "longitude": 75.70562946955306,
+      "pickupLocation": "NH44, Phagwara, Punjab, 144411",
+      "pickupAddress": "NH44, Phagwara, Punjab, 144411",
+      "availableFrom": "2026-08-28T22:07:54.009Z",
+      "pickupDeadline": "2026-08-30T20:37:00.000Z",
+      "packagingAvailable": true,
+      "id": "don_1787954874016_302",
+      "status": "AVAILABLE",
+      "pendingRequestsCount": 0,
+      "createdAt": "2026-08-28T22:07:54.016Z"
+    },
+    {
+      "donorId": "donor_spicevilla",
+      "donorName": "SpiceVilla Restaurant",
+      "donorType": "Restaurant",
       "foodName": "Veg Biryani",
       "foodType": "veg",
       "category": "Main Course",
@@ -211,7 +254,7 @@
       "packagingAvailable": true,
       "additionalNotes": "Contact front desk on arrival for quick handoff.",
       "id": "don_1787943666862_670",
-      "status": "CONFIRMED",
+      "status": "COMPLETED",
       "pendingRequestsCount": 0,
       "createdAt": "2026-08-28T19:01:06.862Z"
     },
@@ -303,11 +346,11 @@
       "pickupLocation": "SpiceVilla Restaurant, Hill Road, Bandra West",
       "availableFrom": "2026-08-28T17:54:24.625Z",
       "pickupDeadline": "2026-08-28T22:24:24.625Z",
-      "status": "PENDING_REQUEST",
+      "status": "COMPLETED",
       "prepTime": "Freshly prepared 1 hour ago",
       "packagingAvailable": true,
       "createdAt": "2026-08-28T18:24:24.625Z",
-      "pendingRequestsCount": 1
+      "pendingRequestsCount": 0
     },
     {
       "id": "don_dalrice",
@@ -375,6 +418,22 @@
   ],
   "bookings": [
     {
+      "id": "book_1787946214645_480",
+      "donationId": "don_biryani",
+      "requestId": "req_1787944522502_41",
+      "ngoId": "ngo_hope",
+      "ngoName": "Hope Foundation",
+      "donorId": "donor_spicevilla",
+      "donorName": "SpiceVilla Restaurant",
+      "foodName": "Veg Hyderabadi Biryani",
+      "mealCount": 80,
+      "pickupLocation": "SpiceVilla Restaurant, Hill Road, Bandra West",
+      "status": "COMPLETED",
+      "pickupTime": "2026-08-28T22:24:24.625Z",
+      "createdAt": "2026-08-28T19:43:34.645Z",
+      "completedAt": "2026-08-28T20:12:51.132Z"
+    },
+    {
       "id": "book_1787944259004_462",
       "donationId": "don_1787943666862_670",
       "requestId": "req_1787944116799_226",
@@ -385,9 +444,10 @@
       "foodName": "Veg Biryani",
       "mealCount": 80,
       "pickupLocation": "SpiceVilla Restaurant, Hill Road, Bandra West, Mumbai",
-      "status": "CONFIRMED",
+      "status": "COMPLETED",
       "pickupTime": "2026-08-28T23:00:00.000Z",
-      "createdAt": "2026-08-28T19:10:59.001Z"
+      "createdAt": "2026-08-28T19:10:59.001Z",
+      "completedAt": "2026-08-28T20:13:00.942Z"
     },
     {
       "id": "book_1787942455777_39",
@@ -447,6 +507,15 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif_1787946214645_win",
+      "userId": "ngo_hope",
+      "type": "success",
+      "title": "Food Request Accepted! 🎉",
+      "message": "SpiceVilla Restaurant accepted your request for Veg Hyderabadi Biryani (80 meals). Pickup confirmed!",
+      "read": false,
+      "createdAt": "2026-08-28T19:43:34.645Z"
+    },
     {
       "id": "notif_1787944522502",
       "userId": "donor_spicevilla",
@@ -536,9 +605,10 @@
       "urgencyScore": 88,
       "distanceKm": 2.9,
       "explanation": "Recommended because Hope Foundation is 2.9 km away, currently pickup needed within 3 hours, and has full capacity for all 80 meals. Includes Priority NGO boost.",
-      "status": "PENDING",
+      "status": "ACCEPTED",
       "notes": "",
-      "requestedAt": "2026-08-28T19:15:22.502Z"
+      "requestedAt": "2026-08-28T19:15:22.502Z",
+      "respondedAt": "2026-08-28T19:43:34.645Z"
     },
     {
       "id": "req_1787944116799_226",
@@ -561,24 +631,28 @@
       "respondedAt": "2026-08-28T19:10:59.001Z"
     }
   ],
-  "requirements": [
+  "deliveryPersons": [
     {
-      "id": "req_hope_default",
-      "ngoId": "ngo_hope",
-      "requiredMeals": 80,
-      "foodSpecifications": [
-        "Rice",
-        "Dal",
-        "Rice + Dal",
-        "Biryani"
-      ],
-      "foodType": "veg",
-      "urgency": "high",
-      "requiredBy": "2026-08-29T02:31:02.075Z",
-      "maximumRadius": 15,
-      "specificRequirement": "Nutritious lunch meal for 80 children at Bandra East shelter",
-      "status": "ACTIVE",
-      "createdAt": "2026-08-28T20:31:02.075Z"
+      "id": "del_rahul",
+      "donorId": "donor_spicevilla",
+      "name": "Rahul Sharma",
+      "phone": "+91 98765 43210",
+      "role": "Volunteer",
+      "vehicleType": "Bike",
+      "vehicleNumber": "MH-02-BQ-4512",
+      "availability": "Available",
+      "createdAt": "2026-08-28T21:51:04.357Z"
+    },
+    {
+      "id": "del_amit",
+      "donorId": "donor_spicevilla",
+      "name": "Amit Verma",
+      "phone": "+91 98765 11223",
+      "role": "Driver",
+      "vehicleType": "Van",
+      "vehicleNumber": "MH-02-CV-8890",
+      "availability": "Available",
+      "createdAt": "2026-08-28T21:51:04.357Z"
     }
   ],
   "donors": [
@@ -594,46 +668,42 @@
       "latitude": 19.076,
       "longitude": 72.8777,
       "isHousehold": false,
-      "createdAt": "2026-08-28T20:31:02.075Z"
+      "createdAt": "2026-08-28T22:04:23.103Z"
     },
     {
-      "id": "donor_entity_user_1787950082389_290",
-      "userId": "user_1787950082389_290",
+      "id": "donor_entity_user_1787954502070_257",
+      "userId": "user_1787954502070_257",
       "donorType": "Household",
       "organizationName": "TONY STARK",
       "contactPerson": "Devesh Tiwari",
       "phone": "+919119341195",
       "email": "tonystark06032007@gmail.com",
-      "address": "GPS Location (31.2545, 75.7056) - Bandra, Mumbai",
-      "latitude": 31.25450417220089,
-      "longitude": 75.70560717210654,
+      "address": "NH44, Phagwara, Punjab, 144411",
+      "latitude": 31.254552306303577,
+      "longitude": 75.70562946955306,
       "isHousehold": false,
-      "createdAt": "2026-08-28T20:50:13.141Z"
+      "createdAt": "2026-08-28T22:05:31.387Z"
     }
   ],
-  "locationUpdates": [],
-  "deliveryPersons": [
+  "requirements": [
     {
-      "id": "del_rahul",
-      "donorId": "donor_spicevilla",
-      "name": "Rahul Sharma",
-      "phone": "+91 98765 43210",
-      "role": "Volunteer",
-      "vehicleType": "Bike",
-      "vehicleNumber": "MH-02-BQ-4512",
-      "availability": "Available",
-      "createdAt": "2026-08-28T21:25:19.086Z"
-    },
-    {
-      "id": "del_amit",
-      "donorId": "donor_spicevilla",
-      "name": "Amit Verma",
-      "phone": "+91 98765 11223",
-      "role": "Driver",
-      "vehicleType": "Van",
-      "vehicleNumber": "MH-02-CV-8890",
-      "availability": "Available",
-      "createdAt": "2026-08-28T21:25:19.086Z"
+      "id": "req_1787961954233_662",
+      "ngoId": "ngo_hope",
+      "requiredMeals": 150,
+      "foodSpecifications": [
+        "Rice",
+        "Dal",
+        "Rice + Dal",
+        "Biryani"
+      ],
+      "foodType": "either",
+      "urgency": "high",
+      "requiredBy": "2026-08-29T06:38:12.840Z",
+      "maximumRadius": 15,
+      "specificRequirement": "Est. weight: 100 kg",
+      "status": "ACTIVE",
+      "createdAt": "2026-08-29T00:05:54.233Z"
     }
-  ]
+  ],
+  "locationUpdates": []
 }

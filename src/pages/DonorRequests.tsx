@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { FoodRequest } from '../types';
 import { MatchScore } from '../components/MatchScore';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
-import { Inbox, CheckCircle2, XCircle, MapPin, Building, Utensils, Clock, Sparkles } from 'lucide-react';
+import { Inbox, CheckCircle2, XCircle, MapPin, Building } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface DonorRequestsProps {
@@ -13,10 +14,10 @@ interface DonorRequestsProps {
 }
 
 export const DonorRequests: React.FC<DonorRequestsProps> = ({
-  onNavigateBookings,
   onShowToast,
 }) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [requests, setRequests] = useState<FoodRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -96,13 +97,13 @@ export const DonorRequests: React.FC<DonorRequestsProps> = ({
   const pastRequests = requests.filter((r) => r.status !== 'PENDING');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       <div>
-        <h1 className="text-2xl font-black text-brand-text flex items-center gap-2">
-          <span>Incoming NGO Food Requests</span>
+        <h1 className="text-2xl font-black text-brand-text dark:text-slate-100 flex items-center gap-2">
+          <span>{t('ngoRequests')}</span>
           <Inbox className="w-6 h-6 text-brand-orange" />
         </h1>
-        <p className="text-xs font-medium text-brand-muted mt-1">
+        <p className="text-xs font-medium text-brand-muted dark:text-slate-400 mt-1">
           Review requests from local NGOs seeking your surplus food. Accept an NGO to confirm pickup and lock the booking.
         </p>
       </div>
@@ -123,7 +124,7 @@ export const DonorRequests: React.FC<DonorRequestsProps> = ({
             </h2>
 
             {pendingRequests.length === 0 ? (
-              <div className="p-6 bg-white rounded-2xl border border-dashed border-gray-200 text-center text-xs font-medium text-brand-muted">
+              <div className="p-6 bg-white dark:bg-[#1E293B] rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 text-center text-xs font-medium text-brand-muted dark:text-slate-400">
                 All incoming requests have been reviewed and resolved!
               </div>
             ) : (
@@ -131,15 +132,15 @@ export const DonorRequests: React.FC<DonorRequestsProps> = ({
                 {pendingRequests.map((req) => (
                   <div
                     key={req.id}
-                    className="bg-white rounded-3xl border-2 border-brand-orange/40 p-6 shadow-warm-md hover:shadow-warm-lg transition-all space-y-4"
+                    className="bg-white dark:bg-[#1E293B] rounded-3xl border-2 border-brand-orange/40 dark:border-orange-500/30 p-6 shadow-warm-md hover:shadow-warm-lg transition-all space-y-4"
                   >
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="space-y-1.5 flex-1">
                         <div className="flex flex-wrap items-center gap-3">
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-brand-light text-brand-deep">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-brand-light dark:bg-orange-950/50 text-brand-deep dark:text-orange-400">
                             {req.requestedMeals} Meals Requested
                           </span>
-                          <h3 className="font-extrabold text-lg text-brand-text">
+                          <h3 className="font-extrabold text-lg text-brand-text dark:text-slate-100">
                             {req.foodName}
                           </h3>
                           <MatchScore
@@ -154,26 +155,26 @@ export const DonorRequests: React.FC<DonorRequestsProps> = ({
                           />
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-4 text-xs text-brand-muted font-medium pt-1">
-                          <div className="flex items-center gap-1.5 bg-brand-cream/80 px-3 py-1 rounded-xl border border-orange-100">
+                        <div className="flex flex-wrap items-center gap-4 text-xs text-brand-muted dark:text-slate-400 font-medium pt-1">
+                          <div className="flex items-center gap-1.5 bg-brand-cream/80 dark:bg-slate-800/80 px-3 py-1 rounded-xl border border-orange-100 dark:border-slate-700">
                             <Building className="w-4 h-4 text-brand-orange" />
-                            <span>NGO: <strong className="text-brand-text font-bold">{req.ngoName}</strong></span>
+                            <span>NGO: <strong className="text-brand-text dark:text-slate-200 font-bold">{req.ngoName}</strong></span>
                           </div>
-                          <div className="flex items-center gap-1.5 bg-brand-cream/80 px-3 py-1 rounded-xl border border-orange-100">
+                          <div className="flex items-center gap-1.5 bg-brand-cream/80 dark:bg-slate-800/80 px-3 py-1 rounded-xl border border-orange-100 dark:border-slate-700">
                             <MapPin className="w-4 h-4 text-brand-orange" />
                             <span>{req.distanceKm} km away</span>
                           </div>
                         </div>
 
                         {req.explanation && (
-                          <p className="text-xs bg-amber-50 text-amber-900 p-3 rounded-2xl border border-amber-200 mt-2 font-medium">
-                            <strong className="text-brand-deep">Smart Match Analysis: </strong>
+                          <p className="text-xs bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 p-3 rounded-2xl border border-amber-200 dark:border-amber-800/60 mt-2 font-medium">
+                            <strong className="text-brand-deep dark:text-orange-400">Smart Match Analysis: </strong>
                             "{req.explanation}"
                           </p>
                         )}
                       </div>
 
-                      {/* Accept / Reject CTAs (§1, §2) */}
+                      {/* Accept / Reject CTAs */}
                       <div className="flex items-center gap-2.5 shrink-0 pt-2 md:pt-0">
                         <button
                           onClick={() => handleAccept(req)}
@@ -186,9 +187,9 @@ export const DonorRequests: React.FC<DonorRequestsProps> = ({
                         <button
                           onClick={() => handleReject(req)}
                           disabled={processingId === req.id}
-                          className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl border transition-all flex items-center gap-1.5"
+                          className="px-4 py-3 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 font-bold text-xs rounded-xl border dark:border-slate-700 transition-all flex items-center gap-1.5"
                         >
-                          <XCircle className="w-4 h-4 text-gray-500" />
+                          <XCircle className="w-4 h-4 text-gray-500 dark:text-slate-400" />
                           <span>Reject</span>
                         </button>
                       </div>
@@ -202,25 +203,25 @@ export const DonorRequests: React.FC<DonorRequestsProps> = ({
           {/* Past Resolved Requests Section */}
           {pastRequests.length > 0 && (
             <div className="space-y-3 pt-4">
-              <h2 className="text-xs font-black uppercase text-brand-muted tracking-wider">
+              <h2 className="text-xs font-black uppercase text-brand-muted dark:text-slate-400 tracking-wider">
                 Resolved Requests History ({pastRequests.length})
               </h2>
-              <div className="divide-y divide-gray-100 bg-white rounded-2xl border border-gray-200 overflow-hidden">
+              <div className="divide-y divide-gray-100 dark:divide-slate-800 bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden">
                 {pastRequests.map((req) => (
                   <div key={req.id} className="p-4 flex items-center justify-between text-xs">
                     <div>
-                      <p className="font-bold text-brand-text">
+                      <p className="font-bold text-brand-text dark:text-slate-100">
                         {req.foodName} ({req.requestedMeals} meals) — Requested by {req.ngoName}
                       </p>
-                      <p className="text-[11px] text-brand-muted mt-0.5">
+                      <p className="text-[11px] text-brand-muted dark:text-slate-400 mt-0.5">
                         Match: {req.matchScore}% • Distance: {req.distanceKm} km
                       </p>
                     </div>
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-black uppercase ${
                         req.status === 'ACCEPTED'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                          : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
                       }`}
                     >
                       {req.status}

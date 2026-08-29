@@ -50,7 +50,7 @@ export const FindFood: React.FC<FindFoodProps> = ({
   const fetchFood = async () => {
     setIsLoading(true);
     try {
-      let query = `/api/donations?ngoId=${user?.id || 'ngo_hope'}&status=AVAILABLE&sortBy=${sortBy}`;
+      let query = `/api/donations?ngoId=${user?.id || 'ngo_hope'}&sortBy=${sortBy}`;
       if (foodType !== 'all') query += `&foodType=${foodType}`;
       if (minMeals > 0) query += `&minMeals=${minMeals}`;
       if (radiusKm > 0) query += `&radiusKm=${radiusKm}`;
@@ -94,10 +94,9 @@ export const FindFood: React.FC<FindFoodProps> = ({
       const data = await res.json();
 
       if (res.ok) {
-        onShowToast('success', `Request sent to ${requestModalItem.donorName}! Status is now REQUESTED/RESERVED.`);
+        onShowToast('success', `Request sent to ${requestModalItem.donorName}! Awaiting donor approval.`);
         setRequestModalItem(null);
         setDetailModalItem(null);
-        fetchFood();
         onNavigateRequests();
       } else {
         onShowToast('error', data.error || 'Failed to submit request.');
@@ -129,42 +128,30 @@ export const FindFood: React.FC<FindFoodProps> = ({
           </p>
         </div>
 
-        {/* Refresh & Map/List View Toggle */}
-        <div className="flex items-center gap-3 self-start sm:self-auto">
+        {/* Map / List View Toggle (§3) */}
+        <div className="bg-brand-cream border border-orange-200 rounded-2xl p-1 flex items-center shadow-warm-sm self-start sm:self-auto">
           <button
-            onClick={() => fetchFood()}
-            disabled={isLoading}
-            className="px-3.5 py-2 bg-white hover:bg-orange-50 text-brand-orange border border-orange-200 rounded-2xl text-xs font-black transition-all flex items-center gap-1.5 shadow-warm-sm active:scale-95 disabled:opacity-50"
-            title="Refresh Food Listings"
+            onClick={() => setViewMode('list')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+              viewMode === 'list'
+                ? 'bg-brand-orange text-white shadow-sm'
+                : 'text-brand-muted hover:text-brand-text'
+            }`}
           >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
+            <List className="w-4 h-4" />
+            <span>List View</span>
           </button>
-
-          <div className="bg-brand-cream border border-orange-200 rounded-2xl p-1 flex items-center shadow-warm-sm">
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
-                viewMode === 'list'
-                  ? 'bg-brand-orange text-white shadow-sm'
-                  : 'text-brand-muted hover:text-brand-text'
-              }`}
-            >
-              <List className="w-4 h-4" />
-              <span>List View</span>
-            </button>
-            <button
-              onClick={() => setViewMode('map')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
-                viewMode === 'map'
-                  ? 'bg-brand-orange text-white shadow-sm'
-                  : 'text-brand-muted hover:text-brand-text'
-              }`}
-            >
-              <MapPin className="w-4 h-4" />
-              <span>Map View</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setViewMode('map')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+              viewMode === 'map'
+                ? 'bg-brand-orange text-white shadow-sm'
+                : 'text-brand-muted hover:text-brand-text'
+            }`}
+          >
+            <MapPin className="w-4 h-4" />
+            <span>Map View</span>
+          </button>
         </div>
       </div>
 
@@ -233,24 +220,23 @@ export const FindFood: React.FC<FindFoodProps> = ({
         <LoadingState message="Matching surplus food listings against your NGO location..." />
       ) : filteredListings.length === 0 ? (
         <EmptyState
-          title="Fresh food is waiting to be shared."
-          description="Once a restaurant or food donor lists surplus food, compatible donations will appear here."
-          actionLabel="Refresh Listings"
-          onAction={() => fetchFood()}
+          title="No Surplus Food Found"
+          description="No available surplus food matched your filter criteria. Try expanding your search radius or changing dietary filters."
+          actionLabel="Reset Filters"
+          onAction={() => {
+            setSearchTerm('');
+            setFoodType('all');
+            setRadiusKm(50);
+            setMinMeals(0);
+            setUrgencyFilter('all');
+          }}
         />
       ) : viewMode === 'map' ? (
         /* Map View (§3) */
         <MapView
           donations={filteredListings}
-          ngoLocation={{
-            name: user?.name || 'Hope Foundation',
-            latitude: user?.latitude || 19.062,
-            longitude: user?.longitude || 72.854,
-          }}
-          radiusKm={radiusKm}
           onSelectDonation={(d) => setDetailModalItem(d)}
           onRequestDonation={(d) => openRequestModal(d)}
-          onRefresh={() => fetchFood()}
         />
       ) : (
         /* List View (§3) */
