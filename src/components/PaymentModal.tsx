@@ -42,9 +42,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   // UPI fields
   const [upiId, setUpiId] = useState('');
   const [qrConfirmed, setQrConfirmed] = useState(false);
-  const [upiUtr, setUpiUtr] = useState('');
 
-  // Card fields (start empty so validation is enforced)
+  // Card fields
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvv, setCardCvv] = useState('');
@@ -97,7 +96,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     clearError('netBankingUserId');
   };
 
-  // Format Card Number (adds space every 4 digits)
+  // Format Card Number
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
     const formatted = raw.replace(/(\d{4})/g, '$1 ').trim();
@@ -148,7 +147,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           errs.qrConfirmed = 'Please confirm that you have scanned the QR and authorized payment on your UPI app.';
         }
       } else {
-        // App or manual UPI ID
         if (!upiId.trim()) {
           errs.upiId = `Please enter your ${
             selectedUpiApp === 'gpay'
@@ -183,20 +181,17 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const handlePayNow = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // STRICT VALIDATION: Do not proceed without details
     if (!validateForm()) {
       return;
     }
 
     setPaymentState('processing');
 
-    // Simulate realistic bank / gateway roundtrip
     setTimeout(() => {
       const generatedTxn = `TXN_ZP_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
       setTxnId(generatedTxn);
       setPaymentState('success');
 
-      // Trigger celebration confetti
       confetti({
         particleCount: 110,
         spread: 80,
@@ -223,15 +218,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
       <div
-        className="bg-white rounded-3xl border border-amber-900/10 shadow-2xl w-full max-w-xl overflow-hidden relative"
+        className="bg-white dark:bg-[#1E293B] rounded-3xl border border-gray-200 dark:border-slate-700 shadow-2xl w-full max-w-xl overflow-hidden relative transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-stone-900 via-amber-950 to-orange-950 text-white p-5 px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-brand-orange text-white rounded-xl shadow-warm-sm">
+            <div className="p-2 bg-orange-500 text-white rounded-xl shadow-md">
               <Sparkles className="w-5 h-5 fill-white" />
             </div>
             <div>
@@ -251,7 +246,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           {paymentState !== 'processing' && (
             <button
               onClick={handleModalClose}
-              className="p-2 text-stone-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
+              className="p-2 text-stone-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -262,18 +257,18 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         {paymentState === 'processing' && (
           <div className="p-10 text-center space-y-5">
             <div className="relative w-20 h-20 mx-auto">
-              <div className="absolute inset-0 rounded-full border-4 border-orange-200 animate-ping opacity-30" />
-              <div className="w-20 h-20 rounded-full border-4 border-brand-orange border-t-transparent animate-spin flex items-center justify-center">
-                <Lock className="w-8 h-8 text-brand-orange animate-pulse" />
+              <div className="absolute inset-0 rounded-full border-4 border-orange-200 dark:border-orange-900/40 animate-ping opacity-30" />
+              <div className="w-20 h-20 rounded-full border-4 border-orange-500 border-t-transparent animate-spin flex items-center justify-center">
+                <Lock className="w-8 h-8 text-orange-500 animate-pulse" />
               </div>
             </div>
             <div className="space-y-1">
-              <h4 className="text-lg font-black text-brand-text">Authorizing ₹{amount}.00 Payment</h4>
-              <p className="text-xs text-brand-muted font-medium">
+              <h4 className="text-lg font-black text-gray-900 dark:text-white">Authorizing ₹{amount}.00 Payment</h4>
+              <p className="text-xs text-gray-500 dark:text-slate-300 font-medium">
                 Validating payment details with bank / UPI gateway. Please do not refresh or close this window...
               </p>
             </div>
-            <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
+            <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-3 py-1.5 rounded-full border border-amber-200 dark:border-amber-800">
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               <span>Verifying authorization token...</span>
             </div>
@@ -283,48 +278,48 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         {/* SUCCESS STATE */}
         {paymentState === 'success' && (
           <div className="p-8 sm:p-10 text-center space-y-6">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center shadow-warm-sm animate-bounce-subtle">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center shadow-md animate-bounce">
               <CheckCircle2 className="w-10 h-10" />
             </div>
 
             <div className="space-y-1">
-              <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-black rounded-full border border-emerald-300 uppercase tracking-wide">
+              <span className="px-3 py-1 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-xs font-black rounded-full border border-emerald-300 dark:border-emerald-700 uppercase tracking-wide">
                 Payment Confirmed
               </span>
-              <h3 className="text-2xl font-black text-brand-text mt-2">
+              <h3 className="text-2xl font-black text-gray-900 dark:text-white mt-2">
                 Priority Rescue Activated! 🎉
               </h3>
-              <p className="text-xs text-brand-muted max-w-sm mx-auto">
+              <p className="text-xs text-gray-600 dark:text-slate-300 max-w-sm mx-auto">
                 Thank you! Your NGO now receives the +6 Match Priority Boost, extended 50km radius, and instant food rescue notifications.
               </p>
             </div>
 
             {/* Receipt Box */}
-            <div className="bg-brand-cream/60 rounded-2xl border border-orange-200/80 p-4 text-left text-xs space-y-2 max-w-md mx-auto">
-              <div className="flex items-center justify-between pb-2 border-b border-orange-100">
-                <span className="text-brand-muted font-semibold">Plan</span>
-                <span className="font-extrabold text-brand-text">{planName}</span>
+            <div className="bg-gray-50 dark:bg-slate-900/80 rounded-2xl border border-gray-200 dark:border-slate-700 p-4 text-left text-xs space-y-2 max-w-md mx-auto">
+              <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-slate-700">
+                <span className="text-gray-500 dark:text-slate-400 font-semibold">Plan</span>
+                <span className="font-extrabold text-gray-900 dark:text-white">{planName}</span>
               </div>
-              <div className="flex items-center justify-between pb-2 border-b border-orange-100">
-                <span className="text-brand-muted font-semibold">Amount Paid</span>
-                <span className="font-extrabold text-brand-deep text-sm">₹{amount}.00</span>
+              <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-slate-700">
+                <span className="text-gray-500 dark:text-slate-400 font-semibold">Amount Paid</span>
+                <span className="font-extrabold text-orange-600 dark:text-orange-400 text-sm">₹{amount}.00</span>
               </div>
-              <div className="flex items-center justify-between pb-2 border-b border-orange-100">
-                <span className="text-brand-muted font-semibold">Status</span>
-                <span className="font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-slate-700">
+                <span className="text-gray-500 dark:text-slate-400 font-semibold">Status</span>
+                <span className="font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
                   Active (30 Days)
                 </span>
               </div>
               <div className="flex items-center justify-between pt-1">
-                <span className="text-brand-muted font-semibold">Transaction ID</span>
-                <div className="flex items-center gap-1.5 font-mono font-bold text-brand-text">
+                <span className="text-gray-500 dark:text-slate-400 font-semibold">Transaction ID</span>
+                <div className="flex items-center gap-1.5 font-mono font-bold text-gray-900 dark:text-white">
                   <span className="truncate max-w-[170px]">{txnId}</span>
                   <button
                     onClick={handleCopyTxn}
-                    className="p-1 hover:bg-orange-100 rounded text-brand-orange"
+                    className="p-1 hover:bg-orange-100 dark:hover:bg-slate-700 rounded text-orange-500 cursor-pointer"
                     title="Copy Transaction ID"
                   >
-                    {copiedTxn ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedTxn ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>
@@ -332,7 +327,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
             <button
               onClick={handleModalClose}
-              className="w-full py-3.5 bg-brand-orange hover:bg-brand-deep text-white font-black text-sm rounded-xl shadow-warm-md hover:shadow-warm-lg transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+              className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
               <span>Back to Rescue Portal</span>
               <ArrowRight className="w-4 h-4" />
@@ -344,14 +339,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         {paymentState === 'checkout' && (
           <form onSubmit={handlePayNow}>
             {/* Amount Banner */}
-            <div className="bg-amber-50/80 px-6 py-4 border-b border-amber-900/5 flex items-center justify-between">
+            <div className="bg-amber-50/80 dark:bg-slate-900/90 px-6 py-4 border-b border-amber-900/5 dark:border-slate-700 flex items-center justify-between">
               <div>
-                <h4 className="font-black text-brand-text text-sm">{planName}</h4>
-                <p className="text-[11px] text-brand-muted font-medium">30-day Priority Matching & Unlimited Listings</p>
+                <h4 className="font-black text-gray-900 dark:text-white text-sm">{planName}</h4>
+                <p className="text-[11px] text-gray-500 dark:text-slate-400 font-medium">30-day Priority Matching & Unlimited Listings</p>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-black text-brand-deep">₹{amount}.00</div>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                <div className="text-2xl font-black text-orange-600 dark:text-orange-400">₹{amount}.00</div>
+                <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
                   All taxes included
                 </span>
               </div>
@@ -359,15 +354,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
             {/* Validation Banner if errors exist */}
             {formErrorBanner && (
-              <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-bold flex items-center gap-2 animate-status-pop">
-                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+              <div className="mx-6 mt-4 p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-xs font-bold flex items-center gap-2 animate-fadeIn">
+                <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
                 <span>{formErrorBanner}</span>
               </div>
             )}
 
             {/* Method Tabs */}
             <div className="p-6 space-y-5">
-              <div className="grid grid-cols-3 gap-2 p-1 bg-gray-100 rounded-2xl">
+              <div className="grid grid-cols-3 gap-2 p-1 bg-gray-100 dark:bg-slate-900 rounded-2xl">
                 <button
                   type="button"
                   onClick={() => {
@@ -377,11 +372,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   }}
                   className={`py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     method === 'upi'
-                      ? 'bg-white text-brand-deep shadow-sm border border-orange-200'
-                      : 'text-gray-600 hover:text-brand-text'
+                      ? 'bg-white dark:bg-slate-800 text-orange-600 dark:text-orange-400 shadow-sm border border-orange-200 dark:border-slate-700'
+                      : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
-                  <Smartphone className="w-4 h-4 text-brand-orange" />
+                  <Smartphone className="w-4 h-4 text-orange-500" />
                   <span>UPI / QR</span>
                 </button>
                 <button
@@ -393,11 +388,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   }}
                   className={`py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     method === 'card'
-                      ? 'bg-white text-brand-deep shadow-sm border border-orange-200'
-                      : 'text-gray-600 hover:text-brand-text'
+                      ? 'bg-white dark:bg-slate-800 text-orange-600 dark:text-orange-400 shadow-sm border border-orange-200 dark:border-slate-700'
+                      : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
-                  <CreditCard className="w-4 h-4 text-brand-orange" />
+                  <CreditCard className="w-4 h-4 text-orange-500" />
                   <span>Cards</span>
                 </button>
                 <button
@@ -409,11 +404,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   }}
                   className={`py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     method === 'netbanking'
-                      ? 'bg-white text-brand-deep shadow-sm border border-orange-200'
-                      : 'text-gray-600 hover:text-brand-text'
+                      ? 'bg-white dark:bg-slate-800 text-orange-600 dark:text-orange-400 shadow-sm border border-orange-200 dark:border-slate-700'
+                      : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
-                  <Building2 className="w-4 h-4 text-brand-orange" />
+                  <Building2 className="w-4 h-4 text-orange-500" />
                   <span>Net Banking</span>
                 </button>
               </div>
@@ -430,8 +425,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                       }}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
                         selectedUpiApp === 'qr'
-                          ? 'border-brand-orange bg-brand-light text-brand-deep font-extrabold shadow-sm'
-                          : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                          ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-300 font-extrabold shadow-sm'
+                          : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-800/60'
                       }`}
                     >
                       <QrCode className="w-3.5 h-3.5" />
@@ -445,8 +440,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                       }}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         selectedUpiApp === 'gpay'
-                          ? 'border-brand-orange bg-brand-light text-brand-deep font-extrabold shadow-sm'
-                          : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                          ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-300 font-extrabold shadow-sm'
+                          : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-800/60'
                       }`}
                     >
                       Google Pay
@@ -459,8 +454,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                       }}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         selectedUpiApp === 'phonepe'
-                          ? 'border-brand-orange bg-brand-light text-brand-deep font-extrabold shadow-sm'
-                          : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                          ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-300 font-extrabold shadow-sm'
+                          : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-800/60'
                       }`}
                     >
                       PhonePe
@@ -473,8 +468,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                       }}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         selectedUpiApp === 'paytm'
-                          ? 'border-brand-orange bg-brand-light text-brand-deep font-extrabold shadow-sm'
-                          : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                          ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-300 font-extrabold shadow-sm'
+                          : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-800/60'
                       }`}
                     >
                       Paytm
@@ -483,21 +478,21 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
                   {selectedUpiApp === 'qr' ? (
                     <div className="space-y-3">
-                      <div className="p-4 bg-brand-cream/50 rounded-2xl border border-orange-200 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                      <div className="p-4 bg-orange-50/50 dark:bg-slate-900/60 rounded-2xl border border-orange-200 dark:border-slate-700 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
                         {/* Stylized QR Matrix */}
-                        <div className="w-28 h-28 bg-white p-2 rounded-xl border border-orange-300 shadow-warm-sm flex items-center justify-center shrink-0">
+                        <div className="w-28 h-28 bg-white p-2 rounded-xl border border-orange-300 shadow-sm flex items-center justify-center shrink-0">
                           <div className="w-full h-full bg-[radial-gradient(#1e293b_3px,transparent_3px)] [background-size:10px_10px] relative flex items-center justify-center border border-dashed border-gray-300 rounded-lg">
-                            <span className="p-1 bg-brand-orange text-white rounded text-[9px] font-black shadow-sm">
+                            <span className="p-1 bg-orange-500 text-white rounded text-[9px] font-black shadow-sm">
                               UPI QR
                             </span>
                           </div>
                         </div>
                         <div className="space-y-1 text-xs">
-                          <span className="font-extrabold text-brand-text">Instant Payment QR Code</span>
-                          <p className="text-brand-muted text-[11px]">
+                          <span className="font-extrabold text-gray-900 dark:text-white">Instant Payment QR Code</span>
+                          <p className="text-gray-600 dark:text-slate-300 text-[11px]">
                             Scan with Google Pay, PhonePe, Paytm, or BHIM. Amount ₹{amount}.00 is pre-configured.
                           </p>
-                          <p className="text-[10px] font-mono text-brand-orange font-bold">
+                          <p className="text-[10px] font-mono text-orange-600 dark:text-orange-400 font-bold">
                             UPI ID: zeroplate.rescue@okhdfcbank
                           </p>
                         </div>
@@ -511,10 +506,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         }}
                         className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex items-start gap-3 ${
                           qrConfirmed
-                            ? 'border-emerald-500 bg-emerald-50/50'
+                            ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/40'
                             : errors.qrConfirmed
-                            ? 'border-red-500 bg-red-50/30'
-                            : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'
+                            ? 'border-red-500 bg-red-50/30 dark:bg-red-950/40'
+                            : 'border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/40 hover:bg-gray-50 dark:hover:bg-slate-900'
                         }`}
                       >
                         <input
@@ -524,13 +519,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             setQrConfirmed(e.target.checked);
                             clearError('qrConfirmed');
                           }}
-                          className="mt-0.5 w-4 h-4 text-brand-orange rounded border-gray-300 focus:ring-brand-orange cursor-pointer"
+                          className="mt-0.5 w-4 h-4 text-orange-500 rounded border-gray-300 dark:border-slate-600 focus:ring-orange-500 cursor-pointer"
                         />
                         <div className="text-xs">
-                          <span className="font-bold text-brand-text">
+                          <span className="font-bold text-gray-900 dark:text-white">
                             I have scanned the QR code & authorized the ₹{amount} payment *
                           </span>
-                          <p className="text-[11px] text-brand-muted">
+                          <p className="text-[11px] text-gray-500 dark:text-slate-400">
                             Check this box after completing the transfer on your mobile UPI app.
                           </p>
                         </div>
@@ -542,13 +537,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   ) : (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <label className="block text-xs font-bold text-brand-text uppercase">
+                        <label className="block text-xs font-bold text-gray-900 dark:text-white uppercase">
                           Enter {selectedUpiApp.toUpperCase()} UPI ID or Mobile Number *
                         </label>
                         <button
                           type="button"
                           onClick={handleFillTestUpi}
-                          className="text-[11px] font-bold text-brand-orange hover:underline cursor-pointer"
+                          className="text-[11px] font-bold text-orange-500 hover:underline cursor-pointer"
                         >
                           Fill Demo UPI
                         </button>
@@ -568,8 +563,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                               ? 'e.g. 9876543210 or yourname@ybl'
                               : 'e.g. 9876543210 or yourname@paytm'
                           }
-                          className={`w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-xs font-medium focus:bg-white focus:outline-none ${
-                            errors.upiId ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-brand-orange'
+                          className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-900 border rounded-xl text-xs font-medium text-gray-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none ${
+                            errors.upiId ? 'border-red-500 focus:border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-orange-500'
                           }`}
                         />
                         {errors.upiId && (
@@ -585,13 +580,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               {method === 'card' && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold text-brand-text uppercase">
+                    <label className="block text-xs font-bold text-gray-900 dark:text-white uppercase">
                       Card Details (Required) *
                     </label>
                     <button
                       type="button"
                       onClick={handleFillTestCard}
-                      className="text-[11px] font-bold text-brand-orange hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-[11px] font-bold text-orange-500 hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>Fill Test Card</span>
@@ -605,8 +600,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                       value={cardNumber}
                       onChange={handleCardNumberChange}
                       placeholder="Card Number (e.g. 4532 8921 4098 7654) *"
-                      className={`w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-xs font-medium focus:bg-white focus:outline-none font-mono ${
-                        errors.cardNumber ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-brand-orange'
+                      className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-900 border rounded-xl text-xs font-medium text-gray-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none font-mono ${
+                        errors.cardNumber ? 'border-red-500 focus:border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-orange-500'
                       }`}
                     />
                     {errors.cardNumber && (
@@ -623,8 +618,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         onChange={handleExpiryChange}
                         placeholder="MM / YY *"
                         maxLength={5}
-                        className={`w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-xs font-medium focus:bg-white focus:outline-none text-center ${
-                          errors.cardExpiry ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-brand-orange'
+                        className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-900 border rounded-xl text-xs font-medium text-gray-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none text-center ${
+                          errors.cardExpiry ? 'border-red-500 focus:border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-orange-500'
                         }`}
                       />
                       {errors.cardExpiry && (
@@ -641,8 +636,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                           clearError('cardCvv');
                         }}
                         placeholder="CVV *"
-                        className={`w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-xs font-medium focus:bg-white focus:outline-none text-center ${
-                          errors.cardCvv ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-brand-orange'
+                        className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-900 border rounded-xl text-xs font-medium text-gray-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none text-center ${
+                          errors.cardCvv ? 'border-red-500 focus:border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-orange-500'
                         }`}
                       />
                       {errors.cardCvv && (
@@ -661,8 +656,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         clearError('cardName');
                       }}
                       placeholder="Cardholder Name *"
-                      className={`w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-xs font-medium focus:bg-white focus:outline-none ${
-                        errors.cardName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-brand-orange'
+                      className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-900 border rounded-xl text-xs font-medium text-gray-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none ${
+                        errors.cardName ? 'border-red-500 focus:border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-orange-500'
                       }`}
                     />
                     {errors.cardName && (
@@ -676,7 +671,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               {method === 'netbanking' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-brand-text uppercase mb-2">
+                    <label className="block text-xs font-bold text-gray-900 dark:text-white uppercase mb-2">
                       Select Your Bank *
                     </label>
                     <div className="grid grid-cols-2 gap-2.5">
@@ -688,8 +683,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                             onClick={() => setSelectedBank(bank)}
                             className={`p-3 rounded-xl border text-xs font-bold text-left transition-all cursor-pointer ${
                               selectedBank === bank
-                                ? 'border-brand-orange bg-brand-light text-brand-deep ring-2 ring-brand-orange/20'
-                                : 'border-gray-200 hover:border-gray-300 bg-gray-50 text-gray-700'
+                                ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-300 ring-2 ring-orange-500/20'
+                                : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-700 dark:text-slate-200'
                             }`}
                           >
                             {bank}
@@ -701,13 +696,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <label className="block text-xs font-bold text-brand-text uppercase">
+                      <label className="block text-xs font-bold text-gray-900 dark:text-white uppercase">
                         NetBanking Customer ID / Username *
                       </label>
                       <button
                         type="button"
                         onClick={handleFillTestNetBanking}
-                        className="text-[11px] font-bold text-brand-orange hover:underline cursor-pointer"
+                        className="text-[11px] font-bold text-orange-500 hover:underline cursor-pointer"
                       >
                         Fill Demo ID
                       </button>
@@ -720,8 +715,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         clearError('netBankingUserId');
                       }}
                       placeholder="e.g. CUST_8941032"
-                      className={`w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-xs font-medium focus:bg-white focus:outline-none ${
-                        errors.netBankingUserId ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-brand-orange'
+                      className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-900 border rounded-xl text-xs font-medium text-gray-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none ${
+                        errors.netBankingUserId ? 'border-red-500 focus:border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-orange-500'
                       }`}
                     />
                     {errors.netBankingUserId && (
@@ -732,12 +727,12 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               )}
 
               {/* Trust Badge */}
-              <div className="flex items-center justify-between text-[11px] text-gray-500 pt-2 border-t border-gray-100">
+              <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-slate-400 pt-2 border-t border-gray-100 dark:border-slate-700">
                 <div className="flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-emerald-600" />
+                  <Lock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   <span>256-Bit Bank Level Encryption</span>
                 </div>
-                <div className="flex items-center gap-1 text-brand-muted">
+                <div className="flex items-center gap-1 text-gray-500 dark:text-slate-400">
                   <span>ZeroPlate Non-Profit Partner Support</span>
                 </div>
               </div>
@@ -745,7 +740,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               {/* Action Button */}
               <button
                 type="submit"
-                className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-2xl shadow-warm-md hover:shadow-warm-lg transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
               >
                 <Lock className="w-4 h-4" />
                 <span>Complete Payment of ₹{amount}.00</span>
