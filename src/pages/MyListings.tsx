@@ -7,6 +7,8 @@ import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
 import { PlusCircle } from 'lucide-react';
 
+import { getLocalDonations } from '../services/donationStorage';
+
 interface MyListingsProps {
   initialTab?: string;
   onNavigateAddFood: () => void;
@@ -30,25 +32,33 @@ export const MyListings: React.FC<MyListingsProps> = ({
       : 'all'
   );
 
-  const [donations, setDonations] = useState<FoodDonation[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [donations, setDonations] = useState<FoodDonation[]>(() => {
+    const local = getLocalDonations();
+    const currentDonorId = user?.id || 'donor_spicevilla';
+    return local.filter((d) => d.donorId === currentDonorId || d.donorId === 'donor_spicevilla' || currentDonorId === 'donor_spicevilla');
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchDonations();
   }, [user]);
 
   const fetchDonations = async () => {
-    setIsLoading(true);
     try {
-      const res = await fetch(`/api/donations?donorId=${user?.id || 'donor_spicevilla'}`);
+      const currentDonorId = user?.id || 'donor_spicevilla';
+      const local = getLocalDonations();
+      const donorLocal = local.filter((d) => d.donorId === currentDonorId || d.donorId === 'donor_spicevilla' || currentDonorId === 'donor_spicevilla');
+      setDonations(donorLocal);
+
+      const res = await fetch(`/api/donations?donorId=${currentDonorId}`);
       if (res.ok) {
         const data = await res.json();
-        setDonations(data);
+        if (Array.isArray(data) && data.length > 0) {
+          setDonations(data);
+        }
       }
     } catch (e) {
       console.warn('Fetch donations error', e);
-    } finally {
-      setIsLoading(false);
     }
   };
 

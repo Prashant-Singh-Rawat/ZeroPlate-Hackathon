@@ -7,6 +7,8 @@ import { MatchScore } from '../components/MatchScore';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
 import { Search, MapPin, List, RefreshCw, Filter, Sparkles, Clock, Building, ArrowRight, X, CheckCircle2 } from 'lucide-react';
+import { getLocalDonations } from '../services/donationStorage';
+import { computeFullMatch } from '../services/matching/matchingEngine';
 
 interface FindFoodProps {
   initialViewMode?: 'map' | 'list';
@@ -23,8 +25,29 @@ export const FindFood: React.FC<FindFoodProps> = ({
 }) => {
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'map' | 'list'>(initialViewMode);
-  const [foodListings, setFoodListings] = useState<(FoodDonation & { match?: MatchScoreResult })[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  
+  const getMappedLocalDonations = () => {
+    const local = getLocalDonations();
+    const ngoLat = user?.latitude || 19.062;
+    const ngoLng = user?.longitude || 72.854;
+    return local
+      .filter((d) => d.status === 'AVAILABLE' || d.status === 'PENDING_REQUEST')
+      .map((d) => {
+        const match = computeFullMatch(
+          { lat: d.latitude, lng: d.longitude },
+          { lat: ngoLat, lng: ngoLng },
+          d.mealCount,
+          100,
+          d.pickupDeadline,
+          user?.subscriptionPlan === 'premium',
+          user?.name || 'Hope Foundation'
+        );
+        return { ...d, match };
+      });
+  };
+
+  const [foodListings, setFoodListings] = useState<(FoodDonation & { match?: MatchScoreResult })[]>(getMappedLocalDonations);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Filters & Sorting (§3)
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,8 +71,8 @@ export const FindFood: React.FC<FindFoodProps> = ({
   }, [user, foodType, minMeals, radiusKm, sortBy]);
 
   const fetchFood = async () => {
-    setIsLoading(true);
     try {
+      setFoodListings(getMappedLocalDonations());
       let query = `/api/donations?ngoId=${user?.id || 'ngo_hope'}&sortBy=${sortBy}`;
       if (foodType !== 'all') query += `&foodType=${foodType}`;
       if (minMeals > 0) query += `&minMeals=${minMeals}`;
@@ -59,12 +82,12 @@ export const FindFood: React.FC<FindFoodProps> = ({
       const res = await fetch(query);
       if (res.ok) {
         const data = await res.json();
-        setFoodListings(data);
+        if (Array.isArray(data) && data.length > 0) {
+          setFoodListings(data);
+        }
       }
     } catch (e) {
       console.warn('Fetch food error', e);
-    } finally {
-      setIsLoading(false);
     }
   };
 

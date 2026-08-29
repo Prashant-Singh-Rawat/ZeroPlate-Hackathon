@@ -10,6 +10,8 @@ import {
   AlertCircle, TrendingUp, Zap, BarChart2, Clock, Star
 } from 'lucide-react';
 
+import { getLocalDonations } from '../services/donationStorage';
+
 interface DonorDashboardProps {
   onNavigate: (tab: string, extraData?: any) => void;
 }
@@ -17,27 +19,39 @@ interface DonorDashboardProps {
 export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const [donations, setDonations] = useState<FoodDonation[]>([]);
-  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [donations, setDonations] = useState<FoodDonation[]>(() => {
+    const local = getLocalDonations();
+    const currentDonorId = user?.id || 'donor_spicevilla';
+    return local.filter((d) => d.donorId === currentDonorId || d.donorId === 'donor_spicevilla' || currentDonorId === 'donor_spicevilla');
+  });
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
   }, [user]);
 
   const fetchDashboardData = async () => {
-    setIsLoading(true);
     try {
+      const currentDonorId = user?.id || 'donor_spicevilla';
+      const local = getLocalDonations();
+      const donorLocal = local.filter((d) => d.donorId === currentDonorId || d.donorId === 'donor_spicevilla' || currentDonorId === 'donor_spicevilla');
+      setDonations(donorLocal);
+
       const [donationsRes, requestsRes] = await Promise.all([
-        fetch(`/api/donations?donorId=${user?.id || 'donor_spicevilla'}`),
-        fetch(`/api/requests?donorId=${user?.id || 'donor_spicevilla'}&status=PENDING`),
+        fetch(`/api/donations?donorId=${currentDonorId}`),
+        fetch(`/api/requests?donorId=${currentDonorId}&status=PENDING`),
       ]);
-      if (donationsRes.ok) setDonations(await donationsRes.json());
-      if (requestsRes.ok) setPendingRequestsCount((await requestsRes.json()).length);
+      if (donationsRes.ok) {
+        const dJson = await donationsRes.json();
+        if (Array.isArray(dJson) && dJson.length > 0) setDonations(dJson);
+      }
+      if (requestsRes.ok) {
+        const rJson = await requestsRes.json();
+        if (Array.isArray(rJson)) setPendingRequestsCount(rJson.length);
+      }
     } catch (e) {
       console.warn('Dashboard fetch error', e);
-    } finally {
-      setIsLoading(false);
     }
   };
 

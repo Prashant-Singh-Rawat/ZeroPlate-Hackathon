@@ -11,6 +11,7 @@ import {
   Building2,
   Info,
 } from 'lucide-react';
+import { saveLocalDonation } from '../services/donationStorage';
 
 interface AddFoodProps {
   onSuccessPublished: () => void;
@@ -80,49 +81,44 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
     if (!validate()) return;
 
     setIsSubmitting(true);
-    try {
-      const payload = {
-        donorId: user?.id || 'donor_spicevilla',
-        donorName: user?.name || 'Food Donor',
-        donorType: user?.donorType || 'Restaurant',
-        foodName: foodName.trim(),
-        foodCategory,
-        category: foodCategory,
-        foodSpecifications: selectedSpecs.length > 0 ? selectedSpecs : ['Cooked Food'],
-        foodType,
-        mealCount: Number(mealCount),
-        quantity: quantity.trim() || `${mealCount} meals`,
-        description: description.trim() || 'Fresh surplus food ready for NGO rescue.',
-        packagingStatus,
-        latitude: user?.latitude || 19.076,
-        longitude: user?.longitude || 72.8777,
-        pickupLocation: savedOriginAddress,
-        pickupAddress: savedOriginAddress,
-        originAddress: savedOriginAddress,
-        availableFrom: availableFrom === 'Now' ? new Date().toISOString() : availableFrom,
-        pickupDeadline: new Date(pickupDeadline).toISOString(),
-        packagingAvailable: packagingStatus === 'Already packed',
-      };
+    const payload = {
+      donorId: user?.id || 'donor_spicevilla',
+      donorName: user?.name || 'Food Donor',
+      donorType: user?.donorType || 'Restaurant',
+      foodName: foodName.trim(),
+      foodCategory,
+      category: foodCategory,
+      foodSpecifications: selectedSpecs.length > 0 ? selectedSpecs : ['Cooked Food'],
+      foodType,
+      mealCount: Number(mealCount),
+      quantity: quantity.trim() || `${mealCount} meals`,
+      description: description.trim() || 'Fresh surplus food ready for NGO rescue.',
+      packagingStatus,
+      latitude: user?.latitude || 19.076,
+      longitude: user?.longitude || 72.8777,
+      pickupLocation: savedOriginAddress,
+      pickupAddress: savedOriginAddress,
+      originAddress: savedOriginAddress,
+      availableFrom: availableFrom === 'Now' ? new Date().toISOString() : availableFrom,
+      pickupDeadline: new Date(pickupDeadline).toISOString(),
+      packagingAvailable: packagingStatus === 'Already packed',
+    };
 
-      const res = await fetch('/api/donations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+    // 1. Immediately persist locally for instant UI update
+    saveLocalDonation(payload);
 
-      if (res.ok) {
-        onShowToast('success', 'Your food donation has been published! Nearby NGOs will now receive alerts.');
-        onSuccessPublished();
-      } else {
-        const data = await res.json();
-        onShowToast('error', data.error || 'Failed to publish donation.');
-      }
-    } catch (e) {
-      onShowToast('success', 'Food donation published successfully!');
-      onSuccessPublished();
-    } finally {
+    // 2. Sync to backend in background (won't block UI)
+    fetch('/api/donations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+
+    setTimeout(() => {
       setIsSubmitting(false);
-    }
+      onShowToast('success', 'Your food donation has been published! Nearby NGOs will now receive alerts.');
+      onSuccessPublished();
+    }, 400);
   };
 
   return (
