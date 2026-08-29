@@ -154,7 +154,6 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
       ) : (
         <div className="space-y-4 w-full">
           {filteredBookings.map((b) => {
-            const isConfirmed = b.status === 'CONFIRMED';
             const isCompleted = b.status === 'COMPLETED';
             const existingRating = getRatingForBooking(b.id);
 
@@ -199,8 +198,8 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
                     </div>
                   </div>
 
-                  {/* Rating summary banner for completed bookings */}
-                  {isCompleted && existingRating && (
+                  {/* Rating summary banner */}
+                  {existingRating && (
                     <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-200/80 dark:border-amber-900/40 flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
@@ -224,34 +223,32 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
                 </div>
 
                 {/* Actions */}
-                <div className="shrink-0 flex items-center gap-3 pt-2 md:pt-0">
-                  {isConfirmed && (
+                <div className="shrink-0 flex items-center gap-2.5 pt-2 md:pt-0 flex-wrap">
+                  {isNGO && (
+                    <button
+                      onClick={() => setSelectedRatingBooking(b)}
+                      className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                    >
+                      <Star className="w-4 h-4 fill-white" />
+                      <span>{existingRating ? `⭐ Rated ${existingRating.overallScore}★ (Edit)` : '⭐ Rate & Review Donor'}</span>
+                    </button>
+                  )}
+
+                  {!isCompleted && (
                     <button
                       onClick={() => handleCompletePickup(b.id)}
                       disabled={completingId === b.id}
-                      className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm rounded-xl shadow-warm-sm transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer disabled:opacity-50"
+                      className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm rounded-xl shadow-warm-sm transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer disabled:opacity-50"
                     >
                       <Check className="w-4 h-4 stroke-[3]" />
-                      <span>Confirm Pickup Completed</span>
+                      <span>Confirm Completed</span>
                     </button>
                   )}
 
                   {isCompleted && (
-                    <div className="flex items-center gap-2">
-                      {isNGO && !existingRating && (
-                        <button
-                          onClick={() => setSelectedRatingBooking(b)}
-                          className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer animate-pulse-subtle"
-                        >
-                          <Star className="w-4 h-4 fill-white" />
-                          <span>Rate & Review Donor</span>
-                        </button>
-                      )}
-
-                      <div className="text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-3.5 py-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span>Rescue Completed</span>
-                      </div>
+                    <div className="text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-3.5 py-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Rescue Completed</span>
                     </div>
                   )}
                 </div>
