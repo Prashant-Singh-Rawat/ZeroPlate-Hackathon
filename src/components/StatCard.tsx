@@ -56,7 +56,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   const c = cfg[color];
 
   return (
-    <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-5 border border-gray-200/80 dark:border-slate-800 shadow-sm hover:border-gray-300 dark:hover:border-slate-700 transition-all duration-200 group">
+    <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-5 border border-gray-200/80 dark:border-slate-800 shadow-md hover:shadow-lg hover:-translate-y-0.5 hover:border-gray-300 dark:hover:border-slate-700 transition-all duration-200 group">
       <div className="flex items-start justify-between mb-4">
         <div className={`w-10 h-10 rounded-xl ${c.iconBg} flex items-center justify-center shadow-sm`}>
           <Icon className="w-5 h-5" />

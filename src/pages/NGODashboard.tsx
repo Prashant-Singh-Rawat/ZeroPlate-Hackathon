@@ -271,7 +271,7 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
       </div>
 
       {/* SECTION: CURRENT FOOD REQUIREMENT CARD */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-amber-900/5 dark:border-slate-700 shadow-warm-sm space-y-4">
+      <div className="bg-white dark:bg-[#1E293B] rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-gray-200/80 dark:border-slate-700 shadow-md hover:shadow-lg transition-all space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100 dark:border-slate-700">
           <div>
             <span className="text-[10px] font-black uppercase text-brand-orange tracking-wider">Active Search Criteria</span>
