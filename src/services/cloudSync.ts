@@ -1,52 +1,10 @@
-import { FoodDonation, FoodRequest, Booking, User } from '../types';
+import { FoodDonation, FoodRequest, Booking } from '../types';
 import { getLocalDonations, saveLocalDonation } from './donationStorage';
 import { getLocalRequests, saveLocalRequests, getLocalBookings, saveLocalBookings } from './requestStorage';
 
-// High-availability shared Cloud Sync endpoints
-const CLOUD_NAMESPACE = 'zeroplate_hackathon_v1';
-const KV_BASE_URL = `https://kvdb.io/4yKq2H8yY3P3bJ2b3vW7j5/${CLOUD_NAMESPACE}`;
-
-/**
- * Robust JSON Cloud fetcher with timeout and fallback
- */
-async function cloudGet<T>(key: string, fallback: T): Promise<T> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
-    const res = await fetch(`${KV_BASE_URL}_${key}`, {
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    if (res.ok) {
-      const data = await res.json();
-      if (data !== null && data !== undefined) return data;
-    }
-  } catch (e) {
-    // Fallback to local
-  }
-  return fallback;
-}
-
-/**
- * Robust JSON Cloud writer with timeout
- */
-async function cloudSet<T>(key: string, data: T): Promise<boolean> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
-    await fetch(`${KV_BASE_URL}_${key}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
+const DONATIONS_URL = 'https://api.restful-api.dev/objects/ff808181a04ccf2d01a04d3113d10335';
+const REQUESTS_URL = 'https://api.restful-api.dev/objects/ff808181a04ccf2d01a04d308d8e0330';
+const BOOKINGS_URL = 'https://api.restful-api.dev/objects/ff808181a04ccf2d01a04d308e360331';
 
 // ─────────────────────────────────────────────────────────────
 // DONATIONS CLOUD SYNC
@@ -54,40 +12,58 @@ async function cloudSet<T>(key: string, data: T): Promise<boolean> {
 
 export async function syncCloudDonations(): Promise<FoodDonation[]> {
   const local = getLocalDonations();
-  const cloud = await cloudGet<FoodDonation[]>('donations', []);
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+    const res = await fetch(DONATIONS_URL, { signal: controller.signal });
+    clearTimeout(timeoutId);
 
-  if (Array.isArray(cloud) && cloud.length > 0) {
-    // Merge cloud and local, cloud takes priority for newer/shared items
-    const mergedMap = new Map<string, FoodDonation>();
-    local.forEach((d) => mergedMap.set(d.id, d));
-    cloud.forEach((d) => mergedMap.set(d.id, d));
-    const merged = Array.from(mergedMap.values());
-    try {
-      localStorage.setItem('zeroplate_published_donations', JSON.stringify(merged));
-    } catch (e) {}
-    return merged;
-  }
+    if (res.ok) {
+      const data = await res.json();
+      const cloudList = (data?.data?.donations as FoodDonation[]) || [];
 
-  // If cloud is empty, seed it with local donations
-  if (local.length > 0) {
-    cloudSet('donations', local).catch(() => {});
+      if (Array.isArray(cloudList) && cloudList.length > 0) {
+        // Merge cloud items with local
+        const map = new Map<string, FoodDonation>();
+        local.forEach((d) => map.set(d.id, d));
+        cloudList.forEach((d) => map.set(d.id, d));
+        const merged = Array.from(map.values());
+        try {
+          localStorage.setItem('zeroplate_published_donations', JSON.stringify(merged));
+        } catch (e) {}
+        return merged;
+      }
+    }
+  } catch (e) {
+    console.warn('Cloud donations fetch error, using local cache', e);
   }
   return local;
 }
 
 export async function publishDonationToCloud(donation: FoodDonation): Promise<FoodDonation> {
-  // 1. Save locally immediately for 0ms UI delay
+  // 1. Immediately save locally for 0ms delay
   saveLocalDonation(donation);
 
-  // 2. Push to global cloud DB so all devices see it
+  // 2. Push to global shared Cloud Database
   try {
-    const currentCloud = await cloudGet<FoodDonation[]>('donations', getLocalDonations());
-    const updated = [donation, ...currentCloud.filter((d) => d.id !== donation.id)];
-    await cloudSet('donations', updated);
-  } catch (e) {
-    console.warn('Cloud donation sync failed, kept locally', e);
-  }
+    const all = await syncCloudDonations();
+    const updated = [donation, ...all.filter((d) => d.id !== donation.id)];
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    await fetch(DONATIONS_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'zeroplate_prod_donations_v1',
+        data: { donations: updated },
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+  } catch (e) {
+    console.warn('Publish to cloud error, preserved in local storage', e);
+  }
   return donation;
 }
 
@@ -97,19 +73,27 @@ export async function publishDonationToCloud(donation: FoodDonation): Promise<Fo
 
 export async function syncCloudRequests(): Promise<FoodRequest[]> {
   const local = getLocalRequests();
-  const cloud = await cloudGet<FoodRequest[]>('requests', []);
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+    const res = await fetch(REQUESTS_URL, { signal: controller.signal });
+    clearTimeout(timeoutId);
 
-  if (Array.isArray(cloud) && cloud.length > 0) {
-    const mergedMap = new Map<string, FoodRequest>();
-    local.forEach((r) => mergedMap.set(r.id, r));
-    cloud.forEach((r) => mergedMap.set(r.id, r));
-    const merged = Array.from(mergedMap.values());
-    saveLocalRequests(merged);
-    return merged;
-  }
+    if (res.ok) {
+      const data = await res.json();
+      const cloudList = (data?.data?.list as FoodRequest[]) || [];
 
-  if (local.length > 0) {
-    cloudSet('requests', local).catch(() => {});
+      if (Array.isArray(cloudList)) {
+        const map = new Map<string, FoodRequest>();
+        local.forEach((r) => map.set(r.id, r));
+        cloudList.forEach((r) => map.set(r.id, r));
+        const merged = Array.from(map.values());
+        saveLocalRequests(merged);
+        return merged;
+      }
+    }
+  } catch (e) {
+    console.warn('Cloud requests fetch error, using local cache', e);
   }
   return local;
 }
@@ -120,15 +104,26 @@ export async function submitRequestToCloud(request: FoodRequest): Promise<FoodRe
   const updatedRequests = [request, ...currentRequests.filter((r) => r.id !== request.id)];
   saveLocalRequests(updatedRequests);
 
-  // 2. Push to cloud
+  // 2. Push to Cloud
   try {
-    const cloudRequests = await cloudGet<FoodRequest[]>('requests', currentRequests);
-    const updatedCloud = [request, ...cloudRequests.filter((r) => r.id !== request.id)];
-    await cloudSet('requests', updatedCloud);
-  } catch (e) {
-    console.warn('Cloud request sync failed', e);
-  }
+    const all = await syncCloudRequests();
+    const updated = [request, ...all.filter((r) => r.id !== request.id)];
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    await fetch(REQUESTS_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'zeroplate_prod_requests_v1',
+        data: { list: updated },
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+  } catch (e) {
+    console.warn('Submit request to cloud error', e);
+  }
   return request;
 }
 
@@ -145,7 +140,6 @@ export async function updateRequestStatusInCloud(
       target.respondedAt = new Date().toISOString();
 
       if (status === 'ACCEPTED') {
-        // Auto-reject competing requests for the same donation
         requests.forEach((r) => {
           if (r.donationId === target.donationId && r.id !== requestId && r.status === 'PENDING') {
             r.status = 'REJECTED';
@@ -161,14 +155,21 @@ export async function updateRequestStatusInCloud(
           await publishDonationToCloud(don);
         }
 
-        // Add booking to cloud
         if (booking) {
           await addBookingToCloud(booking);
         }
       }
 
       saveLocalRequests(requests);
-      await cloudSet('requests', requests);
+
+      await fetch(REQUESTS_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'zeroplate_prod_requests_v1',
+          data: { list: requests },
+        }),
+      });
       return true;
     }
   } catch (e) {
@@ -183,19 +184,27 @@ export async function updateRequestStatusInCloud(
 
 export async function syncCloudBookings(): Promise<Booking[]> {
   const local = getLocalBookings();
-  const cloud = await cloudGet<Booking[]>('bookings', []);
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+    const res = await fetch(BOOKINGS_URL, { signal: controller.signal });
+    clearTimeout(timeoutId);
 
-  if (Array.isArray(cloud) && cloud.length > 0) {
-    const mergedMap = new Map<string, Booking>();
-    local.forEach((b) => mergedMap.set(b.id, b));
-    cloud.forEach((b) => mergedMap.set(b.id, b));
-    const merged = Array.from(mergedMap.values());
-    saveLocalBookings(merged);
-    return merged;
-  }
+    if (res.ok) {
+      const data = await res.json();
+      const cloudList = (data?.data?.list as Booking[]) || [];
 
-  if (local.length > 0) {
-    cloudSet('bookings', local).catch(() => {});
+      if (Array.isArray(cloudList)) {
+        const map = new Map<string, Booking>();
+        local.forEach((b) => map.set(b.id, b));
+        cloudList.forEach((b) => map.set(b.id, b));
+        const merged = Array.from(map.values());
+        saveLocalBookings(merged);
+        return merged;
+      }
+    }
+  } catch (e) {
+    console.warn('Cloud bookings fetch error, using local cache', e);
   }
   return local;
 }
@@ -206,9 +215,17 @@ export async function addBookingToCloud(booking: Booking): Promise<Booking> {
   saveLocalBookings(updatedLocal);
 
   try {
-    const cloud = await cloudGet<Booking[]>('bookings', local);
-    const updatedCloud = [booking, ...cloud.filter((b) => b.id !== booking.id)];
-    await cloudSet('bookings', updatedCloud);
+    const all = await syncCloudBookings();
+    const updated = [booking, ...all.filter((b) => b.id !== booking.id)];
+
+    await fetch(BOOKINGS_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'zeroplate_prod_bookings_v1',
+        data: { list: updated },
+      }),
+    });
   } catch (e) {
     console.warn('Save booking cloud error', e);
   }
@@ -223,9 +240,16 @@ export async function completeBookingInCloud(bookingId: string): Promise<boolean
       target.status = 'COMPLETED';
       target.completedAt = new Date().toISOString();
       saveLocalBookings(bookings);
-      await cloudSet('bookings', bookings);
 
-      // Update donation status to COMPLETED
+      await fetch(BOOKINGS_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'zeroplate_prod_bookings_v1',
+          data: { list: bookings },
+        }),
+      });
+
       const donations = await syncCloudDonations();
       const don = donations.find((d) => d.id === target.donationId);
       if (don) {
