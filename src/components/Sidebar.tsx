@@ -73,7 +73,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     { id: 'bookings', labelKey: 'bookings', icon: CalendarDays },
     { id: 'impact', labelKey: 'impactDashboard', icon: TrendingUp },
-    { id: 'messages', labelKey: 'messages', icon: MessageSquare },
   ];
 
   const ngoLinks: NavItem[] = [
@@ -89,7 +88,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     { id: 'my-requests', labelKey: 'myRequests', icon: Inbox },
     { id: 'bookings', labelKey: 'bookings', icon: CalendarDays },
-    { id: 'messages', labelKey: 'messages', icon: MessageSquare },
     { id: 'impact', labelKey: 'impactDashboard', icon: TrendingUp },
   ];
 
