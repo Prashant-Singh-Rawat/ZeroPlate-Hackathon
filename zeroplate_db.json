@@ -117,6 +117,38 @@
       "donorType": "Household",
       "phone": "+919119341195",
       "location": "NH44, Phagwara, Punjab, 144411"
+    },
+    {
+      "name": "Aadarsh Sharma",
+      "email": "aadarshsharma282@gmail.com",
+      "role": "donor",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocJqzIqHcQz6Sj9YkqnaKZ09zxBsShobqa7sKg3qenOoNxxUEEHI=s96-c",
+      "subscriptionPlan": "free",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "emailVerified": true,
+      "onboarded": true,
+      "id": "user_1787976297832_594",
+      "createdAt": "2026-08-29T04:04:57.832Z",
+      "donorType": "Restaurant",
+      "phone": "+91 98200 12345",
+      "location": "Shop 4, Hill Road, Bandra West, Mumbai 400050"
+    },
+    {
+      "name": "Khushi Sharma",
+      "email": "iamkhushii289@gmail.com",
+      "role": "donor",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocIs-45yMEtDb8RDItSevDABZ_1xKvW4aJZxGkmSOHlK7GHnLg=s96-c",
+      "subscriptionPlan": "free",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "emailVerified": true,
+      "onboarded": true,
+      "id": "user_1787976344080_100",
+      "createdAt": "2026-08-29T04:05:44.080Z",
+      "donorType": "Household",
+      "phone": "+91 98200 12345",
+      "location": "punjab"
     }
   ],
   "ngos": [
@@ -178,6 +210,36 @@
     }
   ],
   "donations": [
+    {
+      "donorId": "user_1787976344080_100",
+      "donorName": "Khushi Sharma",
+      "donorType": "Household",
+      "foodName": "Thali",
+      "foodCategory": "Main Course",
+      "category": "Main Course",
+      "foodSpecifications": [
+        "Rice",
+        "Roti / Chapati",
+        "Sabzi",
+        "Thali"
+      ],
+      "foodType": "veg",
+      "mealCount": 11,
+      "quantity": "25/4",
+      "description": "Fresh surplus food ready for NGO rescue.",
+      "imageUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "pickupLocation": "punjab",
+      "pickupAddress": "punjab",
+      "availableFrom": "2026-08-29T04:07:26.022Z",
+      "pickupDeadline": "2026-08-30T02:36:00.000Z",
+      "packagingAvailable": true,
+      "id": "don_1787976446027_860",
+      "status": "AVAILABLE",
+      "pendingRequestsCount": 0,
+      "createdAt": "2026-08-29T04:07:26.027Z"
+    },
     {
       "donorId": "donor_spicevilla",
       "donorName": "SpiceVilla Restaurant",
@@ -683,6 +745,34 @@
       "longitude": 75.70562946955306,
       "isHousehold": false,
       "createdAt": "2026-08-28T22:05:31.387Z"
+    },
+    {
+      "id": "donor_entity_user_1787976297832_594",
+      "userId": "user_1787976297832_594",
+      "donorType": "Restaurant",
+      "organizationName": "Aadarsh Sharma",
+      "contactPerson": "Chef Vikram Malhotra",
+      "phone": "+91 98200 12345",
+      "email": "aadarshsharma282@gmail.com",
+      "address": "Shop 4, Hill Road, Bandra West, Mumbai 400050",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "isHousehold": false,
+      "createdAt": "2026-08-29T04:05:06.031Z"
+    },
+    {
+      "id": "donor_entity_user_1787976344080_100",
+      "userId": "user_1787976344080_100",
+      "donorType": "Household",
+      "organizationName": "Khushi Sharma",
+      "contactPerson": "khushi",
+      "phone": "+91 98200 12345",
+      "email": "iamkhushii289@gmail.com",
+      "address": "punjab",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "isHousehold": false,
+      "createdAt": "2026-08-29T04:06:39.783Z"
     }
   ],
   "requirements": [
