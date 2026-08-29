@@ -3,8 +3,8 @@ import { getLocalDonations, saveLocalDonation } from './donationStorage';
 import { computeFullMatch } from './matching/matchingEngine';
 import { submitRequestToCloud, updateRequestStatusInCloud } from './cloudSync';
 
-const REQUESTS_KEY = 'zeroplate_requests';
-const BOOKINGS_KEY = 'zeroplate_bookings';
+const REQUESTS_KEY = 'zeroplate_v2_requests';
+const BOOKINGS_KEY = 'zeroplate_v2_bookings';
 
 const INITIAL_SEED_REQUESTS: FoodRequest[] = [];
 

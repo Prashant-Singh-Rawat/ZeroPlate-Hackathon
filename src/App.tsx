@@ -54,6 +54,18 @@ const MainLayout: React.FC = () => {
 
   // Keep pending requests count fresh for donors
   useEffect(() => {
+    // One-time cache clear for clean fresh launch
+    if (!localStorage.getItem('zeroplate_v2_cleared')) {
+      localStorage.removeItem('zeroplate_requests');
+      localStorage.removeItem('zeroplate_bookings');
+      localStorage.removeItem('zeroplate_published_donations');
+      localStorage.removeItem('zeroplate_donations');
+      localStorage.removeItem('zeroplate_v2_requests');
+      localStorage.removeItem('zeroplate_v2_bookings');
+      localStorage.removeItem('zeroplate_v2_donations');
+      localStorage.setItem('zeroplate_v2_cleared', 'true');
+    }
+
     if (user && role === 'donor') {
       fetch(`/api/requests?donorId=${user.id}&status=PENDING`)
         .then((res) => res.json())

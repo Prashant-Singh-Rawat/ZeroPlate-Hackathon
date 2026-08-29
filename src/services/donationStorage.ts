@@ -1,6 +1,6 @@
 import { FoodDonation } from '../types';
 
-const STORAGE_KEY = 'zeroplate_published_donations';
+const STORAGE_KEY = 'zeroplate_v2_donations';
 
 const INITIAL_SEED_DONATIONS: FoodDonation[] = [];
 
@@ -15,6 +15,14 @@ export function getLocalDonations(): FoodDonation[] {
     console.warn('Error reading local donations', e);
   }
   return INITIAL_SEED_DONATIONS;
+}
+
+export function saveAllLocalDonations(donations: FoodDonation[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(donations));
+  } catch (e) {
+    console.warn('Error saving local donations', e);
+  }
 }
 
 export function saveLocalDonation(donation: any): FoodDonation {

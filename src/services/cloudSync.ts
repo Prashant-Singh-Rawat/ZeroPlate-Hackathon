@@ -1,5 +1,5 @@
 import { FoodDonation, FoodRequest, Booking } from '../types';
-import { getLocalDonations, saveLocalDonation } from './donationStorage';
+import { getLocalDonations, saveLocalDonation, saveAllLocalDonations } from './donationStorage';
 import { getLocalRequests, saveLocalRequests, getLocalBookings, saveLocalBookings } from './requestStorage';
 
 const _k1 = 'ghp_nwnTP644';
@@ -94,27 +94,19 @@ async function writeGithubFile<T>(filename: string, data: T[], sha?: string): Pr
 // ─────────────────────────────────────────────────────────────
 
 export async function syncCloudDonations(): Promise<FoodDonation[]> {
-  const local = getLocalDonations();
-  const { data: cloudDonations } = await fetchGithubFile<FoodDonation>('cloud_donations.json', local);
-
-  if (Array.isArray(cloudDonations) && cloudDonations.length > 0) {
-    const map = new Map<string, FoodDonation>();
-    local.forEach((d) => map.set(d.id, d));
-    cloudDonations.forEach((d) => map.set(d.id, d));
-    const merged = Array.from(map.values());
-    try {
-      localStorage.setItem('zeroplate_published_donations', JSON.stringify(merged));
-    } catch (e) {}
-    return merged;
-  }
-  return local;
+  try {
+    const { data: cloudDonations } = await fetchGithubFile<FoodDonation>('cloud_donations.json', []);
+    if (Array.isArray(cloudDonations)) {
+      saveAllLocalDonations(cloudDonations);
+      return cloudDonations;
+    }
+  } catch (e) {}
+  return getLocalDonations();
 }
 
 export async function publishDonationToCloud(donation: FoodDonation): Promise<FoodDonation> {
-  // 1. Save locally immediately for 0ms delay
   saveLocalDonation(donation);
 
-  // 2. Write to GitHub Cloud Store so ALL devices worldwide see it
   try {
     const { data: current, sha } = await fetchGithubFile<FoodDonation>('cloud_donations.json', getLocalDonations());
     const updated = [donation, ...current.filter((d) => d.id !== donation.id)];
@@ -130,18 +122,14 @@ export async function publishDonationToCloud(donation: FoodDonation): Promise<Fo
 // ─────────────────────────────────────────────────────────────
 
 export async function syncCloudRequests(): Promise<FoodRequest[]> {
-  const local = getLocalRequests();
-  const { data: cloudRequests } = await fetchGithubFile<FoodRequest>('cloud_requests.json', local);
-
-  if (Array.isArray(cloudRequests)) {
-    const map = new Map<string, FoodRequest>();
-    local.forEach((r) => map.set(r.id, r));
-    cloudRequests.forEach((r) => map.set(r.id, r));
-    const merged = Array.from(map.values());
-    saveLocalRequests(merged);
-    return merged;
-  }
-  return local;
+  try {
+    const { data: cloudRequests } = await fetchGithubFile<FoodRequest>('cloud_requests.json', []);
+    if (Array.isArray(cloudRequests)) {
+      saveLocalRequests(cloudRequests);
+      return cloudRequests;
+    }
+  } catch (e) {}
+  return getLocalRequests();
 }
 
 export async function submitRequestToCloud(request: FoodRequest): Promise<FoodRequest> {
@@ -207,25 +195,14 @@ export async function updateRequestStatusInCloud(
 // ─────────────────────────────────────────────────────────────
 
 export async function syncCloudBookings(): Promise<Booking[]> {
-  const local = getLocalBookings();
-  const { data: cloudBookings } = await fetchGithubFile<Booking>('cloud_bookings.json', local);
-
-  if (Array.isArray(cloudBookings)) {
-    const map = new Map<string, Booking>();
-    local.forEach((b) => map.set(b.id, b));
-    cloudBookings.forEach((b) => {
-      const existing = map.get(b.id);
-      if (existing && existing.status === 'COMPLETED') {
-        map.set(b.id, { ...b, status: 'COMPLETED', completedAt: existing.completedAt || b.completedAt });
-      } else {
-        map.set(b.id, b);
-      }
-    });
-    const merged = Array.from(map.values());
-    saveLocalBookings(merged);
-    return merged;
-  }
-  return local;
+  try {
+    const { data: cloudBookings } = await fetchGithubFile<Booking>('cloud_bookings.json', []);
+    if (Array.isArray(cloudBookings)) {
+      saveLocalBookings(cloudBookings);
+      return cloudBookings;
+    }
+  } catch (e) {}
+  return getLocalBookings();
 }
 
 export async function addBookingToCloud(booking: Booking): Promise<Booking> {
