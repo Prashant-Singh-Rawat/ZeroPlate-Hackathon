@@ -198,9 +198,9 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
       )}
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800 rounded-3xl p-6 sm:p-8 text-white shadow-warm-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800 rounded-2xl sm:rounded-3xl p-5 sm:p-7 md:p-8 text-white shadow-warm-lg flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6">
         <div className="space-y-2 max-w-xl">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[11px] font-black uppercase tracking-wider">
               ❤️ NGO Rescue Portal
             </span>
@@ -211,7 +211,7 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
               </span>
             )}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight leading-tight">
             Welcome back, {user?.name || 'Hope Foundation'} 👋
           </h1>
           <p className="text-xs sm:text-sm text-emerald-100 font-medium leading-relaxed">
@@ -220,17 +220,17 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
         </div>
 
         {/* Primary Quick Actions */}
-        <div className="flex flex-wrap gap-3 shrink-0">
+        <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full md:w-auto shrink-0">
           <button
             onClick={() => onNavigate('find-food')}
-            className="px-5 py-3 bg-white hover:bg-emerald-50 text-emerald-900 font-black text-xs rounded-2xl shadow-warm-sm hover:shadow-warm-md transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
+            className="w-full sm:w-auto px-5 py-3 bg-white hover:bg-emerald-50 text-emerald-900 font-black text-xs rounded-2xl shadow-warm-sm hover:shadow-warm-md transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
           >
             <Search className="w-4 h-4 text-emerald-700" />
             <span>Find Food</span>
           </button>
           <button
             onClick={() => onNavigate('my-requests')}
-            className="px-5 py-3 bg-black/25 hover:bg-black/35 backdrop-blur-md text-white font-extrabold text-xs rounded-2xl border border-white/20 transition-all flex items-center gap-2 cursor-pointer"
+            className="w-full sm:w-auto px-5 py-3 bg-black/25 hover:bg-black/35 backdrop-blur-md text-white font-extrabold text-xs rounded-2xl border border-white/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Inbox className="w-4 h-4" />
             <span>My Requests ({pendingRequestsCount})</span>
@@ -239,7 +239,7 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
       </div>
 
       {/* Top 4 Summary Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
         <StatCard
           title="Available Food Nearby"
           value={availableFoodCount}
@@ -271,11 +271,11 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
       </div>
 
       {/* SECTION: CURRENT FOOD REQUIREMENT CARD */}
-      <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-amber-900/5 dark:border-slate-700 shadow-warm-sm space-y-4">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-amber-900/5 dark:border-slate-700 shadow-warm-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100 dark:border-slate-700">
           <div>
             <span className="text-[10px] font-black uppercase text-brand-orange tracking-wider">Active Search Criteria</span>
-            <h3 className="text-base font-black text-brand-text dark:text-white">Current Food Requirement</h3>
+            <h3 className="text-sm sm:text-base font-black text-brand-text dark:text-white">Current Food Requirement</h3>
           </div>
           <button
             onClick={() => setShowReqModal(true)}
@@ -286,7 +286,7 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3 text-xs">
           <div className="bg-gray-50 dark:bg-slate-900/60 p-3 rounded-2xl border border-gray-100 dark:border-slate-700">
             <span className="text-gray-500 dark:text-gray-400 font-bold block text-[10px] uppercase">Meals Needed</span>
             <strong className="text-sm font-black text-brand-text dark:text-white">{reqMeals} meals</strong>
@@ -328,14 +328,14 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
 
       {/* SECTION: NEAREST FOOD DONORS */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h2 className="text-lg font-black text-brand-text dark:text-white">Nearest Food Donors (Ranked by Fit)</h2>
+            <h2 className="text-base sm:text-lg font-black text-brand-text dark:text-white">Nearest Food Donors (Ranked by Fit)</h2>
             <p className="text-xs text-brand-muted dark:text-gray-400">Smart ranking based on 40% Distance + 35% Meals + 15% Weight + 10% Urgency</p>
           </div>
           <button
             onClick={() => onNavigate('find-food')}
-            className="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1 cursor-pointer"
+            className="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1 self-start sm:self-auto cursor-pointer"
           >
             <span>View All Nearby Food</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -345,7 +345,7 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
         {isLoading ? (
           <LoadingState message="Calculating real-time distance and capacity match scores..." />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {nearbyFood.slice(0, 3).map((item) => (
               <FoodCard
                 key={item.id}

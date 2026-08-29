@@ -52,7 +52,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) =>
     <div className="space-y-6 animate-fadeIn">
 
       {/* ═══════════════════ HERO BANNER ═══════════════════ */}
-      <div className="relative bg-gradient-to-br from-orange-500 via-orange-500 to-amber-400 rounded-3xl p-7 sm:p-9 text-white shadow-xl overflow-hidden">
+      <div className="relative bg-gradient-to-br from-orange-500 via-orange-500 to-amber-400 rounded-2xl sm:rounded-3xl p-5 sm:p-7 md:p-8 lg:p-9 text-white shadow-xl overflow-hidden">
         {/* Background decoration */}
         <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 w-48 h-48 bg-black/5 rounded-full translate-y-1/2 pointer-events-none" />
@@ -60,8 +60,8 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) =>
         <div className="absolute top-8 right-44 w-1 h-1 bg-white/40 rounded-full" />
         <div className="absolute top-12 right-56 w-1.5 h-1.5 bg-white/25 rounded-full" />
 
-        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-3">
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6">
+          <div className="space-y-3 max-w-xl">
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-black uppercase tracking-widest border border-white/20">
                 🍽️ Food Donor Portal
@@ -73,10 +73,10 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) =>
                 </span>
               )}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight leading-tight">
               Welcome back, {user?.name || 'SpiceVilla'} 👋
             </h1>
-            <p className="text-sm text-orange-100 font-medium max-w-md leading-relaxed">
+            <p className="text-xs sm:text-sm text-orange-100 font-medium leading-relaxed">
               Turn surplus food into meaningful impact. Route freshly prepared meals to verified local NGOs before expiry.
             </p>
 
@@ -94,17 +94,17 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) =>
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+          <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full md:w-auto shrink-0">
             <button
               onClick={() => onNavigate('add-food')}
-              className="group px-5 py-3 bg-white hover:bg-orange-50 text-orange-600 font-black text-sm rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+              className="w-full sm:w-auto group px-5 py-3 bg-white hover:bg-orange-50 text-orange-600 font-black text-xs sm:text-sm rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
               <PlusCircle className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
               Add Food Donation
             </button>
             <button
               onClick={() => onNavigate('requests')}
-              className="px-5 py-3 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-bold text-sm rounded-2xl border border-white/25 transition-all flex items-center justify-center gap-2 relative active:scale-95"
+              className="w-full sm:w-auto px-5 py-3 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-bold text-xs sm:text-sm rounded-2xl border border-white/25 transition-all flex items-center justify-center gap-2 relative active:scale-95 cursor-pointer"
             >
               <Inbox className="w-4 h-4" />
               View NGO Requests
@@ -119,7 +119,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) =>
       </div>
 
       {/* ═══════════════════ STAT CARDS ═══════════════════ */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
         <StatCard
           title="Meals Donated"
           value={totalMeals}
@@ -224,7 +224,7 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) =>
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {donations.slice(0, 3).map((item) => (
               <FoodCard
                 key={item.id}

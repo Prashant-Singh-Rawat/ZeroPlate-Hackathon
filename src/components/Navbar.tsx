@@ -19,7 +19,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, activeView, onN
       className="bg-white dark:bg-[#1E293B] border-b border-gray-100 dark:border-slate-800 sticky top-0 z-30 transition-colors duration-200"
       style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[60px] flex items-center justify-between gap-3">
+      <div className="max-w-[1680px] w-full mx-auto px-3 sm:px-5 lg:px-8 h-[60px] flex items-center justify-between gap-2 sm:gap-3">
         {/* Brand + Mobile Toggle */}
         <div className="flex items-center gap-3">
           <button

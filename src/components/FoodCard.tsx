@@ -144,29 +144,31 @@ export const FoodCard: React.FC<FoodCardProps> = ({
         )}
 
         {/* Action Buttons */}
-        <div className="pt-1 mt-auto flex items-center gap-2">
+        <div className="pt-1 mt-auto grid grid-cols-2 gap-2">
           {!isDonor && (
             <>
               {onViewDetails && (
                 <button
                   onClick={() => onViewDetails(donation)}
-                  className="flex-1 py-2.5 bg-gray-50 dark:bg-slate-700 hover:bg-orange-50 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-bold text-xs rounded-xl border border-gray-200 dark:border-slate-600 hover:border-orange-200 transition-all flex items-center justify-center gap-1.5"
+                  className="w-full py-2.5 bg-gray-50 dark:bg-slate-700 hover:bg-orange-50 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-bold text-xs rounded-xl border border-gray-200 dark:border-slate-600 hover:border-orange-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Eye className="w-3.5 h-3.5" />
-                  Details
+                  <span>Details</span>
                 </button>
               )}
               {onRequest && isAvailable && (
                 <button
                   onClick={() => onRequest(donation)}
-                  className="flex-1 py-2.5 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-600 hover:to-amber-500 text-white font-extrabold text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                  className={`w-full py-2.5 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-600 hover:to-amber-500 text-white font-extrabold text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer ${
+                    !onViewDetails ? 'col-span-2' : ''
+                  }`}
                 >
-                  Request Food
+                  <span>Request Food</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               )}
               {!isAvailable && (
-                <div className="w-full py-2.5 text-center text-xs font-bold text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-slate-700 rounded-xl">
+                <div className="col-span-2 w-full py-2.5 text-center text-xs font-bold text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-slate-700 rounded-xl">
                   {donation.status === 'CONFIRMED' ? '✓ Confirmed' : 'Unavailable'}
                 </div>
               )}
