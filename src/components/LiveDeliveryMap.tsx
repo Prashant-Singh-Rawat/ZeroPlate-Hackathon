@@ -218,47 +218,198 @@ export const LiveDeliveryMap: React.FC<LiveDeliveryMapProps> = ({
 
       {/* Live Map Representation (Desktop ~65% / ~35% Layout) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* Map Container (65%) */}
-        <div className="lg:col-span-8 relative min-h-[220px] bg-gradient-to-br from-slate-950 via-stone-900 to-amber-950 rounded-3xl overflow-hidden shadow-inner p-6 flex items-center justify-around border border-amber-950/30">
-          <div className="absolute inset-0 bg-[radial-gradient(#F97316_1px,transparent_1px)] [background-size:16px_16px] opacity-20" />
+        {/* Animated Highway Map Container (65%) */}
+        <div className="lg:col-span-8 relative min-h-[260px] sm:min-h-[280px] bg-gradient-to-b from-slate-950 via-slate-900 to-stone-950 rounded-3xl overflow-hidden shadow-2xl p-4 sm:p-6 flex flex-col justify-between border border-orange-500/20">
+          {/* Background Grid & Starry Tech Effect */}
+          <div className="absolute inset-0 bg-[radial-gradient(#F97316_1.2px,transparent_1.2px)] [background-size:20px_20px] opacity-25" />
+          
+          {/* Top Highway Status HUD Bar */}
+          <div className="relative z-10 flex items-center justify-between px-2 pt-1">
+            <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-orange-500/30">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span className="text-[10px] font-black text-orange-300 uppercase tracking-widest">
+                🛰️ Live GPS Highway Telemetry
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-mono text-emerald-400">
+              <span>⚡ Speed: <strong>38 km/h</strong></span>
+              <span className="text-gray-500">•</span>
+              <span>{routeInfo ? `${routeInfo.distanceKm} km remaining` : '3.9 km'}</span>
+            </div>
+          </div>
 
-          {/* Origin Marker (🍽️ Donor) */}
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="relative">
-              <span className="absolute -inset-2 rounded-full bg-orange-500/30 animate-ping" />
-              <div className="w-11 h-11 rounded-2xl bg-brand-orange text-white flex items-center justify-center shadow-lg border-2 border-white text-lg">
-                🍽️
+          {/* Main Highway Road Canvas with Stations and Moving Tempo */}
+          <div className="relative z-10 w-full my-auto py-6 flex items-center justify-between">
+            {/* 1. Origin Station (🍽️ Food Donor) */}
+            <div className="relative z-20 flex flex-col items-center shrink-0">
+              <div className="relative">
+                <span className="absolute -inset-2.5 rounded-3xl bg-orange-500/30 animate-ping" />
+                <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 text-white flex items-center justify-center shadow-xl border-2 border-white/80 text-2xl shadow-orange-500/40">
+                  🍽️
+                </div>
+              </div>
+              <div className="mt-2 px-3 py-1 bg-black/85 backdrop-blur-md rounded-xl text-white font-black text-[11px] border border-orange-500/30 shadow-lg text-center max-w-[120px] truncate">
+                {booking.donorName || 'Food Donor'}
+              </div>
+              <span className="text-[9px] font-bold text-orange-400/90 uppercase tracking-wide mt-0.5">
+                Pickup Origin
+              </span>
+            </div>
+
+            {/* 2. Dual-Lane Asphalt Highway with Running Tempo Truck */}
+            <div className="flex-1 relative h-20 mx-2 sm:mx-4 flex items-center">
+              {/* Asphalt Road Bed */}
+              <div className="w-full h-12 bg-gradient-to-r from-slate-900 via-stone-900 to-slate-900 rounded-2xl border-y border-amber-500/30 shadow-inner relative overflow-hidden flex items-center">
+                {/* Moving Yellow Road Markings */}
+                <div className="absolute inset-x-0 h-0.5 border-t-2 border-dashed border-amber-400/80 animate-pulse w-full" />
+                <div 
+                  className="absolute inset-0 opacity-40"
+                  style={{
+                    backgroundImage: 'repeating-linear-gradient(90deg, #F59E0B 0, #F59E0B 16px, transparent 16px, transparent 32px)',
+                    backgroundSize: '32px 2px',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'repeat-x',
+                    animation: 'roadStripes 0.8s linear infinite'
+                  }}
+                />
+              </div>
+
+              {/* Running Animated Tempo Car / Mini-Truck */}
+              <div 
+                className="absolute top-1/2 -translate-y-1/2 pointer-events-none z-30 flex flex-col items-center"
+                style={{
+                  animation: 'tempoDrive 6.5s ease-in-out infinite alternate',
+                }}
+              >
+                {/* Driver & Status Speech Bubble above Tempo */}
+                <div className="mb-1 px-2.5 py-0.5 bg-white/95 text-brand-deep font-black text-[9px] rounded-full border border-orange-400 shadow-md flex items-center gap-1 whitespace-nowrap animate-bounce-subtle">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  <span>🚚 {booking.deliveryPersonName || 'Rahul Varma'} (Tempo)</span>
+                </div>
+
+                {/* Vector Tempo Van / Delivery Truck with Headlights */}
+                <div className="relative flex items-center">
+                  {/* Trailing Wind / Speed Smoke */}
+                  <span className="text-[12px] -mr-1 text-slate-400/80 animate-pulse select-none">
+                    💨
+                  </span>
+
+                  {/* SVG Custom Tempo Car */}
+                  <svg
+                    width="68"
+                    height="36"
+                    viewBox="0 0 68 36"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="drop-shadow-[0_4px_10px_rgba(249,115,22,0.5)]"
+                  >
+                    {/* Cargo Container Body */}
+                    <rect x="2" y="6" width="38" height="22" rx="3" fill="#EA580C" stroke="#FB923C" strokeWidth="1.5" />
+                    {/* Cargo Door Lines & ZeroPlate Logo Text */}
+                    <line x1="20" y1="6" x2="20" y2="28" stroke="#FED7AA" strokeWidth="1" strokeDasharray="2 2" />
+                    <rect x="6" y="10" width="10" height="7" rx="1.5" fill="#FFF7ED" />
+                    <text x="11" y="15.5" fontSize="5" fontWeight="900" fill="#EA580C" textAnchor="middle">ZP</text>
+                    <text x="30" y="17" fontSize="4.5" fontWeight="800" fill="#FFFFFF" textAnchor="middle">RESCUE</text>
+
+                    {/* Driver Cab */}
+                    <path d="M40 10 L50 10 L58 18 L58 28 L40 28 Z" fill="#F97316" stroke="#FDBA74" strokeWidth="1.2" />
+                    {/* Windshield */}
+                    <path d="M42 12 L49 12 L55 18 L42 18 Z" fill="#93C5FD" opacity="0.9" />
+                    {/* Driver Silhouette */}
+                    <circle cx="46" cy="15" r="2" fill="#1E293B" />
+
+                    {/* Front Bumper & Grill */}
+                    <rect x="58" y="22" width="4" height="6" rx="1" fill="#475569" />
+
+                    {/* Glowing Headlight & Projector Beam */}
+                    <circle cx="58" cy="20" r="2" fill="#FEF08A" />
+                    <polygon points="60,19 78,14 78,26 60,21" fill="url(#headlightGradient)" opacity="0.65" />
+
+                    {/* Rear Wheel */}
+                    <g className="animate-spin-slow origin-center" style={{ transformOrigin: '14px 28px' }}>
+                      <circle cx="14" cy="28" r="5" fill="#1E293B" stroke="#64748B" strokeWidth="1.5" />
+                      <circle cx="14" cy="28" r="2" fill="#E2E8F0" />
+                    </g>
+
+                    {/* Front Wheel */}
+                    <g className="animate-spin-slow origin-center" style={{ transformOrigin: '48px 28px' }}>
+                      <circle cx="48" cy="28" r="5" fill="#1E293B" stroke="#64748B" strokeWidth="1.5" />
+                      <circle cx="48" cy="28" r="2" fill="#E2E8F0" />
+                    </g>
+
+                    <defs>
+                      <linearGradient id="headlightGradient" x1="60" y1="20" x2="78" y2="20" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#FEF08A" stopOpacity="0.8" />
+                        <stop offset="1" stopColor="#FEF08A" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
               </div>
             </div>
-            <span className="mt-1.5 px-3 py-0.5 bg-black/80 backdrop-blur-md rounded-full text-white font-extrabold text-[10px] border border-white/20">
-              {booking.donorName}
-            </span>
-          </div>
 
-          {/* Delivery Driver in Transit (🚴) */}
-          <div className="flex-1 max-w-[180px] flex flex-col items-center relative z-10 px-2">
-            <div className="w-full h-0.5 border-t-2 border-dashed border-orange-400/80 animate-pulse" />
-            <div className="mt-1 px-3 py-1 bg-white/95 text-brand-deep font-black text-[10px] rounded-full border border-orange-300 shadow-md flex items-center gap-1.5">
-              <Bike className="w-3.5 h-3.5 text-brand-orange" />
-              <span>{booking.deliveryPersonName || 'Assign Driver'}</span>
-            </div>
-            <span className="text-[9px] text-orange-200 mt-0.5 font-mono">
-              {routeInfo ? `${routeInfo.distanceKm} km remaining` : 'Calculating route...'}
-            </span>
-          </div>
-
-          {/* Destination Marker (❤️ NGO) */}
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="relative">
-              <span className="absolute -inset-2 rounded-full bg-emerald-500/30 animate-ping" />
-              <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg border-2 border-white text-lg">
-                ❤️
+            {/* 3. Destination Station (❤️ NGO Receiver) */}
+            <div className="relative z-20 flex flex-col items-center shrink-0">
+              <div className="relative">
+                <span className="absolute -inset-2.5 rounded-3xl bg-emerald-500/30 animate-ping" />
+                <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-xl border-2 border-white/80 text-2xl shadow-emerald-500/40">
+                  ❤️
+                </div>
               </div>
+              <div className="mt-2 px-3 py-1 bg-black/85 backdrop-blur-md rounded-xl text-emerald-300 font-black text-[11px] border border-emerald-500/30 shadow-lg text-center max-w-[120px] truncate">
+                {booking.ngoName || 'NGO Partner'}
+              </div>
+              <span className="text-[9px] font-bold text-emerald-400/90 uppercase tracking-wide mt-0.5">
+                NGO Delivery Hub
+              </span>
             </div>
-            <span className="mt-1.5 px-3 py-0.5 bg-black/80 backdrop-blur-md rounded-full text-emerald-300 font-extrabold text-[10px] border border-emerald-400/30">
-              {booking.ngoName}
+          </div>
+
+          {/* Bottom Live Traffic & ETA Footer Bar */}
+          <div className="relative z-10 flex items-center justify-between pt-2 border-t border-white/10 text-xs">
+            <span className="text-orange-200/80 font-medium flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-brand-orange" />
+              <span>Traffic-Aware ETA: <strong className="text-white font-bold">{routeInfo ? `~${routeInfo.trafficAwareMinutes} mins (${routeInfo.etaTimestamp})` : '~14 mins'}</strong></span>
+            </span>
+            <span className="px-2.5 py-0.5 bg-emerald-950/80 text-emerald-300 rounded-full font-black text-[10px] border border-emerald-800/60">
+              🟢 Optimal Route Active
             </span>
           </div>
+
+          {/* Embedded Custom CSS Keyframes for Highway Motion */}
+          <style>{`
+            @keyframes tempoDrive {
+              0% {
+                left: 6%;
+                transform: translate(0, -50%) scaleX(1);
+              }
+              46% {
+                left: 76%;
+                transform: translate(0, -50%) scaleX(1);
+              }
+              50% {
+                left: 76%;
+                transform: translate(0, -50%) scaleX(-1);
+              }
+              96% {
+                left: 6%;
+                transform: translate(0, -50%) scaleX(-1);
+              }
+              100% {
+                left: 6%;
+                transform: translate(0, -50%) scaleX(1);
+              }
+            }
+            @keyframes roadStripes {
+              0% { background-position: 0 0; }
+              100% { background-position: -32px 0; }
+            }
+            @keyframes spinSlow {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
         </div>
 
         {/* Live Tracking Information Card (35%) */}
