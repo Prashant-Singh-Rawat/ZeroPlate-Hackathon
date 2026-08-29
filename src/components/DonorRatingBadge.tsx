@@ -59,7 +59,7 @@ export const DonorRatingBadge: React.FC<DonorRatingBadgeProps> = ({
           />
           <div
             onClick={(e) => e.stopPropagation()}
-            className="absolute left-0 top-full mt-2 z-50 w-64 p-3.5 rounded-2xl bg-white dark:bg-[#1E293B] border border-amber-200 dark:border-slate-700 shadow-xl space-y-2.5 text-xs animate-status-pop"
+            className="absolute right-0 top-full mt-2 z-[70] w-68 p-4 rounded-2xl bg-white dark:bg-[#1E293B] border border-amber-200 dark:border-slate-700 shadow-2xl space-y-2.5 text-xs animate-status-pop"
           >
             <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-slate-800">
               <div className="font-extrabold text-brand-text dark:text-slate-100 flex items-center gap-1.5">

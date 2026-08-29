@@ -34,10 +34,10 @@ export const FoodCard: React.FC<FoodCardProps> = ({
   const isExpired = hoursRemaining === 0;
 
   return (
-    <div className="group bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">
+    <div className="group bg-white dark:bg-[#1E293B] rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative flex flex-col">
 
       {/* Food Image */}
-      <div className="relative h-44 overflow-hidden bg-gray-100 dark:bg-slate-800">
+      <div className="relative h-44 overflow-hidden rounded-t-2xl bg-gray-100 dark:bg-slate-800">
         <img
           src={donation.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'}
           alt={donation.foodName}
