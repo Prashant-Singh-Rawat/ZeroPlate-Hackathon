@@ -8,6 +8,8 @@ import { EmptyState } from '../components/EmptyState';
 import { Inbox, CheckCircle2, XCircle, MapPin, Building } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
+import { getLocalRequests, acceptLocalRequest, saveLocalRequests } from '../services/requestStorage';
+
 interface DonorRequestsProps {
   onNavigateBookings: () => void;
   onShowToast: (type: 'success' | 'error' | 'warning' | 'info', msg: string) => void;
@@ -18,8 +20,12 @@ export const DonorRequests: React.FC<DonorRequestsProps> = ({
 }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const [requests, setRequests] = useState<FoodRequest[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [requests, setRequests] = useState<FoodRequest[]>(() => {
+    const local = getLocalRequests();
+    const currentDonorId = user?.id || 'donor_spicevilla';
+    return local.filter((r) => r.donorId === currentDonorId || r.donorId === 'donor_spicevilla' || currentDonorId === 'donor_spicevilla');
+  });
+  const [isLoading, setIsLoading] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,47 +33,47 @@ export const DonorRequests: React.FC<DonorRequestsProps> = ({
   }, [user]);
 
   const fetchRequests = async () => {
-    setIsLoading(true);
     try {
-      const res = await fetch(`/api/requests?donorId=${user?.id || 'donor_spicevilla'}`);
+      const currentDonorId = user?.id || 'donor_spicevilla';
+      const local = getLocalRequests();
+      const donorLocal = local.filter((r) => r.donorId === currentDonorId || r.donorId === 'donor_spicevilla' || currentDonorId === 'donor_spicevilla');
+      setRequests(donorLocal);
+
+      const res = await fetch(`/api/requests?donorId=${currentDonorId}`);
       if (res.ok) {
         const data = await res.json();
-        setRequests(data);
+        if (Array.isArray(data) && data.length > 0) {
+          setRequests(data);
+        }
       }
     } catch (e) {
       console.warn('Fetch donor requests error', e);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleAccept = async (request: FoodRequest) => {
     setProcessingId(request.id);
-    try {
-      const res = await fetch(`/api/requests/${request.id}/accept`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ donorId: user?.id || 'donor_spicevilla' }),
-      });
+    
+    // 1. Immediately accept locally, create booking & reject competing
+    acceptLocalRequest(request.id, user);
 
-      const data = await res.json();
-      if (res.ok) {
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ['#F97316', '#16A34A', '#EA580C'],
-        });
-        onShowToast('success', `Request accepted! Food confirmed for ${request.ngoName}. All competing requests auto-rejected.`);
-        fetchRequests();
-      } else {
-        onShowToast('error', data.error || 'Failed to accept request.');
-      }
-    } catch (e) {
-      onShowToast('error', 'Network error while accepting request.');
-    } finally {
-      setProcessingId(null);
-    }
+    // 2. Sync to backend API
+    fetch(`/api/requests/${request.id}/accept`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ donorId: user?.id || 'donor_spicevilla' }),
+    }).catch(() => {});
+
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#F97316', '#16A34A', '#EA580C'],
+    });
+
+    onShowToast('success', `Request accepted! Food confirmed for ${request.ngoName}. All competing requests auto-rejected.`);
+    fetchRequests();
+    setProcessingId(null);
   };
 
   const handleReject = async (request: FoodRequest) => {

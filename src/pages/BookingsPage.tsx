@@ -7,6 +7,8 @@ import { EmptyState } from '../components/EmptyState';
 import { MapPin, Building, CheckCircle2, Clock, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
+import { getLocalBookings, saveLocalBookings } from '../services/requestStorage';
+
 interface BookingsPageProps {
   onShowToast?: (type: 'success' | 'error' | 'warning' | 'info', msg: string) => void;
 }
@@ -14,9 +16,13 @@ interface BookingsPageProps {
 export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
   const { user, role } = useAuth();
   const { t } = useLanguage();
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>(() => {
+    const local = getLocalBookings();
+    const currentId = user?.id || (role === 'ngo' ? 'ngo_hope' : 'donor_spicevilla');
+    return local.filter((b) => (role === 'ngo' ? b.ngoId === currentId || currentId === 'ngo_hope' : b.donorId === currentId || currentId === 'donor_spicevilla'));
+  });
   const [activeTab, setActiveTab] = useState<'all' | 'confirmed' | 'completed'>('all');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [completingId, setCompletingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,17 +30,21 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
   }, [user, role]);
 
   const fetchBookings = async () => {
-    setIsLoading(true);
     try {
-      const res = await fetch(`/api/bookings?userId=${user?.id || 'donor_spicevilla'}&role=${role}`);
+      const currentId = user?.id || (role === 'ngo' ? 'ngo_hope' : 'donor_spicevilla');
+      const local = getLocalBookings();
+      const filtered = local.filter((b) => (role === 'ngo' ? b.ngoId === currentId || currentId === 'ngo_hope' : b.donorId === currentId || currentId === 'donor_spicevilla'));
+      setBookings(filtered);
+
+      const res = await fetch(`/api/bookings?userId=${currentId}&role=${role}`);
       if (res.ok) {
         const data = await res.json();
-        setBookings(data);
+        if (Array.isArray(data) && data.length > 0) {
+          setBookings(data);
+        }
       }
     } catch (e) {
       console.warn('Fetch bookings error', e);
-    } finally {
-      setIsLoading(false);
     }
   };
 

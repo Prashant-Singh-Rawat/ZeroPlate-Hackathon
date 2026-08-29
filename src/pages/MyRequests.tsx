@@ -6,6 +6,8 @@ import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
 import { Inbox, Clock, CheckCircle2, XCircle, Building, MapPin, ArrowRight } from 'lucide-react';
 
+import { getLocalRequests, cancelLocalRequest } from '../services/requestStorage';
+
 interface MyRequestsProps {
   onNavigateFindFood: () => void;
   onNavigateBookings: () => void;
@@ -18,46 +20,46 @@ export const MyRequests: React.FC<MyRequestsProps> = ({
   onShowToast,
 }) => {
   const { user } = useAuth();
-  const [requests, setRequests] = useState<FoodRequest[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [requests, setRequests] = useState<FoodRequest[]>(() => {
+    const local = getLocalRequests();
+    const currentNgoId = user?.id || 'ngo_hope';
+    return local.filter((r) => r.ngoId === currentNgoId || r.ngoId === 'ngo_hope' || currentNgoId === 'ngo_hope');
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchRequests();
   }, [user]);
 
   const fetchRequests = async () => {
-    setIsLoading(true);
     try {
-      const res = await fetch(`/api/requests?ngoId=${user?.id || 'ngo_hope'}`);
+      const currentNgoId = user?.id || 'ngo_hope';
+      const local = getLocalRequests();
+      const ngoLocal = local.filter((r) => r.ngoId === currentNgoId || r.ngoId === 'ngo_hope' || currentNgoId === 'ngo_hope');
+      setRequests(ngoLocal);
+
+      const res = await fetch(`/api/requests?ngoId=${currentNgoId}`);
       if (res.ok) {
         const data = await res.json();
-        setRequests(data);
+        if (Array.isArray(data) && data.length > 0) {
+          setRequests(data);
+        }
       }
     } catch (e) {
       console.warn('Fetch NGO requests error', e);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleCancelRequest = async (requestId: string) => {
-    try {
-      const res = await fetch(`/api/requests/${requestId}/cancel`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ngoId: user?.id || 'ngo_hope' }),
-      });
+    cancelLocalRequest(requestId);
+    fetch('/api/requests/' + requestId + '/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ngoId: user?.id || 'ngo_hope' }),
+    }).catch(() => {});
 
-      if (res.ok) {
-        onShowToast('info', 'Request cancelled.');
-        fetchRequests();
-      } else {
-        const data = await res.json();
-        onShowToast('error', data.error || 'Failed to cancel request.');
-      }
-    } catch (e) {
-      onShowToast('error', 'Network error.');
-    }
+    onShowToast('info', 'Request cancelled.');
+    fetchRequests();
   };
 
   return (

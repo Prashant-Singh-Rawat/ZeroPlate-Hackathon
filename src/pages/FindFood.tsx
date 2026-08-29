@@ -10,6 +10,8 @@ import { Search, MapPin, List, RefreshCw, Filter, Sparkles, Clock, Building, Arr
 import { getLocalDonations } from '../services/donationStorage';
 import { computeFullMatch } from '../services/matching/matchingEngine';
 
+import { createLocalRequest } from '../services/requestStorage';
+
 interface FindFoodProps {
   initialViewMode?: 'map' | 'list';
   initialSelectedDonation?: FoodDonation | null;
@@ -101,34 +103,30 @@ export const FindFood: React.FC<FindFoodProps> = ({
     if (!requestModalItem) return;
     setIsSubmittingRequest(true);
 
-    try {
-      const res = await fetch('/api/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          donationId: requestModalItem.id,
-          ngoId: user?.id || 'ngo_hope',
-          ngoName: user?.name || 'Hope Foundation',
-          requestedMeals: requestedMealsInput,
-          notes: requestNotes,
-        }),
-      });
+    const donorName = requestModalItem.donorName || 'Food Donor';
+    // 1. Immediately create local request and update donation state
+    createLocalRequest(requestModalItem, user, requestedMealsInput, requestNotes);
 
-      const data = await res.json();
+    // 2. Background sync to backend API
+    fetch('/api/requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        donationId: requestModalItem.id,
+        ngoId: user?.id || 'ngo_hope',
+        ngoName: user?.name || 'Hope Foundation',
+        requestedMeals: requestedMealsInput,
+        notes: requestNotes,
+      }),
+    }).catch(() => {});
 
-      if (res.ok) {
-        onShowToast('success', `Request sent to ${requestModalItem.donorName}! Awaiting donor approval.`);
-        setRequestModalItem(null);
-        setDetailModalItem(null);
-        onNavigateRequests();
-      } else {
-        onShowToast('error', data.error || 'Failed to submit request.');
-      }
-    } catch (e) {
-      onShowToast('error', 'Network error while submitting request.');
-    } finally {
+    setTimeout(() => {
       setIsSubmittingRequest(false);
-    }
+      onShowToast('success', `Request sent to ${donorName}! Awaiting donor approval.`);
+      setRequestModalItem(null);
+      setDetailModalItem(null);
+      onNavigateRequests();
+    }, 400);
   };
 
   // Client-side urgency filter
