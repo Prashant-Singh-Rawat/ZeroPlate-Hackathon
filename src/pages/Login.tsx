@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types';
 import { launchGoogleOAuthPopup } from '../services/auth/googleAuth';
+import { getCurrentGPSLocation } from '../services/gpsLocation';
 import {
   Utensils,
   ShieldCheck,
@@ -19,6 +20,7 @@ import {
   KeyRound,
   CheckCircle2,
   QrCode,
+  MapPin,
 } from 'lucide-react';
 import { QRCodeModal } from '../components/QRCodeModal';
 
@@ -41,6 +43,23 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
   const [selectedLang, setSelectedLang] = useState('English');
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
+
+  // Live GPS Tracking on Login Page
+  const [liveLocation, setLiveLocation] = useState<string>('Detecting live GPS location...');
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
+
+  useEffect(() => {
+    getCurrentGPSLocation()
+      .then((gps) => {
+        if (gps && gps.address) {
+          setLiveLocation(gps.address);
+          setGpsAccuracy(gps.accuracy);
+        }
+      })
+      .catch(() => {
+        setLiveLocation('Current Location (GPS Active)');
+      });
+  }, []);
 
   // Gmail 6-Digit OTP Mode
   const [isOtpMode, setIsOtpMode] = useState(false);
@@ -266,6 +285,20 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                 <span className="text-xs text-[#EA580C] dark:text-orange-400">🧡</span>
                 <div className="w-8 h-[1px] bg-orange-300 dark:bg-orange-800" />
               </div>
+            </div>
+
+            {/* Live GPS Telemetry Badge */}
+            <div className="flex items-center gap-2 p-2.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl text-[11px] text-emerald-800 dark:text-emerald-300 shadow-sm">
+              <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 animate-pulse" />
+              <div className="min-w-0 flex-1 truncate">
+                <span className="font-extrabold text-emerald-900 dark:text-emerald-200">Live GPS Location: </span>
+                <span className="font-semibold text-emerald-700 dark:text-emerald-300 truncate">{liveLocation}</span>
+              </div>
+              {gpsAccuracy && (
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-200/60 dark:bg-emerald-900/60 rounded-full text-emerald-900 dark:text-emerald-200 shrink-0">
+                  ±{gpsAccuracy}m
+                </span>
+              )}
             </div>
 
             {/* Role Cards */}

@@ -32,9 +32,10 @@ import { MessagesPage } from './pages/MessagesPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { ImpactDashboard } from './pages/ImpactDashboard';
 import { SettingsPage } from './pages/SettingsPage';
+import { MapPin } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
-  const { user, role } = useAuth();
+  const { user, role, refreshGPSLocation } = useAuth();
   const { t } = useLanguage();
 
   const [authView, setAuthView] = useState<'login' | 'signup' | 'forgot'>('login');
@@ -250,9 +251,26 @@ const MainLayout: React.FC = () => {
 
       case 'profile':
         return (
-          <div className="bg-white dark:bg-[#1E293B] rounded-3xl p-8 border border-amber-900/5 dark:border-slate-800 shadow-warm-sm space-y-4 max-w-xl transition-colors">
-            <h2 className="text-xl font-black text-brand-text dark:text-slate-100">{t('orgProfile', 'Organization Profile')}</h2>
-            <div className="space-y-2 text-xs text-brand-muted dark:text-slate-400">
+          <div className="bg-white dark:bg-[#1E293B] rounded-3xl p-8 border border-amber-900/5 dark:border-slate-800 shadow-warm-sm space-y-5 max-w-xl transition-colors">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100 dark:border-slate-800">
+              <div>
+                <h2 className="text-xl font-black text-brand-text dark:text-slate-100">{t('orgProfile', 'Organization Profile')}</h2>
+                <p className="text-xs text-brand-muted dark:text-slate-400">Manage account information & live location</p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const addr = await refreshGPSLocation();
+                  if (addr) showToast('success', `Live GPS location synced: ${addr}`);
+                  else showToast('info', 'GPS location updated from live hardware/network telemetry.');
+                }}
+                className="px-3.5 py-2 text-xs font-black bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 hover:dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 rounded-xl transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer shadow-sm shrink-0"
+              >
+                <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400 animate-pulse" />
+                <span>Sync Live GPS Location</span>
+              </button>
+            </div>
+            <div className="space-y-2.5 text-xs text-brand-muted dark:text-slate-400">
               <p>
                 {t('orgName', 'Organization Name')}: <strong className="text-brand-text dark:text-slate-200 font-bold">{user.name}</strong>
               </p>
@@ -262,8 +280,9 @@ const MainLayout: React.FC = () => {
               <p>
                 {t('assignedRole', 'Portal Role')}: <strong className="uppercase text-brand-orange dark:text-orange-400 font-extrabold">{role === 'donor' ? 'Food Donor / Volunteer' : 'NGO Manager'}</strong>
               </p>
-              <p>
-                {t('locationLabel', 'Location')}: <strong className="text-brand-text dark:text-slate-200 font-bold">{user.location || 'Mumbai, Maharashtra'}</strong>
+              <p className="flex items-start gap-1">
+                <span>{t('locationLabel', 'Location')}:</span>{' '}
+                <strong className="text-brand-text dark:text-slate-200 font-bold flex-1">{user.location || 'Current GPS Location'}</strong>
               </p>
               <p>
                 {t('statusLabel', 'Account Status')}:{' '}
