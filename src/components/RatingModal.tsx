@@ -173,21 +173,21 @@ export const RatingModal: React.FC<RatingModalProps> = ({
   // Render via createPortal directly into document.body to prevent any container clipping
   const modalContent = (
     <div
-      className="fixed inset-0 z-[99999] w-screen h-screen bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn"
+      className="fixed inset-0 z-[99999] w-full h-full bg-black/80 backdrop-blur-md overflow-y-auto overscroll-contain flex flex-col md:items-center md:justify-center p-3 sm:p-6 animate-fadeIn"
       style={{ margin: 0, top: 0, left: 0 }}
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#1E293B] rounded-[28px] max-w-4xl w-full max-h-[92vh] shadow-2xl border border-orange-200/80 dark:border-slate-700 overflow-hidden my-auto grid grid-cols-1 md:grid-cols-12 transition-all relative"
+        className="bg-white dark:bg-[#1E293B] rounded-3xl md:rounded-[28px] max-w-4xl w-full shadow-2xl border border-orange-200/80 dark:border-slate-700 my-auto flex flex-col md:grid md:grid-cols-12 transition-all relative md:max-h-[90vh] md:overflow-hidden shrink-0"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ══════════════════ LEFT PANEL: Food Details & Live Score (38%) ══════════════════ */}
-        <div className="md:col-span-5 bg-gradient-to-br from-brand-deep via-orange-600 to-amber-600 text-white p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+        <div className="md:col-span-5 bg-gradient-to-br from-brand-deep via-orange-600 to-amber-600 text-white p-5 sm:p-8 flex flex-col justify-between relative overflow-hidden shrink-0">
           {/* Ambient decorative glow */}
           <div className="absolute -top-12 -right-12 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none" />
           <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-orange-400/20 rounded-full blur-2xl pointer-events-none" />
 
-          <div className="space-y-4 relative z-10">
+          <div className="space-y-3 sm:space-y-4 relative z-10">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-black tracking-wider uppercase border border-white/20">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />
               <span>Verified Impact Review</span>
@@ -204,13 +204,13 @@ export const RatingModal: React.FC<RatingModalProps> = ({
             </div>
 
             {/* Live Auto-Calculated Score Card */}
-            <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 space-y-2 mt-4">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 space-y-1.5 sm:space-y-2 mt-2 sm:mt-4">
               <span className="text-[10px] font-black uppercase tracking-wider text-amber-200 block">
                 Live Calculated Score
               </span>
               <div className="flex items-baseline gap-2">
                 <div className="flex items-center gap-1 text-amber-300">
-                  <Star className="w-7 h-7 fill-amber-300 drop-shadow" />
+                  <Star className="w-6 h-6 sm:w-7 sm:h-7 fill-amber-300 drop-shadow" />
                 </div>
                 <span className="text-3xl sm:text-4xl font-black tracking-tight">
                   {isAllRated ? overallScore : isAnyRated ? overallScore : '0.0'}
@@ -225,7 +225,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
             </div>
           </div>
 
-          <div className="pt-6 relative z-10 border-t border-white/15 text-[11px] text-orange-100 space-y-1">
+          <div className="pt-4 sm:pt-6 relative z-10 border-t border-white/15 text-[11px] text-orange-100 space-y-1 hidden sm:block">
             <div className="flex items-center gap-1.5 font-bold text-white">
               <ShieldCheck className="w-4 h-4 text-emerald-300" />
               <span>Transparent Reputation Engine</span>
@@ -237,7 +237,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
         </div>
 
         {/* ══════════════════ RIGHT PANEL: The 3 Evaluation Questions (62%) ══════════════════ */}
-        <div className="md:col-span-7 p-6 sm:p-8 flex flex-col justify-between space-y-4 bg-white dark:bg-[#1E293B] overflow-y-auto max-h-[85vh]">
+        <div className="md:col-span-7 p-5 sm:p-8 flex flex-col justify-between space-y-4 bg-white dark:bg-[#1E293B] md:overflow-y-auto md:max-h-[88vh]">
           <div className="space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-slate-800">
