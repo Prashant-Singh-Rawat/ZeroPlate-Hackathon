@@ -23,6 +23,7 @@ export const MyRequests: React.FC<MyRequestsProps> = ({
   const { user } = useAuth();
 
   const isMatchingNgo = (r: FoodRequest) => {
+    if (r.status === 'CANCELLED') return false;
     const userEmail = user?.email?.toLowerCase();
     const userId = user?.id?.toLowerCase();
     const rNgoId = r.ngoId?.toLowerCase();

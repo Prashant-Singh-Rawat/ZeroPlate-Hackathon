@@ -23,6 +23,7 @@ export const DonorRequests: React.FC<DonorRequestsProps> = ({
   const { t } = useLanguage();
 
   const isMatchingDonor = (r: FoodRequest) => {
+    if (r.status === 'CANCELLED') return false;
     const userEmail = user?.email?.toLowerCase();
     const userId = user?.id?.toLowerCase();
     const rDonorId = r.donorId?.toLowerCase();

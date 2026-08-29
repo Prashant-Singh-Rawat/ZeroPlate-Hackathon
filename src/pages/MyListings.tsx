@@ -40,6 +40,7 @@ export const MyListings: React.FC<MyListingsProps> = ({
   const [cancelReason, setCancelReason] = useState<string>('Stock out / Food exhausted');
 
   const isMatchingDonor = (d: FoodDonation) => {
+    if (d.status === 'CANCELLED') return false;
     const userEmail = user?.email?.toLowerCase();
     const userId = user?.id?.toLowerCase();
     const dDonorId = d.donorId?.toLowerCase();
@@ -73,22 +74,21 @@ export const MyListings: React.FC<MyListingsProps> = ({
     if (!cancellingDonation) return;
     const targetId = cancellingDonation.id;
 
-    // 1. Immediately update UI state
-    setDonations((prev) =>
-      prev.map((d) => (d.id === targetId ? { ...d, status: 'CANCELLED' as const } : d))
-    );
+    // 1. Immediately remove from UI state
+    setDonations((prev) => prev.filter((d) => d.id !== targetId));
 
-    // 2. Sync cancellation to Cloud and local storage
+    // 2. Sync cancellation and complete removal to Cloud and local storage
     cancelDonationInCloud(targetId, cancelReason).catch(() => {});
 
     if (onShowToast) {
-      onShowToast('info', `Listing "${cancellingDonation.foodName}" cancelled (${cancelReason}) and removed from NGO discovery.`);
+      onShowToast('info', `Listing "${cancellingDonation.foodName}" cancelled and removed from all food requests.`);
     }
 
     setCancellingDonation(null);
   };
 
   const filtered = donations.filter((item) => {
+    if (item.status === 'CANCELLED') return false;
     if (filterTab === 'available') return item.status === 'AVAILABLE' || item.status === 'PENDING_REQUEST';
     if (filterTab === 'reserved') return item.status === 'CONFIRMED' || item.status === 'RESERVED';
     if (filterTab === 'completed') return item.status === 'COMPLETED';
@@ -117,7 +117,7 @@ export const MyListings: React.FC<MyListingsProps> = ({
       {/* Tabs Filter */}
       <div className="flex items-center gap-2 border-b border-gray-200 dark:border-slate-800 overflow-x-auto pb-1">
         {[
-          { id: 'all', label: `${t('viewAll')} (${donations.length})` },
+          { id: 'all', label: `${t('viewAll')} (${donations.filter((d) => d.status !== 'CANCELLED').length})` },
           { id: 'available', label: `${t('available')} (${donations.filter((d) => d.status === 'AVAILABLE' || d.status === 'PENDING_REQUEST').length})` },
           { id: 'reserved', label: `${t('reservedPending')} (${donations.filter((d) => d.status === 'CONFIRMED' || d.status === 'RESERVED').length})` },
           { id: 'completed', label: `${t('completed')} (${donations.filter((d) => d.status === 'COMPLETED').length})` },
