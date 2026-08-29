@@ -1,302 +1,302 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FoodDonation, MatchScoreResult } from '../types';
-import {
-  MapPin,
-  Navigation,
-  Utensils,
-  Sparkles,
-  Clock,
-  ArrowRight,
-  ShieldCheck,
-  Plus,
-  Minus,
-  Locate,
-  RefreshCw,
-  Heart,
-  Building,
-  AlertTriangle,
-} from 'lucide-react';
+import { MapPin, Navigation, Utensils, Sparkles, Clock, ArrowRight, ShieldCheck, Compass, Layers, Crosshair } from 'lucide-react';
 import { MatchScore } from './MatchScore';
+import { DonorRatingBadge } from './DonorRatingBadge';
+import L from 'leaflet';
 
 interface MapViewProps {
   donations: (FoodDonation & { match?: MatchScoreResult })[];
   ngoLocation?: { name: string; latitude: number; longitude: number };
-  radiusKm?: number;
   onSelectDonation: (donation: FoodDonation & { match?: MatchScoreResult }) => void;
   onRequestDonation: (donation: FoodDonation & { match?: MatchScoreResult }) => void;
-  onRefresh?: () => void;
 }
 
 export const MapView: React.FC<MapViewProps> = ({
   donations,
-  ngoLocation = { name: 'Hope Foundation', latitude: 19.062, longitude: 72.854 },
-  radiusKm = 25,
+  ngoLocation = { name: 'My NGO Hub', latitude: 31.25, longitude: 75.7 },
   onSelectDonation,
   onRequestDonation,
-  onRefresh,
 }) => {
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markersLayerRef = useRef<L.LayerGroup | null>(null);
+
   const [selectedItem, setSelectedItem] = useState<(FoodDonation & { match?: MatchScoreResult }) | null>(
     donations[0] || null
   );
+  const [mapTileType, setMapTileType] = useState<'streets' | 'satellite'>('streets');
 
-  const [zoomLevel, setZoomLevel] = useState<number>(1);
-  const [centerOffset, setCenterOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  // Center coordinates (with fallback)
+  const centerLat = typeof ngoLocation.latitude === 'number' && !isNaN(ngoLocation.latitude) ? ngoLocation.latitude : 31.25;
+  const centerLng = typeof ngoLocation.longitude === 'number' && !isNaN(ngoLocation.longitude) ? ngoLocation.longitude : 75.7;
 
-  // Update selected item if donations list changes or selected item is no longer available
+  // Initialize Map
   useEffect(() => {
-    if (selectedItem) {
-      const stillExists = donations.find((d) => d.id === selectedItem.id);
-      if (!stillExists) {
-        setSelectedItem(donations[0] || null);
-      }
-    } else if (donations.length > 0) {
-      setSelectedItem(donations[0]);
+    if (!mapContainerRef.current) return;
+
+    if (!mapInstanceRef.current) {
+      const map = L.map(mapContainerRef.current, {
+        center: [centerLat, centerLng],
+        zoom: 13,
+        zoomControl: false,
+      });
+
+      // Add Zoom Control to Top Right
+      L.control.zoom({ position: 'topright' }).addTo(map);
+
+      // Tile Layer
+      const tileUrl =
+        mapTileType === 'satellite'
+          ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+          : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+      const tiles = L.tileLayer(tileUrl, {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(map);
+
+      // Markers Layer
+      const markersLayer = L.layerGroup().addTo(map);
+      markersLayerRef.current = markersLayer;
+      mapInstanceRef.current = map;
+
+      // Invalidate size on mount for correct full container render
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 250);
     }
-  }, [donations]);
 
-  // Handle missing location coordinates gracefully
-  if (!ngoLocation || isNaN(ngoLocation.latitude) || isNaN(ngoLocation.longitude)) {
-    return (
-      <div className="flex flex-col items-center justify-center p-10 bg-white rounded-3xl border border-amber-900/10 shadow-warm-sm text-center space-y-4">
-        <div className="p-4 bg-orange-100 rounded-full text-brand-orange">
-          <MapPin className="w-8 h-8" />
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update Tile Layer if switched
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+
+    // Remove existing tile layers
+    map.eachLayer((layer) => {
+      if (layer instanceof L.TileLayer) {
+        map.removeLayer(layer);
+      }
+    });
+
+    const tileUrl =
+      mapTileType === 'satellite'
+        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+    L.tileLayer(tileUrl, {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(map);
+  }, [mapTileType]);
+
+  // Update Markers & GPS Center
+  useEffect(() => {
+    if (!mapInstanceRef.current || !markersLayerRef.current) return;
+    const map = mapInstanceRef.current;
+    const layer = markersLayerRef.current;
+
+    layer.clearLayers();
+
+    // 1. NGO Hub Live GPS Marker
+    const ngoIcon = L.divIcon({
+      className: 'custom-ngo-pin',
+      html: `
+        <div style="position:relative; display:flex; flex-direction:column; align-items:center; transform:translate(-50%, -50%); cursor:pointer;">
+          <div style="position:absolute; width:44px; height:44px; border-radius:50%; background:rgba(16,185,129,0.35); animation:pulse 2s infinite;"></div>
+          <div style="width:34px; height:34px; border-radius:12px; background:#10B981; border:3px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,0,0,0.3); font-size:16px;">
+            🏢
+          </div>
+          <div style="margin-top:4px; padding:2px 8px; background:rgba(15,23,42,0.9); border:1px solid rgba(16,185,129,0.6); color:#34D399; font-weight:800; font-size:10px; border-radius:20px; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+            📍 ${ngoLocation.name || 'Your NGO Hub'}
+          </div>
         </div>
-        <h3 className="text-lg font-black text-brand-text">Add your location to discover nearby food donations.</h3>
-        <p className="text-xs text-brand-muted max-w-md">
-          Your saved NGO location is used to rank food donations by Haversine distance and render interactive radar markers.
-        </p>
+      `,
+      iconSize: [0, 0],
+    });
+
+    const ngoMarker = L.marker([centerLat, centerLng], { icon: ngoIcon }).addTo(layer);
+    ngoMarker.bindPopup(`
+      <div style="font-family:sans-serif; padding:4px;">
+        <strong style="color:#10B981; font-size:13px;">🏢 ${ngoLocation.name || 'Your NGO Hub'}</strong>
+        <p style="margin:4px 0 0 0; font-size:11px; color:#64748B;">GPS Telemetry: ${centerLat.toFixed(4)}° N, ${centerLng.toFixed(4)}° E</p>
       </div>
-    );
-  }
+    `);
 
-  // Dynamic Geographic Coordinate Projection centered around NGO location
-  // Bounding radius dynamically scaled by zoomLevel & search radius
-  const latSpan = (radiusKm / 111) * (1.8 / zoomLevel); // ~111km per degree lat
-  const lngSpan = (radiusKm / (111 * Math.cos((ngoLocation.latitude * Math.PI) / 180))) * (1.8 / zoomLevel);
+    // Radius Circle (5km)
+    L.circle([centerLat, centerLng], {
+      radius: 5000,
+      color: '#F97316',
+      weight: 1.5,
+      opacity: 0.4,
+      fillColor: '#F97316',
+      fillOpacity: 0.05,
+      dashArray: '4, 8',
+    }).addTo(layer);
 
-  const minLat = ngoLocation.latitude - latSpan / 2;
-  const maxLat = ngoLocation.latitude + latSpan / 2;
-  const minLng = ngoLocation.longitude - lngSpan / 2;
-  const maxLng = ngoLocation.longitude + lngSpan / 2;
+    // 2. Surplus Food Pins
+    donations.forEach((item) => {
+      const donLat = typeof item.latitude === 'number' && !isNaN(item.latitude) ? item.latitude : centerLat + 0.015;
+      const donLng = typeof item.longitude === 'number' && !isNaN(item.longitude) ? item.longitude : centerLng + 0.015;
+      const matchScore = item.match?.matchScore || 85;
 
-  const projectCoords = (lat: number, lng: number) => {
-    const rawX = ((lng - minLng) / (maxLng - minLng)) * 100 + centerOffset.x;
-    const rawY = (100 - ((lat - minLat) / (maxLat - minLat)) * 100) + centerOffset.y;
-    const x = Math.max(8, Math.min(92, rawX));
-    const y = Math.max(8, Math.min(92, rawY));
-    return { x, y };
-  };
+      const isSelected = selectedItem?.id === item.id;
 
-  const ngoPos = projectCoords(ngoLocation.latitude, ngoLocation.longitude);
+      const foodIcon = L.divIcon({
+        className: 'custom-food-pin',
+        html: `
+          <div style="display:flex; flex-direction:column; align-items:center; transform:translate(-50%, -50%); cursor:pointer;">
+            <div style="padding:4px 10px; background:${isSelected ? '#EA580C' : '#F97316'}; border:2px solid white; border-radius:20px; color:white; font-weight:800; font-size:11px; white-space:nowrap; box-shadow:0 4px 12px rgba(249,115,22,0.45); display:flex; align-items:center; gap:4px; transition:transform 0.2s;">
+              <span>🍲</span>
+              <span>${item.mealCount} Meals</span>
+              <span style="background:rgba(0,0,0,0.3); padding:1px 5px; border-radius:10px; font-size:9px; color:#FEF08A;">${matchScore}%</span>
+            </div>
+            <div style="margin-top:2px; padding:1px 6px; background:rgba(30,41,59,0.85); border-radius:4px; font-size:9px; color:#E2E8F0; font-weight:700; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+              ${item.foodName}
+            </div>
+          </div>
+        `,
+        iconSize: [0, 0],
+      });
 
-  const handleCenterOnMe = () => {
-    setZoomLevel(1);
-    setCenterOffset({ x: 0, y: 0 });
+      const marker = L.marker([donLat, donLng], { icon: foodIcon }).addTo(layer);
+
+      marker.on('click', () => {
+        setSelectedItem(item);
+        onSelectDonation(item);
+      });
+    });
+  }, [donations, centerLat, centerLng, selectedItem]);
+
+  const handleRecenterGPS = () => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo([centerLat, centerLng], 14, { duration: 1.2 });
+    }
   };
 
   return (
     <div className="space-y-4">
-      {/* Map Viewport Container */}
-      <div className="relative w-full h-[480px] bg-gradient-to-br from-slate-950 via-stone-900 to-amber-950 rounded-3xl overflow-hidden shadow-warm-lg border-2 border-orange-950/20 select-none">
-        {/* Interactive Radial Radar Background Grid */}
-        <div className="absolute inset-0 bg-[radial-gradient(#F97316_1px,transparent_1px)] [background-size:24px_24px] opacity-20" />
+      {/* Map Card */}
+      <div className="relative w-full h-[520px] rounded-3xl overflow-hidden shadow-warm-lg border border-amber-900/10 dark:border-slate-800">
+        {/* Leaflet Map Canvas */}
+        <div ref={mapContainerRef} className="w-full h-full z-10" />
 
-        {/* Dynamic Distance Radius Rings from NGO location */}
-        <div
-          className="absolute rounded-full border border-orange-500/25 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-300"
-          style={{
-            left: `${ngoPos.x}%`,
-            top: `${ngoPos.y}%`,
-            width: `${180 * zoomLevel}px`,
-            height: `${180 * zoomLevel}px`,
-          }}
-        >
-          <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold text-orange-400/70 bg-black/80 backdrop-blur-sm px-2 py-0.5 rounded-full border border-orange-500/30">
-            5 km radar
-          </span>
-        </div>
-
-        <div
-          className="absolute rounded-full border border-orange-500/15 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-300"
-          style={{
-            left: `${ngoPos.x}%`,
-            top: `${ngoPos.y}%`,
-            width: `${340 * zoomLevel}px`,
-            height: `${340 * zoomLevel}px`,
-          }}
-        >
-          <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold text-orange-400/50 bg-black/80 backdrop-blur-sm px-2 py-0.5 rounded-full border border-orange-500/20">
-            15 km radar
-          </span>
-        </div>
-
-        {/* Map Header Overlay / Radar Status */}
-        <div className="absolute top-4 left-4 z-20 bg-black/75 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/10 text-xs text-stone-300 flex items-center gap-3">
-          <div className="flex items-center gap-2 font-extrabold text-white text-xs">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>GPS Food Radar</span>
+        {/* Floating Controls Bar (Top Left) */}
+        <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 pointer-events-auto">
+          {/* Status Badge */}
+          <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-gray-200/80 dark:border-slate-700 text-xs shadow-md space-y-1">
+            <div className="font-black text-gray-900 dark:text-slate-100 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Live GPS Surplus Radar</span>
+            </div>
+            <div className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">
+              {donations.length} Active Donation Pin{donations.length !== 1 ? 's' : ''} on Map
+            </div>
           </div>
-          <span className="text-[11px] text-amber-300 font-semibold border-l border-white/20 pl-3">
-            {donations.length} Available Donation{donations.length === 1 ? '' : 's'}
-          </span>
-        </div>
 
-        {/* Map Controls (+ / - / Center / Refresh) */}
-        <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
-          <button
-            onClick={() => setZoomLevel((z) => Math.min(2.5, z + 0.25))}
-            className="p-2 bg-black/75 hover:bg-black/90 text-white rounded-xl border border-white/20 shadow-md backdrop-blur-md transition-all active:scale-95"
-            title="Zoom In"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setZoomLevel((z) => Math.max(0.6, z - 0.25))}
-            className="p-2 bg-black/75 hover:bg-black/90 text-white rounded-xl border border-white/20 shadow-md backdrop-blur-md transition-all active:scale-95"
-            title="Zoom Out"
-          >
-            <Minus className="w-4 h-4" />
-          </button>
-          <button
-            onClick={handleCenterOnMe}
-            className="p-2 bg-brand-orange hover:bg-brand-deep text-white rounded-xl shadow-md border border-orange-400 transition-all active:scale-95"
-            title="Center on NGO Location"
-          >
-            <Locate className="w-4 h-4" />
-          </button>
-          {onRefresh && (
+          {/* Quick Action Buttons */}
+          <div className="flex items-center gap-2">
             <button
-              onClick={onRefresh}
-              className="p-2 bg-black/75 hover:bg-black/90 text-white rounded-xl border border-white/20 shadow-md backdrop-blur-md transition-all active:scale-95"
-              title="Refresh Listings"
+              type="button"
+              onClick={handleRecenterGPS}
+              className="px-3 py-1.5 bg-white/95 dark:bg-slate-800/95 hover:bg-orange-50 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-xl border border-gray-200 dark:border-slate-700 font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
             >
-              <RefreshCw className="w-4 h-4" />
+              <Crosshair className="w-3.5 h-3.5 text-brand-orange" />
+              <span>Center GPS</span>
             </button>
-          )}
-        </div>
 
-        {/* NGO Current Location Marker (Hub / Reference Point) */}
-        <div
-          className="absolute -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center cursor-pointer group"
-          style={{ left: `${ngoPos.x}%`, top: `${ngoPos.y}%` }}
-          onClick={handleCenterOnMe}
-        >
-          <div className="relative">
-            <span className="absolute -inset-2 rounded-full bg-emerald-500/40 animate-ping" />
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-lg border-2 border-white">
-              <Heart className="w-5 h-5 fill-white" />
-            </div>
-          </div>
-          <div className="mt-1.5 px-3 py-1 bg-black/85 backdrop-blur-md rounded-full border border-emerald-400/50 text-emerald-300 font-extrabold text-[10px] whitespace-nowrap shadow-lg flex items-center gap-1">
-            <span>❤️ You ({ngoLocation.name})</span>
-          </div>
-        </div>
-
-        {/* Real Food Donor Markers */}
-        {donations.map((item) => {
-          const pos = projectCoords(item.latitude, item.longitude);
-          const isSelected = selectedItem?.id === item.id;
-          const matchScore = item.match?.matchScore || 85;
-
-          const deadlineDate = new Date(item.pickupDeadline);
-          const diffHours = (deadlineDate.getTime() - Date.now()) / (1000 * 60 * 60);
-          const isUrgent = diffHours <= 3;
-
-          return (
-            <div
-              key={item.id}
-              onClick={() => setSelectedItem(item)}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center cursor-pointer transition-all duration-200 ${
-                isSelected ? 'scale-110 z-30' : 'hover:scale-105'
-              }`}
-              style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+            <button
+              type="button"
+              onClick={() => setMapTileType(mapTileType === 'streets' ? 'satellite' : 'streets')}
+              className="px-3 py-1.5 bg-white/95 dark:bg-slate-800/95 hover:bg-orange-50 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-xl border border-gray-200 dark:border-slate-700 font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
             >
-              <div className="relative">
-                {isUrgent && (
-                  <span className="absolute -top-1 -right-1 flex h-3 w-3 z-10">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                  </span>
-                )}
-                <div
-                  className={`px-3 py-1.5 rounded-2xl font-black text-xs text-white shadow-warm-md flex items-center gap-1.5 border-2 transition-all ${
-                    isSelected
-                      ? 'bg-brand-orange border-white ring-4 ring-orange-500/40 shadow-warm-lg'
-                      : 'bg-stone-800 hover:bg-stone-700 border-amber-400/60'
-                  }`}
-                >
-                  <Utensils className="w-3.5 h-3.5 text-orange-300" />
-                  <span>{item.mealCount} Meals</span>
-                  <span className="text-[10px] bg-black/50 px-1.5 py-0.5 rounded-full text-amber-300 font-extrabold">
-                    {matchScore}%
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-1 px-2.5 py-0.5 bg-black/80 backdrop-blur-sm rounded-full text-[10px] font-bold text-stone-200 truncate max-w-[140px] border border-white/10 shadow-sm flex items-center gap-1">
-                <span>🍽️ {item.donorName}</span>
-              </div>
-            </div>
-          );
-        })}
+              <Layers className="w-3.5 h-3.5 text-brand-orange" />
+              <span>{mapTileType === 'streets' ? 'Satellite' : 'Streets'}</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Map Interactive Detail / Inspection Popup Card */}
+      {/* Selected Food Inspection Card */}
       {selectedItem && (
-        <div className="bg-white rounded-3xl border-2 border-brand-orange p-6 shadow-warm-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6 animate-status-pop">
+        <div className="bg-white dark:bg-[#1E293B] rounded-3xl border-2 border-brand-orange p-6 shadow-warm-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6 animate-status-pop transition-colors">
           <div className="flex items-start gap-4 flex-1">
             <img
-              src={selectedItem.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'}
+              src={
+                selectedItem.imageUrl ||
+                'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'
+              }
               alt={selectedItem.foodName}
-              className="w-24 h-24 rounded-2xl object-cover shrink-0 border border-orange-200 shadow-sm"
+              className="w-20 h-20 rounded-2xl object-cover shrink-0 border border-orange-200 dark:border-slate-700"
             />
             <div className="space-y-1.5 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                    selectedItem.foodType === 'veg' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                    selectedItem.foodType === 'veg'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                      : 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
                   }`}
                 >
-                  {selectedItem.foodType === 'veg' ? 'VEG' : 'NON-VEG'}
+                  {selectedItem.foodType}
                 </span>
-                <span className="text-xs text-brand-muted font-bold">
-                  {selectedItem.donorType || 'Restaurant'} • {selectedItem.donorName}
+                <span className="text-xs font-bold text-brand-muted dark:text-slate-400">
+                  {selectedItem.category || selectedItem.foodCategory}
                 </span>
-                {selectedItem.match && (
-                  <MatchScore score={selectedItem.match.matchScore} size="sm" />
-                )}
-              </div>
-
-              <div className="flex items-baseline justify-between gap-2">
-                <h3 className="text-xl font-black text-brand-text">{selectedItem.foodName}</h3>
-                <span className="text-base font-black text-brand-orange shrink-0">{selectedItem.mealCount} Meals</span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-brand-muted">
-                <span>📍 {selectedItem.pickupLocation} ({selectedItem.match ? `${selectedItem.match.distanceKm} km away` : 'Nearby'})</span>
-                <span className="text-emerald-700 font-extrabold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  🟢 Available
+                <span className="text-xs font-bold text-brand-orange dark:text-orange-400">
+                  • {selectedItem.mealCount} Meals Available
                 </span>
               </div>
 
-              {selectedItem.match?.explanation && (
-                <p className="text-xs bg-amber-50 text-amber-950 p-2.5 rounded-xl border border-amber-200/80 font-medium leading-relaxed">
-                  {selectedItem.match.explanation}
-                </p>
-              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="text-base sm:text-lg font-black text-brand-text dark:text-slate-100">
+                  {selectedItem.foodName}
+                </h4>
+                <DonorRatingBadge donorId={selectedItem.donorId} size="sm" showDetails />
+              </div>
+
+              <div className="flex items-center gap-4 text-xs text-brand-muted dark:text-slate-400 flex-wrap">
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-brand-orange" />
+                  <span>{selectedItem.originAddress || selectedItem.pickupAddress || selectedItem.pickupLocation || 'Pickup Location'}</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-amber-500" />
+                  <span>
+                    Pickup Deadline:{' '}
+                    {new Date(selectedItem.pickupDeadline).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full md:w-auto shrink-0">
-            <button
-              onClick={() => onSelectDonation(selectedItem)}
-              className="w-full sm:w-auto px-5 py-3 bg-brand-light hover:bg-orange-100 text-brand-deep font-extrabold text-xs rounded-xl border border-orange-200 transition-all shadow-warm-sm"
-            >
-              View Details
-            </button>
+          <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-3 border-t md:border-t-0 pt-3 md:pt-0 border-gray-100 dark:border-slate-800">
+            {selectedItem.match && (
+              <MatchScore
+                score={selectedItem.match.matchScore}
+                breakdown={{
+                  distanceScore: selectedItem.match.distanceScore,
+                  mealScore: selectedItem.match.mealQuantityScore,
+                  urgencyScore: selectedItem.match.urgencyScore,
+                }}
+              />
+            )}
+
             <button
               onClick={() => onRequestDonation(selectedItem)}
-              className="w-full sm:w-auto px-6 py-3 bg-brand-orange hover:bg-brand-deep text-white font-black text-xs rounded-xl shadow-warm-md transition-all flex items-center justify-center gap-1.5 active:scale-95"
+              className="px-6 py-2.5 bg-brand-orange hover:bg-brand-deep text-white text-xs font-black rounded-xl shadow-warm-sm hover:shadow-warm-md transition-all flex items-center gap-2 active:scale-95 cursor-pointer shrink-0"
             >
               <span>Request Food</span>
               <ArrowRight className="w-4 h-4" />
@@ -307,4 +307,3 @@ export const MapView: React.FC<MapViewProps> = ({
     </div>
   );
 };
-

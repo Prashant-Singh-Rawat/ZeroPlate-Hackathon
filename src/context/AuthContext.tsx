@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole, SubscriptionPlan } from '../types';
 import { GoogleUserPayload } from '../services/auth/googleAuth';
+import { getCurrentGPSLocation, GPSLocationResult } from '../services/gpsLocation';
 
 interface AuthContextType {
   user: User | null;
@@ -15,6 +16,7 @@ interface AuthContextType {
   onboardDonor: (data: any) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateUserPlan: (plan: SubscriptionPlan) => void;
+  refreshGPSLocation: () => Promise<string>;
 }
 
 const DEFAULT_DONOR: User = {
@@ -25,7 +27,7 @@ const DEFAULT_DONOR: User = {
   phone: '+91 98200 12345',
   donorType: 'Restaurant',
   subscriptionPlan: 'free',
-  location: 'Bandra West, Mumbai',
+  location: 'Live GPS Location (Detecting...)',
   latitude: 19.076,
   longitude: 72.8777,
   emailVerified: true,
@@ -41,7 +43,7 @@ const DEFAULT_NGO: User = {
   phone: '+91 98111 88888',
   organizationType: 'NGO',
   subscriptionPlan: 'premium',
-  location: 'Bandra East, Mumbai',
+  location: 'Live GPS Location (Detecting...)',
   latitude: 19.062,
   longitude: 72.854,
   emailVerified: true,
@@ -54,7 +56,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('zeroplate_user');
-    return saved ? JSON.parse(saved) : DEFAULT_DONOR;
+    if (!saved) return null;
+    try {
+      const u = JSON.parse(saved);
+      if (u.location && (u.location.includes('Bandra West') || u.location.includes('Bandra East'))) {
+        u.location = 'Live GPS Location (Updating...)';
+      }
+      return u;
+    } catch (e) {
+      return null;
+    }
   });
 
   useEffect(() => {
@@ -65,7 +76,92 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user]);
 
+  // Silently detect and update live GPS location on startup
+  useEffect(() => {
+    getCurrentGPSLocation()
+      .then((gps) => {
+        if (gps && gps.address) {
+          setUser((prev) => {
+            if (!prev) return null;
+            const updated = {
+              ...prev,
+              location: gps.address,
+              latitude: gps.latitude,
+              longitude: gps.longitude,
+            };
+            localStorage.setItem('zeroplate_user', JSON.stringify(updated));
+            return updated;
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const refreshGPSLocation = async (): Promise<string> => {
+    try {
+      const gps = await getCurrentGPSLocation();
+      if (gps && gps.address) {
+        setUser((prev) => {
+          if (!prev) return null;
+          const updated = {
+            ...prev,
+            location: gps.address,
+            latitude: gps.latitude,
+            longitude: gps.longitude,
+          };
+          localStorage.setItem('zeroplate_user', JSON.stringify(updated));
+          return updated;
+        });
+        return gps.address;
+      }
+    } catch (e) {
+      console.warn('Refresh GPS error', e);
+    }
+    return '';
+  };
+
+  // Handle incoming Google OAuth redirect callback
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token=')) {
+      try {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get('access_token');
+        const roleParam = (params.get('state') as UserRole) || 'donor';
+
+        if (accessToken) {
+          fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          })
+            .then((r) => r.json())
+            .then((userInfo) => {
+              if (userInfo && userInfo.email) {
+                loginWithGoogle(roleParam, {
+                  email: userInfo.email,
+                  name: userInfo.name || userInfo.email.split('@')[0],
+                  avatar: userInfo.picture,
+                  token: accessToken,
+                });
+              }
+            })
+            .catch((err) => console.warn('OAuth redirect profile fetch error', err))
+            .finally(() => {
+              window.history.replaceState(null, '', window.location.pathname);
+            });
+        }
+      } catch (err) {
+        console.warn('Error parsing Google OAuth redirect', err);
+      }
+    }
+  }, []);
+
   const login = async (email: string, selectedRole?: UserRole): Promise<{ success: boolean; error?: string }> => {
+    let liveGps: GPSLocationResult | null = null;
+    try {
+      liveGps = await getCurrentGPSLocation();
+    } catch (e) {}
+
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -74,13 +170,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       const data = await res.json();
       if (res.ok) {
-        setUser(data.user);
+        const u = data.user;
+        if (liveGps && liveGps.address) {
+          u.location = liveGps.address;
+          u.latitude = liveGps.latitude;
+          u.longitude = liveGps.longitude;
+        }
+        setUser(u);
         return { success: true };
       }
       return { success: false, error: data.error || 'Login failed.' };
     } catch (e) {
       const fallbackUser = selectedRole === 'ngo' || email.toLowerCase().includes('ngo') ? DEFAULT_NGO : DEFAULT_DONOR;
-      setUser(fallbackUser);
+      const u = {
+        ...fallbackUser,
+        email,
+        name: email.split('@')[0],
+        role: selectedRole || fallbackUser.role,
+        location: liveGps?.address || 'Current Location (GPS Active)',
+        latitude: liveGps?.latitude || 19.076,
+        longitude: liveGps?.longitude || 72.8777,
+      };
+      setUser(u);
       return { success: true };
     }
   };
@@ -89,6 +200,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     selectedRole: UserRole,
     customData?: { token?: string; payload?: GoogleUserPayload; email?: string; name?: string; avatar?: string }
   ): Promise<boolean> => {
+    let liveGps: GPSLocationResult | null = null;
+    try {
+      liveGps = await getCurrentGPSLocation();
+    } catch (e) {}
+
     try {
       const payloadBody: any = { role: selectedRole };
       if (customData?.token) payloadBody.googleToken = customData.token;
@@ -112,6 +228,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const data = await res.json();
         if (data.user) {
           data.user.role = selectedRole;
+          if (liveGps && liveGps.address) {
+            data.user.location = liveGps.address;
+            data.user.latitude = liveGps.latitude;
+            data.user.longitude = liveGps.longitude;
+          }
         }
         setUser(data.user);
         return true;
@@ -126,6 +247,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: customData?.name || customData?.payload?.name || (selectedRole === 'ngo' ? 'Hope Foundation' : 'SpiceVilla Restaurant'),
       role: selectedRole,
       emailVerified: true,
+      location: liveGps?.address || 'Current Location (GPS Active)',
+      latitude: liveGps?.latitude || 19.076,
+      longitude: liveGps?.longitude || 72.8777,
     };
     setUser(fallbackUser);
     return true;
@@ -149,6 +273,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const verifyGmailOtp = async (email: string, code: string, selectedRole: UserRole): Promise<{ success: boolean; error?: string }> => {
+    let liveGps: GPSLocationResult | null = null;
+    try {
+      liveGps = await getCurrentGPSLocation();
+    } catch (e) {}
+
     try {
       const res = await fetch('/api/auth/verify-otp', {
         method: 'POST',
@@ -157,7 +286,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       const data = await res.json();
       if (res.ok) {
-        setUser(data.user);
+        const u = data.user;
+        if (liveGps && liveGps.address) {
+          u.location = liveGps.address;
+          u.latitude = liveGps.latitude;
+          u.longitude = liveGps.longitude;
+        }
+        setUser(u);
         return { success: true };
       }
       return { success: false, error: data.error || 'Verification failed.' };
@@ -169,10 +304,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         role: selectedRole,
         subscriptionPlan: 'free',
-        latitude: 19.076,
-        longitude: 72.8777,
+        location: liveGps?.address || 'Current Location (GPS Active)',
+        latitude: liveGps?.latitude || 19.076,
+        longitude: liveGps?.longitude || 72.8777,
         emailVerified: true,
-        onboarded: false,
+        onboarded: true,
         createdAt: new Date().toISOString(),
       };
       setUser(newUser);
@@ -187,11 +323,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     donorType?: string,
     location?: string
   ): Promise<{ success: boolean; error?: string }> => {
+    let liveGps: GPSLocationResult | null = null;
+    try {
+      liveGps = await getCurrentGPSLocation();
+    } catch (e) {}
+
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, role, donorType, location }),
+        body: JSON.stringify({
+          name,
+          email,
+          role,
+          donorType,
+          location: location || liveGps?.address,
+          latitude: liveGps?.latitude,
+          longitude: liveGps?.longitude,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -207,11 +356,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role,
         donorType: role === 'donor' ? (donorType as any) || 'Restaurant' : undefined,
         subscriptionPlan: 'free',
-        location: location || 'Mumbai Central',
-        latitude: 19.076,
-        longitude: 72.8777,
+        location: location || liveGps?.address || 'Current Location (GPS Active)',
+        latitude: liveGps?.latitude || 19.076,
+        longitude: liveGps?.longitude || 72.8777,
         emailVerified: true,
-        onboarded: false,
+        onboarded: true,
         createdAt: new Date().toISOString(),
       };
       setUser(newUser);
@@ -287,6 +436,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         onboardDonor,
         logout,
         updateUserPlan,
+        refreshGPSLocation,
       }}
     >
       {children}

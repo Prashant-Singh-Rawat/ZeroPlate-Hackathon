@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utensils, LucideIcon } from 'lucide-react';
+import { PackageOpen, LucideIcon } from 'lucide-react';
 
 interface EmptyStateProps {
   title: string;
@@ -14,39 +14,23 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   description,
   actionLabel,
   onAction,
-  icon: Icon,
+  icon: Icon = PackageOpen,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center p-12 text-center bg-white rounded-3xl border border-amber-900/10 shadow-warm-sm my-6 space-y-4">
-      {/* 2D ZeroPlate Plate & Utensils Illustration */}
-      <div className="relative w-24 h-24 flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-100 rounded-full border-2 border-orange-200 shadow-inner">
-        <div className="w-16 h-16 rounded-full border-2 border-dashed border-orange-300 flex items-center justify-center bg-white/80 shadow-sm">
-          {Icon ? (
-            <Icon className="w-8 h-8 text-brand-orange" />
-          ) : (
-            <Utensils className="w-8 h-8 text-brand-orange" />
-          )}
-        </div>
-        <span className="absolute -top-1 -right-1 flex h-4 w-4">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-4 w-4 bg-brand-orange"></span>
-        </span>
+    <div className="flex flex-col items-center justify-center p-10 text-center bg-brand-cream/60 dark:bg-slate-800/40 rounded-3xl border border-dashed border-orange-200 dark:border-slate-700 my-4 transition-colors">
+      <div className="p-4 bg-brand-light dark:bg-orange-950/50 rounded-full text-brand-orange dark:text-orange-400 mb-4 shadow-warm-sm">
+        <Icon className="w-8 h-8" />
       </div>
-
-      <div className="max-w-md space-y-1.5">
-        <h3 className="text-xl font-black text-brand-text tracking-tight">{title}</h3>
-        <p className="text-xs font-medium text-brand-muted leading-relaxed">{description}</p>
-      </div>
-
+      <h3 className="text-lg font-bold text-brand-text dark:text-slate-100 mb-1">{title}</h3>
+      <p className="text-sm text-brand-muted dark:text-slate-400 max-w-md mb-5">{description}</p>
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          className="px-6 py-2.5 bg-brand-orange hover:bg-brand-deep text-white font-extrabold text-xs rounded-xl shadow-warm-md hover:shadow-warm-lg transition-all active:scale-95 flex items-center gap-2 mt-2"
+          className="px-5 py-2.5 bg-brand-orange hover:bg-brand-deep text-white font-semibold text-sm rounded-xl shadow-warm-sm hover:shadow-warm-md transition-all active:scale-95"
         >
-          <span>{actionLabel}</span>
+          {actionLabel}
         </button>
       )}
     </div>
   );
 };
-

@@ -2,15 +2,20 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Utensils,
-  MapPin,
   Clock,
-  PackageCheck,
+  MapPin,
   CheckCircle2,
   ArrowRight,
-  Sparkles,
+  AlertCircle,
   Building2,
   Info,
+  Navigation,
+  Compass,
+  Loader2,
+  Radio,
 } from 'lucide-react';
+import { publishDonationToCloud } from '../services/cloudSync';
+import { getCurrentGPSLocation } from '../services/gpsLocation';
 
 interface AddFoodProps {
   onSuccessPublished: () => void;
@@ -20,14 +25,14 @@ interface AddFoodProps {
 export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToast }) => {
   const { user } = useAuth();
 
-  // Section 1: Food Information
-  const [foodName, setFoodName] = useState('Veg Hyderabadi Biryani');
+  // Section 1: Food Information — Initial blank for typing
+  const [foodName, setFoodName] = useState('');
   const [foodCategory, setFoodCategory] = useState('Main Course');
-  const [selectedSpecs, setSelectedSpecs] = useState<string[]>(['Rice + Dal', 'Biryani']);
+  const [selectedSpecs, setSelectedSpecs] = useState<string[]>([]);
   const [foodType, setFoodType] = useState<'veg' | 'non-veg'>('veg');
-  const [mealCount, setMealCount] = useState<number>(80);
-  const [quantity, setQuantity] = useState('40 kg');
-  const [description, setDescription] = useState('Freshly prepared vegetarian biryani suitable for immediate distribution.');
+  const [mealCount, setMealCount] = useState<string>('');
+  const [quantity, setQuantity] = useState('');
+  const [description, setDescription] = useState('');
   const [packagingStatus, setPackagingStatus] = useState<'Already packed' | 'Needs packaging' | 'Not applicable'>('Already packed');
 
   // Section 2: Availability
@@ -35,9 +40,31 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
   const defaultDeadline = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString().slice(0, 16);
   const [pickupDeadline, setPickupDeadline] = useState(defaultDeadline);
 
-  // Saved Donor Origin
+  // Saved Donor Origin & GPS Tracking
   const [isEditingOrigin, setIsEditingOrigin] = useState(false);
-  const [savedOriginAddress, setSavedOriginAddress] = useState(user?.location || 'Shop 4, Hill Road, Bandra West, Mumbai 400050');
+  const [savedOriginAddress, setSavedOriginAddress] = useState(user?.location || 'Bandra West, Mumbai');
+  const [originLat, setOriginLat] = useState<number>(user?.latitude || 19.076);
+  const [originLng, setOriginLng] = useState<number>(user?.longitude || 72.8777);
+  const [isFetchingGPS, setIsFetchingGPS] = useState(false);
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
+  const [isGpsActive, setIsGpsActive] = useState(false);
+
+  const handleDetectGPS = async () => {
+    setIsFetchingGPS(true);
+    try {
+      const loc = await getCurrentGPSLocation();
+      setSavedOriginAddress(loc.address);
+      setOriginLat(loc.latitude);
+      setOriginLng(loc.longitude);
+      setGpsAccuracy(loc.accuracy);
+      setIsGpsActive(true);
+      onShowToast('success', `GPS Location acquired: ${loc.address} (±${loc.accuracy}m accuracy)`);
+    } catch (err: any) {
+      onShowToast('error', err.message || 'Failed to get GPS location.');
+    } finally {
+      setIsFetchingGPS(false);
+    }
+  };
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,8 +95,8 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!foodName.trim()) errs.foodName = 'Food name is required.';
-    if (!mealCount || Number(mealCount) <= 0) errs.mealCount = 'Number of meals must be greater than 0.';
-    if (selectedSpecs.length === 0) errs.specs = 'Select at least one food specification.';
+    if (!mealCount || Number(mealCount) <= 0) errs.mealCount = 'Please enter a valid number of meals (> 0).';
+    if (selectedSpecs.length === 0) errs.specs = 'Select at least one food component tag.';
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -80,66 +107,67 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
     if (!validate()) return;
 
     setIsSubmitting(true);
-    try {
-      const payload = {
-        donorId: user?.id || 'donor_spicevilla',
-        donorName: user?.name || 'SpiceVilla Restaurant',
-        donorType: user?.donorType || 'Restaurant',
-        foodName,
-        foodCategory,
-        category: foodCategory,
-        foodSpecifications: selectedSpecs,
-        foodType,
-        mealCount: Number(mealCount),
-        quantity: quantity || `${mealCount} meals`,
-        description,
-        packagingStatus,
-        latitude: user?.latitude || 19.076,
-        longitude: user?.longitude || 72.8777,
-        pickupLocation: savedOriginAddress,
-        pickupAddress: savedOriginAddress,
-        originAddress: savedOriginAddress,
-        availableFrom: availableFrom === 'Now' ? new Date().toISOString() : availableFrom,
-        pickupDeadline: new Date(pickupDeadline).toISOString(),
-        packagingAvailable: packagingStatus === 'Already packed',
-      };
+    const donorIdentifier = user?.email || user?.id || 'donor_spicevilla';
+    const donorDisplayName = user?.name || (user?.email ? user.email.split('@')[0] : 'Food Donor');
 
-      const res = await fetch('/api/donations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+    const payload = {
+      id: `don_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      donorId: donorIdentifier,
+      donorName: donorDisplayName,
+      donorType: user?.donorType || 'Restaurant',
+      foodName: foodName.trim(),
+      foodCategory,
+      category: foodCategory,
+      foodSpecifications: selectedSpecs.length > 0 ? selectedSpecs : ['Cooked Food'],
+      foodType,
+      mealCount: Number(mealCount),
+      quantity: quantity.trim() || `${mealCount} meals`,
+      description: description.trim() || 'Fresh surplus food ready for NGO rescue.',
+      packagingStatus,
+      latitude: originLat,
+      longitude: originLng,
+      pickupLocation: savedOriginAddress,
+      pickupAddress: savedOriginAddress,
+      originAddress: savedOriginAddress,
+      availableFrom: availableFrom === 'Now' ? new Date().toISOString() : availableFrom,
+      pickupDeadline: new Date(pickupDeadline).toISOString(),
+      status: 'AVAILABLE' as const,
+      packagingAvailable: packagingStatus === 'Already packed',
+      createdAt: new Date().toISOString(),
+    };
 
-      if (res.ok) {
-        onShowToast('success', 'Your food donation is now available to nearby NGOs! Matching engine is active.');
-        onSuccessPublished();
-      } else {
-        const data = await res.json();
-        onShowToast('error', data.error || 'Failed to publish donation.');
-      }
-    } catch (e) {
-      onShowToast('success', 'Food donation published successfully!');
-      onSuccessPublished();
-    } finally {
+    // 1. Immediately persist locally and push to multi-device cloud database
+    publishDonationToCloud(payload as any);
+
+    // 2. Sync to backend API in background
+    fetch('/api/donations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+
+    setTimeout(() => {
       setIsSubmitting(false);
-    }
+      onShowToast('success', 'Your food donation has been published! Nearby NGOs across all devices will now receive alerts.');
+      onSuccessPublished();
+    }, 350);
   };
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="bg-white rounded-[32px] border border-amber-900/5 shadow-warm-lg p-6 sm:p-9 space-y-8 animate-status-pop">
+      <div className="bg-white dark:bg-[#1E293B] rounded-[32px] border border-amber-900/5 dark:border-slate-800 shadow-warm-lg p-6 sm:p-9 space-y-8 animate-status-pop transition-colors">
         {/* Header */}
-        <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
-          <div className="w-12 h-12 rounded-2xl bg-brand-orange text-white flex items-center justify-center font-black shadow-warm-sm">
+        <div className="flex items-center gap-4 pb-4 border-b border-gray-100 dark:border-slate-800">
+          <div className="w-12 h-12 rounded-2xl bg-brand-orange text-white flex items-center justify-center font-black shadow-warm-sm shrink-0">
             <Utensils className="w-6 h-6" />
           </div>
           <div>
-            <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-light text-brand-deep border border-orange-200">
+            <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-light dark:bg-orange-950/40 text-brand-deep dark:text-orange-300 border border-orange-200 dark:border-orange-800">
               Food Donor Portal
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-brand-text mt-1">Publish Surplus Food</h1>
-            <p className="text-xs text-brand-muted mt-0.5">
-              Describe what food you have. Nearby NGOs will search and request your donation.
+            <h1 className="text-2xl sm:text-3xl font-black text-brand-text dark:text-slate-100 mt-1">Publish Surplus Food</h1>
+            <p className="text-xs text-brand-muted dark:text-slate-400 mt-0.5">
+              Enter your food details below. Nearby NGOs will search and request your donation.
             </p>
           </div>
         </div>
@@ -147,35 +175,35 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* SECTION 1: FOOD INFORMATION */}
           <div className="space-y-4">
-            <h3 className="text-xs font-black text-brand-orange uppercase tracking-wider">
+            <h3 className="text-xs font-black text-brand-orange dark:text-orange-400 uppercase tracking-wider">
               1. Food Information
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-brand-text uppercase mb-1">
+                <label className="block text-xs font-bold text-brand-text dark:text-slate-200 uppercase mb-1">
                   Food Name *
                 </label>
                 <input
                   type="text"
                   value={foodName}
                   onChange={(e) => setFoodName(e.target.value)}
-                  placeholder="e.g. Veg Hyderabadi Biryani"
-                  className={`w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-xs font-medium focus:bg-white focus:outline-none ${
-                    errors.foodName ? 'border-red-500' : 'border-gray-200 focus:border-brand-orange'
+                  placeholder="Type food name (e.g. Veg Pulao, Paneer Masala)"
+                  className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800/80 border rounded-xl text-xs font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none ${
+                    errors.foodName ? 'border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-brand-orange dark:focus:border-orange-400'
                   }`}
                 />
                 {errors.foodName && <p className="text-[11px] text-red-500 mt-1">{errors.foodName}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-brand-text uppercase mb-1">
+                <label className="block text-xs font-bold text-brand-text dark:text-slate-200 uppercase mb-1">
                   Food Category
                 </label>
                 <select
                   value={foodCategory}
                   onChange={(e) => setFoodCategory(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-brand-text focus:outline-none"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
                 >
                   <option value="Main Course">Main Course</option>
                   <option value="Rice">Rice</option>
@@ -194,7 +222,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
 
             {/* Food Specifications (Multi-select) */}
             <div>
-              <label className="block text-xs font-bold text-brand-text uppercase mb-2">
+              <label className="block text-xs font-bold text-brand-text dark:text-slate-200 uppercase mb-2">
                 Food Specifications / Components (Multi-Select) *
               </label>
               <div className="flex flex-wrap gap-2">
@@ -208,7 +236,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
                       className={`px-3 py-1.5 rounded-xl text-xs font-extrabold border transition-all ${
                         isSelected
                           ? 'bg-brand-orange text-white border-brand-orange shadow-warm-sm'
-                          : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-orange-200'
+                          : 'bg-gray-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-gray-200 dark:border-slate-700 hover:border-orange-300'
                       }`}
                     >
                       {spec}
@@ -221,7 +249,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-bold text-brand-text uppercase mb-1">
+                <label className="block text-xs font-bold text-brand-text dark:text-slate-200 uppercase mb-1">
                   Dietary Type
                 </label>
                 <div className="flex gap-2">
@@ -231,7 +259,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
                     className={`flex-1 py-2 rounded-xl text-xs font-black border transition-all ${
                       foodType === 'veg'
                         ? 'bg-emerald-600 text-white border-emerald-700 shadow-sm'
-                        : 'bg-gray-50 text-gray-700 border-gray-200'
+                        : 'bg-gray-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-gray-200 dark:border-slate-700'
                     }`}
                   >
                     VEG
@@ -242,7 +270,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
                     className={`flex-1 py-2 rounded-xl text-xs font-black border transition-all ${
                       foodType === 'non-veg'
                         ? 'bg-red-600 text-white border-red-700 shadow-sm'
-                        : 'bg-gray-50 text-gray-700 border-gray-200'
+                        : 'bg-gray-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-gray-200 dark:border-slate-700'
                     }`}
                   >
                     NON-VEG
@@ -251,56 +279,57 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-brand-text uppercase mb-1">
+                <label className="block text-xs font-bold text-brand-text dark:text-slate-200 uppercase mb-1">
                   Number of Meals *
                 </label>
                 <input
                   type="number"
                   value={mealCount}
-                  onChange={(e) => setMealCount(Number(e.target.value))}
+                  onChange={(e) => setMealCount(e.target.value)}
+                  placeholder="e.g. 50"
                   min={1}
-                  className={`w-full px-4 py-2 bg-gray-50 border rounded-xl text-xs font-black focus:bg-white focus:outline-none ${
-                    errors.mealCount ? 'border-red-500' : 'border-gray-200 focus:border-brand-orange'
+                  className={`w-full px-4 py-2 bg-gray-50 dark:bg-slate-800/80 border rounded-xl text-xs font-black text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none ${
+                    errors.mealCount ? 'border-red-500' : 'border-gray-200 dark:border-slate-700 focus:border-brand-orange'
                   }`}
                 />
                 {errors.mealCount && <p className="text-[11px] text-red-500 mt-1">{errors.mealCount}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-brand-text uppercase mb-1">
+                <label className="block text-xs font-bold text-brand-text dark:text-slate-200 uppercase mb-1">
                   Quantity / Weight
                 </label>
                 <input
                   type="text"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  placeholder="e.g. 40 kg"
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none"
+                  placeholder="e.g. 25 kg / 4 boxes"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-brand-text uppercase mb-1">
+              <label className="block text-xs font-bold text-brand-text dark:text-slate-200 uppercase mb-1">
                 Description
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
-                placeholder="Freshly prepared vegetarian biryani suitable for immediate distribution."
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none"
+                placeholder="Add preparation details, allergen info, or collection notes..."
+                className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-brand-text uppercase mb-1">
+              <label className="block text-xs font-bold text-brand-text dark:text-slate-200 uppercase mb-1">
                 Packaging Status
               </label>
               <select
                 value={packagingStatus}
                 onChange={(e) => setPackagingStatus(e.target.value as any)}
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-brand-text focus:outline-none"
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
               >
                 <option value="Already packed">Already packed in containers</option>
                 <option value="Needs packaging">Needs packaging / bulk dispatch</option>
@@ -309,30 +338,30 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
             </div>
           </div>
 
-          <hr className="border-gray-100" />
+          <hr className="border-gray-100 dark:border-slate-800" />
 
           {/* SECTION 2: AVAILABILITY & SAVED ORIGIN */}
           <div className="space-y-4">
-            <h3 className="text-xs font-black text-brand-orange uppercase tracking-wider">
+            <h3 className="text-xs font-black text-brand-orange dark:text-orange-400 uppercase tracking-wider">
               2. Availability & Origin Location
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-brand-text uppercase mb-1">
+                <label className="block text-xs font-bold text-brand-text dark:text-slate-200 uppercase mb-1">
                   Available From
                 </label>
                 <input
                   type="text"
                   value={availableFrom}
                   onChange={(e) => setAvailableFrom(e.target.value)}
-                  placeholder="e.g. Now"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-brand-text focus:outline-none"
+                  placeholder="e.g. Now, or 8:00 PM"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-brand-text uppercase mb-1">
+                <label className="block text-xs font-bold text-brand-text dark:text-slate-200 uppercase mb-1">
                   Donation / Pickup Deadline *
                 </label>
                 <div className="relative">
@@ -341,51 +370,88 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
                     type="datetime-local"
                     value={pickupDeadline}
                     onChange={(e) => setPickupDeadline(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-brand-text focus:bg-white focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Saved Food Origin Card */}
-            <div className="bg-brand-cream/90 rounded-2xl p-4 border border-orange-200 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-black uppercase text-brand-deep flex items-center gap-1.5">
+            {/* Saved Food Origin Card with GPS Tracker */}
+            <div className="bg-brand-cream/90 dark:bg-slate-800/90 rounded-2xl p-4 sm:p-5 border border-orange-200 dark:border-slate-700 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[11px] font-black uppercase text-brand-deep dark:text-orange-300 flex items-center gap-1.5">
                   <Building2 className="w-4 h-4 text-brand-orange" />
                   <span>Food Origin Location</span>
                 </span>
-                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded-full">
-                  ✓ Using your saved donor location
-                </span>
+                
+                <div className="flex items-center gap-2">
+                  {isGpsActive ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/60 px-2.5 py-1 rounded-full shadow-sm">
+                      <Radio className="w-3 h-3 text-emerald-600 animate-pulse" />
+                      <span>🛰️ Live GPS Active {gpsAccuracy ? `(±${gpsAccuracy}m)` : ''}</span>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 bg-orange-100/70 dark:bg-slate-700 px-2.5 py-0.5 rounded-full">
+                      📍 Saved donor location
+                    </span>
+                  )}
+                </div>
               </div>
 
-              <div className="flex items-start justify-between gap-3 pt-1">
-                <div className="space-y-0.5">
-                  <strong className="text-xs font-extrabold text-brand-text block">
-                    📍 {user?.name || 'SpiceVilla Restaurant'}
-                  </strong>
-                  <p className="text-xs text-brand-muted">
-                    {savedOriginAddress}
-                  </p>
-                </div>
+              {/* GPS Fetch Button & Coordinates Bar */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleDetectGPS}
+                  disabled={isFetchingGPS}
+                  className="flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl text-xs font-black shadow-md shadow-orange-500/20 transition-all active:scale-95 cursor-pointer disabled:opacity-60"
+                >
+                  {isFetchingGPS ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Locating GPS Coordinates...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Navigation className="w-3.5 h-3.5 fill-white" />
+                      <span>🎯 Fetch Live GPS Location</span>
+                    </>
+                  )}
+                </button>
 
                 <button
                   type="button"
                   onClick={() => setIsEditingOrigin(!isEditingOrigin)}
-                  className="text-xs font-bold text-brand-orange hover:underline shrink-0"
+                  className="px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 hover:border-orange-300 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
                 >
-                  {isEditingOrigin ? 'Done' : 'Edit Saved Location'}
+                  {isEditingOrigin ? 'Done' : '✏️ Edit Manually'}
                 </button>
               </div>
 
+              {/* Address details */}
+              <div className="p-3 bg-white dark:bg-slate-900/90 rounded-xl border border-orange-100 dark:border-slate-800 space-y-1">
+                <div className="flex items-center justify-between text-xs font-extrabold text-brand-text dark:text-slate-100">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-brand-orange shrink-0" />
+                    <span>{user?.name || 'Food Donor'}</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400">
+                    {originLat.toFixed(4)}° N, {originLng.toFixed(4)}° E
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 font-medium pl-5">
+                  {savedOriginAddress}
+                </p>
+              </div>
+
               {isEditingOrigin && (
-                <div className="pt-2">
+                <div className="pt-1">
                   <input
                     type="text"
                     value={savedOriginAddress}
                     onChange={(e) => setSavedOriginAddress(e.target.value)}
-                    placeholder="Enter updated origin address"
-                    className="w-full px-3 py-2 bg-white border border-orange-300 rounded-xl text-xs font-medium focus:outline-none"
+                    placeholder="Enter updated street address or landmark"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-orange-300 dark:border-slate-600 rounded-xl text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none shadow-inner"
                   />
                 </div>
               )}
@@ -403,7 +469,7 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
               <span>{isSubmitting ? 'Publishing Food Donation...' : 'Publish Food Donation'}</span>
               <ArrowRight className="w-5 h-5" />
             </button>
-            <p className="text-center text-[11px] text-brand-muted">
+            <p className="text-center text-[11px] text-brand-muted dark:text-slate-400">
               Nearby NGOs are automatically matched based on food requirements, distance, and urgency.
             </p>
           </div>

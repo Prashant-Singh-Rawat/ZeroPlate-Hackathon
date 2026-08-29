@@ -107,7 +107,35 @@ export interface FoodDonation {
   packagingAvailable: boolean;
   additionalNotes?: string;
   pendingRequestsCount?: number;
+  rating?: number;
+  ratingCount?: number;
   createdAt: string;
+}
+
+export interface DonorRatingFeedback {
+  id: string;
+  bookingId: string;
+  donorId: string;
+  donorName: string;
+  ngoId: string;
+  ngoName: string;
+  foodName: string;
+  foodQualityScore: number;       // 1) Quality of the food given by donor (1-5)
+  deliveryScore: number;          // 2) Delivery Experience (1-5)
+  quantityAccuracyScore: number;  // 3) Quantity Accuracy (1-5)
+  overallScore: number;           // Average of the 3 questions
+  feedbackNotes?: string;
+  createdAt: string;
+}
+
+export interface DonorRatingSummary {
+  donorId: string;
+  averageRating: number;
+  totalReviews: number;
+  qualityAverage: number;
+  deliveryAverage: number;
+  quantityAverage: number;
+  ratings: DonorRatingFeedback[];
 }
 
 export type FoodRequestStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';

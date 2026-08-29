@@ -1,44 +1,215 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* =============================================
+   PREMIUM DESIGN SYSTEM
+   ============================================= */
+
+/* LIGHT MODE */
+html:not(.dark),
+html:not(.dark) body,
+html:not(.dark) #root {
+  background-color: #F8FAFC !important;
+  color: #1F2937 !important;
+}
+
+html:not(.dark) .min-h-screen { background-color: #F8FAFC !important; }
+
+/* Structural elements */
+html:not(.dark) aside { background-color: #FFFFFF !important; border-right-color: #F1F5F9 !important; }
+html:not(.dark) header { background-color: rgba(255,255,255,0.95) !important; border-bottom-color: #F1F5F9 !important; }
+html:not(.dark) main { background-color: #F8FAFC !important; }
+
+/* Cards */
+html:not(.dark) .bg-white { background-color: #FFFFFF !important; }
+html:not(.dark) section { background-color: #FFFFFF !important; }
+
+/* Sidebar nav items — transparent */
+html:not(.dark) aside nav button:not([class*="bg-brand-orange"]):not([class*="bg-orange"]) {
+  background-color: transparent !important;
+}
+
+/* Light surface tints */
+html:not(.dark) .bg-gray-50 { background-color: #F9FAFB !important; }
+html:not(.dark) .bg-gray-100 { background-color: #F3F4F6 !important; }
+
+/* Text */
+html:not(.dark) .text-slate-100,
+html:not(.dark) .text-slate-200,
+html:not(.dark) .text-slate-300 { color: #1F2937 !important; }
+html:not(.dark) .text-slate-400 { color: #6B7280 !important; }
+
+/* Borders */
+html:not(.dark) .border-slate-700,
+html:not(.dark) .border-slate-800,
+html:not(.dark) .border-amber-900\/5 { border-color: #E5E7EB !important; }
+
+/* Inputs */
+html:not(.dark) input,
+html:not(.dark) textarea,
+html:not(.dark) select {
+  background-color: #F9FAFB !important;
+  color: #1F2937 !important;
+  border-color: #E5E7EB !important;
+}
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder { color: #9CA3AF !important; }
+
+/* DARK MODE */
+html.dark,
+html.dark body,
+html.dark #root { background-color: #0B1120 !important; color: #F1F5F9 !important; }
+html.dark .min-h-screen { background-color: #0B1120 !important; }
+html.dark aside { background-color: #1E293B !important; border-right-color: #334155 !important; }
+html.dark header { background-color: rgba(30,41,59,0.95) !important; border-bottom-color: #334155 !important; }
+html.dark main { background-color: #0B1120 !important; }
+html.dark section, html.dark .bg-white { background-color: #1E293B !important; }
+html.dark .bg-gray-50 { background-color: #0F172A !important; }
+html.dark input, html.dark textarea, html.dark select {
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+  border-color: #334155 !important;
+}
+
+/* =============================================
+   GLOBAL BASE & RESPONSIVE DESKTOP/TV SCALING
+   ============================================= */
 @layer base {
+  * { box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+  }
+
+  /* Tablets & Small Laptops (768px - 1024px) */
+  @media (min-width: 768px) {
+    html {
+      font-size: 16.5px;
+    }
+  }
+
+  /* Standard Laptops & Desktops (1024px - 1280px) */
+  @media (min-width: 1024px) {
+    html {
+      font-size: 17.5px;
+    }
+  }
+
+  /* Large Monitors & Widescreens (1280px - 1536px) */
+  @media (min-width: 1280px) {
+    html {
+      font-size: 18.5px;
+    }
+  }
+
+  /* Full HD & 2K Monitors (1536px - 1920px) */
+  @media (min-width: 1536px) {
+    html {
+      font-size: 20px;
+    }
+  }
+
+  /* Ultrawide, 4K Monitors & Smart TVs (>= 1920px) */
+  @media (min-width: 1920px) {
+    html {
+      font-size: 21.5px;
+    }
+  }
+
   body {
-    @apply bg-[#FFFCF7] text-[#1F2937];
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* =============================================
+   PREMIUM COMPONENT STYLES
+   ============================================= */
+
+/* Card hover elevation */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-::-webkit-scrollbar-track {
-  background: #FFFDF8;
-}
-::-webkit-scrollbar-thumb {
-  background: #FDBA74;
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #F97316;
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
 }
 
+/* Glass morphism surfaces */
+.glass {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+html.dark .glass {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Premium button base */
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-400 text-white font-extrabold text-sm rounded-xl shadow-md hover:shadow-lg hover:from-orange-600 hover:to-amber-500 transition-all active:scale-95;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-200 font-bold text-sm rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-orange-200 transition-all active:scale-95;
+}
+
+/* =============================================
+   SCROLLBAR
+   ============================================= */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 999px; }
+html.dark ::-webkit-scrollbar-thumb { background: #334155; }
+::-webkit-scrollbar-thumb:hover { background: #F97316; }
+
+/* =============================================
+   ANIMATIONS
+   ============================================= */
 @keyframes pulse-subtle {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.92; transform: scale(1.02); }
 }
-
-.animate-pulse-subtle {
-  animation: pulse-subtle 3s ease-in-out infinite;
-}
+.animate-pulse-subtle { animation: pulse-subtle 3s ease-in-out infinite; }
 
 @keyframes status-pop {
   0% { transform: scale(0.95); opacity: 0.7; }
   100% { transform: scale(1); opacity: 1; }
 }
+.animate-status-pop { animation: status-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-.animate-status-pop {
-  animation: status-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-slideIn { animation: slideIn 0.25s ease-out forwards; }
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-scaleUp { animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }

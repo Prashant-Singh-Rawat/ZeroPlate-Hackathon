@@ -4,13 +4,19 @@ import { FoodDonation, MatchScoreResult } from '../types';
 import { FoodCard } from '../components/FoodCard';
 import { MapView } from '../components/MapView';
 import { MatchScore } from '../components/MatchScore';
+import { DonorRatingBadge } from '../components/DonorRatingBadge';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
 import { Search, MapPin, List, RefreshCw, Filter, Sparkles, Clock, Building, ArrowRight, X, CheckCircle2 } from 'lucide-react';
+import { getLocalDonations } from '../services/donationStorage';
+import { computeFullMatch } from '../services/matching/matchingEngine';
+import { createLocalRequest } from '../services/requestStorage';
+import { syncCloudDonations } from '../services/cloudSync';
 
 interface FindFoodProps {
   initialViewMode?: 'map' | 'list';
   initialSelectedDonation?: FoodDonation | null;
+  onViewModeChange?: (mode: 'map' | 'list') => void;
   onNavigateRequests: () => void;
   onShowToast: (type: 'success' | 'error' | 'warning' | 'info', msg: string) => void;
 }
@@ -18,13 +24,52 @@ interface FindFoodProps {
 export const FindFood: React.FC<FindFoodProps> = ({
   initialViewMode = 'list',
   initialSelectedDonation = null,
+  onViewModeChange,
   onNavigateRequests,
   onShowToast,
 }) => {
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'map' | 'list'>(initialViewMode);
-  const [foodListings, setFoodListings] = useState<(FoodDonation & { match?: MatchScoreResult })[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setViewMode(initialViewMode);
+  }, [initialViewMode]);
+
+  const handleToggleView = (mode: 'map' | 'list') => {
+    setViewMode(mode);
+    if (onViewModeChange) {
+      onViewModeChange(mode);
+    }
+  };
+  
+  const mapDonationsWithScores = (donationsList: FoodDonation[]) => {
+    const ngoLat = user?.latitude || 19.062;
+    const ngoLng = user?.longitude || 72.854;
+    return donationsList
+      .filter((d) => d.status === 'AVAILABLE')
+      .map((d) => {
+        const donLat = typeof d.latitude === 'number' && !isNaN(d.latitude) ? d.latitude : 19.076;
+        const donLng = typeof d.longitude === 'number' && !isNaN(d.longitude) ? d.longitude : 72.8777;
+        const donMeals = typeof d.mealCount === 'number' && !isNaN(d.mealCount) && d.mealCount > 0 ? d.mealCount : 40;
+        const donDeadline = d.pickupDeadline || new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
+
+        const match = computeFullMatch(
+          { lat: donLat, lng: donLng },
+          { lat: ngoLat, lng: ngoLng },
+          donMeals,
+          100,
+          donDeadline,
+          user?.subscriptionPlan === 'premium',
+          user?.name || (user?.email ? user.email.split('@')[0] : 'Hope Foundation')
+        );
+        return { ...d, latitude: donLat, longitude: donLng, mealCount: donMeals, match };
+      });
+  };
+
+  const [foodListings, setFoodListings] = useState<(FoodDonation & { match?: MatchScoreResult })[]>(() => {
+    return mapDonationsWithScores(getLocalDonations());
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
   // Filters & Sorting (§3)
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,26 +90,19 @@ export const FindFood: React.FC<FindFoodProps> = ({
 
   useEffect(() => {
     fetchFood();
+    // Live cloud polling every 8s so new donations across devices appear automatically
+    const interval = setInterval(() => {
+      fetchFood();
+    }, 8000);
+    return () => clearInterval(interval);
   }, [user, foodType, minMeals, radiusKm, sortBy]);
 
   const fetchFood = async () => {
-    setIsLoading(true);
     try {
-      let query = `/api/donations?ngoId=${user?.id || 'ngo_hope'}&status=AVAILABLE&sortBy=${sortBy}`;
-      if (foodType !== 'all') query += `&foodType=${foodType}`;
-      if (minMeals > 0) query += `&minMeals=${minMeals}`;
-      if (radiusKm > 0) query += `&radiusKm=${radiusKm}`;
-      if (searchTerm) query += `&search=${encodeURIComponent(searchTerm)}`;
-
-      const res = await fetch(query);
-      if (res.ok) {
-        const data = await res.json();
-        setFoodListings(data);
-      }
+      const allDonations = await syncCloudDonations();
+      setFoodListings(mapDonationsWithScores(allDonations));
     } catch (e) {
       console.warn('Fetch food error', e);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -78,35 +116,33 @@ export const FindFood: React.FC<FindFoodProps> = ({
     if (!requestModalItem) return;
     setIsSubmittingRequest(true);
 
-    try {
-      const res = await fetch('/api/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          donationId: requestModalItem.id,
-          ngoId: user?.id || 'ngo_hope',
-          ngoName: user?.name || 'Hope Foundation',
-          requestedMeals: requestedMealsInput,
-          notes: requestNotes,
-        }),
-      });
+    const ngoIdentifier = user?.email || user?.id || 'ngo_hope';
+    const ngoDisplayName = user?.name || (user?.email ? user.email.split('@')[0] : 'Hope Foundation');
+    const donorName = requestModalItem.donorName || 'Food Donor';
 
-      const data = await res.json();
+    // 1. Immediately create local request and update donation state
+    createLocalRequest(requestModalItem, user, requestedMealsInput, requestNotes);
 
-      if (res.ok) {
-        onShowToast('success', `Request sent to ${requestModalItem.donorName}! Status is now REQUESTED/RESERVED.`);
-        setRequestModalItem(null);
-        setDetailModalItem(null);
-        fetchFood();
-        onNavigateRequests();
-      } else {
-        onShowToast('error', data.error || 'Failed to submit request.');
-      }
-    } catch (e) {
-      onShowToast('error', 'Network error while submitting request.');
-    } finally {
+    // 2. Background sync to backend API
+    fetch('/api/requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        donationId: requestModalItem.id,
+        ngoId: ngoIdentifier,
+        ngoName: ngoDisplayName,
+        requestedMeals: requestedMealsInput,
+        notes: requestNotes,
+      }),
+    }).catch(() => {});
+
+    setTimeout(() => {
       setIsSubmittingRequest(false);
-    }
+      onShowToast('success', `Request sent to ${donorName}! Awaiting donor approval.`);
+      setRequestModalItem(null);
+      setDetailModalItem(null);
+      onNavigateRequests();
+    }, 400);
   };
 
   // Client-side urgency filter
@@ -129,42 +165,30 @@ export const FindFood: React.FC<FindFoodProps> = ({
           </p>
         </div>
 
-        {/* Refresh & Map/List View Toggle */}
-        <div className="flex items-center gap-3 self-start sm:self-auto">
+        {/* Map / List View Toggle (§3) */}
+        <div className="bg-brand-cream border border-orange-200 rounded-2xl p-1 flex items-center shadow-warm-sm self-start sm:self-auto">
           <button
-            onClick={() => fetchFood()}
-            disabled={isLoading}
-            className="px-3.5 py-2 bg-white hover:bg-orange-50 text-brand-orange border border-orange-200 rounded-2xl text-xs font-black transition-all flex items-center gap-1.5 shadow-warm-sm active:scale-95 disabled:opacity-50"
-            title="Refresh Food Listings"
+            onClick={() => handleToggleView('list')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+              viewMode === 'list'
+                ? 'bg-brand-orange text-white shadow-sm'
+                : 'text-brand-muted hover:text-brand-text'
+            }`}
           >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
+            <List className="w-4 h-4" />
+            <span>List View</span>
           </button>
-
-          <div className="bg-brand-cream border border-orange-200 rounded-2xl p-1 flex items-center shadow-warm-sm">
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
-                viewMode === 'list'
-                  ? 'bg-brand-orange text-white shadow-sm'
-                  : 'text-brand-muted hover:text-brand-text'
-              }`}
-            >
-              <List className="w-4 h-4" />
-              <span>List View</span>
-            </button>
-            <button
-              onClick={() => setViewMode('map')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
-                viewMode === 'map'
-                  ? 'bg-brand-orange text-white shadow-sm'
-                  : 'text-brand-muted hover:text-brand-text'
-              }`}
-            >
-              <MapPin className="w-4 h-4" />
-              <span>Map View</span>
-            </button>
-          </div>
+          <button
+            onClick={() => handleToggleView('map')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+              viewMode === 'map'
+                ? 'bg-brand-orange text-white shadow-sm'
+                : 'text-brand-muted hover:text-brand-text'
+            }`}
+          >
+            <MapPin className="w-4 h-4" />
+            <span>Map View</span>
+          </button>
         </div>
       </div>
 
@@ -233,28 +257,32 @@ export const FindFood: React.FC<FindFoodProps> = ({
         <LoadingState message="Matching surplus food listings against your NGO location..." />
       ) : filteredListings.length === 0 ? (
         <EmptyState
-          title="Fresh food is waiting to be shared."
-          description="Once a restaurant or food donor lists surplus food, compatible donations will appear here."
-          actionLabel="Refresh Listings"
-          onAction={() => fetchFood()}
+          title="No Surplus Food Found"
+          description="No available surplus food matched your filter criteria. Try expanding your search radius or changing dietary filters."
+          actionLabel="Reset Filters"
+          onAction={() => {
+            setSearchTerm('');
+            setFoodType('all');
+            setRadiusKm(50);
+            setMinMeals(0);
+            setUrgencyFilter('all');
+          }}
         />
       ) : viewMode === 'map' ? (
         /* Map View (§3) */
         <MapView
           donations={filteredListings}
           ngoLocation={{
-            name: user?.name || 'Hope Foundation',
-            latitude: user?.latitude || 19.062,
-            longitude: user?.longitude || 72.854,
+            name: user?.name || (user?.email ? user.email.split('@')[0] : 'My NGO Hub'),
+            latitude: typeof user?.latitude === 'number' && !isNaN(user.latitude) ? user.latitude : 31.25,
+            longitude: typeof user?.longitude === 'number' && !isNaN(user.longitude) ? user.longitude : 75.7,
           }}
-          radiusKm={radiusKm}
           onSelectDonation={(d) => setDetailModalItem(d)}
           onRequestDonation={(d) => openRequestModal(d)}
-          onRefresh={() => fetchFood()}
         />
       ) : (
         /* List View (§3) */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 w-full">
           {filteredListings.map((item) => (
             <FoodCard
               key={item.id}
@@ -306,11 +334,14 @@ export const FindFood: React.FC<FindFoodProps> = ({
 
             {/* Donor & Pickup Info */}
             <div className="bg-brand-cream/80 p-4 rounded-2xl border border-orange-100 space-y-2 text-xs">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <span className="text-brand-muted">Donor Entity:</span>
-                <span className="font-bold text-brand-text">
-                  {detailModalItem.donorName} ({detailModalItem.donorType || 'Restaurant'})
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-brand-text">
+                    {detailModalItem.donorName} ({detailModalItem.donorType || 'Restaurant'})
+                  </span>
+                  <DonorRatingBadge donorId={detailModalItem.donorId} size="sm" showDetails />
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-brand-muted">Distance:</span>

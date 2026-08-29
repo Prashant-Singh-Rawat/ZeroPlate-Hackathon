@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { Toast, ToastMessage } from './components/Toast';
@@ -26,12 +28,14 @@ import { HireDeliveryPartnerPage } from './pages/HireDeliveryPartnerPage';
 
 // Shared Pages
 import { BookingsPage } from './pages/BookingsPage';
-import { MessagesPage } from './pages/MessagesPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { ImpactDashboard } from './pages/ImpactDashboard';
+import { SettingsPage } from './pages/SettingsPage';
+import { MapPin } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
-  const { user, role } = useAuth();
+  const { user, role, refreshGPSLocation } = useAuth();
+  const { t } = useLanguage();
 
   const [authView, setAuthView] = useState<'login' | 'signup' | 'forgot'>('login');
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -50,6 +54,9 @@ const MainLayout: React.FC = () => {
 
   // Keep pending requests count fresh for donors
   useEffect(() => {
+    if (activeTab === 'messages') {
+      setActiveTab('dashboard');
+    }
     if (user && role === 'donor') {
       fetch(`/api/requests?donorId=${user.id}&status=PENDING`)
         .then((res) => res.json())
@@ -77,7 +84,7 @@ const MainLayout: React.FC = () => {
   // Onboarding gate: if user is not yet onboarded, show role-specific setup
   if (user.onboarded === false) {
     return (
-      <div className="min-h-screen bg-brand-bg font-sans">
+      <div className="min-h-screen bg-brand-bg dark:bg-[#0B1120] text-brand-text dark:text-slate-100 font-sans transition-colors duration-200">
         <Onboarding
           onComplete={() => setActiveTab('dashboard')}
           onShowToast={showToast}
@@ -112,7 +119,7 @@ const MainLayout: React.FC = () => {
       case 'add-food':
         if (!isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
               Access Restricted: Only Food Donors may publish food donations.
             </div>
           );
@@ -130,7 +137,7 @@ const MainLayout: React.FC = () => {
       case 'donations-completed':
         if (!isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
               Access Restricted: Food Donations listings are available only for Food Donors.
             </div>
           );
@@ -140,13 +147,14 @@ const MainLayout: React.FC = () => {
             initialTab={activeTab}
             onNavigateAddFood={() => setActiveTab('add-food')}
             onNavigateRequests={() => setActiveTab('requests')}
+            onShowToast={showToast}
           />
         );
 
       case 'requests':
         if (!isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
               Access Restricted: NGO Requests inbox is only accessible to Food Donors.
             </div>
           );
@@ -161,7 +169,7 @@ const MainLayout: React.FC = () => {
       case 'delivery-persons':
         if (!isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
               Access Restricted: Delivery fleet management is available to Food Donors.
             </div>
           );
@@ -175,14 +183,16 @@ const MainLayout: React.FC = () => {
       case 'nearby-donors':
         if (isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
               Access Restricted: Find Food discovery is exclusively for NGO Managers.
             </div>
           );
         }
         return (
           <FindFood
+            key={activeTab === 'find-food-map' ? 'map' : 'list'}
             initialViewMode={activeTab === 'find-food-map' ? 'map' : 'list'}
+            onViewModeChange={(mode) => setActiveTab(mode === 'map' ? 'find-food-map' : 'find-food-list')}
             onNavigateRequests={() => setActiveTab('my-requests')}
             onShowToast={showToast}
           />
@@ -191,7 +201,7 @@ const MainLayout: React.FC = () => {
       case 'my-requests':
         if (isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
               Access Restricted: My Requests is exclusively for NGO Managers.
             </div>
           );
@@ -207,7 +217,7 @@ const MainLayout: React.FC = () => {
       case 'hire-delivery':
         if (isDonor) {
           return (
-            <div className="p-8 text-center bg-red-50 text-red-700 rounded-3xl border border-red-200 font-bold text-xs">
+            <div className="p-8 text-center bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-3xl border border-red-200 dark:border-red-800">
               Access Restricted: Hire Delivery Partner is exclusively for NGO Managers.
             </div>
           );
@@ -228,9 +238,6 @@ const MainLayout: React.FC = () => {
       case 'bookings':
         return <BookingsPage onShowToast={showToast} />;
 
-      case 'messages':
-        return <MessagesPage />;
-
       case 'subscription':
         return (
           <SubscriptionPage
@@ -244,49 +251,67 @@ const MainLayout: React.FC = () => {
         return <ImpactDashboard />;
 
       case 'profile':
-      case 'settings':
         return (
-          <div className="bg-white rounded-3xl p-8 border border-amber-900/5 shadow-warm-sm space-y-4 max-w-xl">
-            <h2 className="text-xl font-black text-brand-text">Organization Profile & Settings</h2>
-            <div className="space-y-2.5 text-xs text-brand-muted">
+          <div className="bg-white dark:bg-[#1E293B] rounded-3xl p-8 border border-amber-900/5 dark:border-slate-800 shadow-warm-sm space-y-5 max-w-xl transition-colors">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100 dark:border-slate-800">
+              <div>
+                <h2 className="text-xl font-black text-brand-text dark:text-slate-100">{t('orgProfile', 'Organization Profile')}</h2>
+                <p className="text-xs text-brand-muted dark:text-slate-400">Manage account information & live location</p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const addr = await refreshGPSLocation();
+                  if (addr) showToast('success', `Live GPS location synced: ${addr}`);
+                  else showToast('info', 'GPS location updated from live hardware/network telemetry.');
+                }}
+                className="px-3.5 py-2 text-xs font-black bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 hover:dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 rounded-xl transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer shadow-sm shrink-0"
+              >
+                <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400 animate-pulse" />
+                <span>Sync Live GPS Location</span>
+              </button>
+            </div>
+            <div className="space-y-2.5 text-xs text-brand-muted dark:text-slate-400">
               <p>
-                Organization / Business Name: <strong className="text-brand-text font-bold">{user.name}</strong>
+                {t('orgName', 'Organization Name')}: <strong className="text-brand-text dark:text-slate-200 font-bold">{user.name}</strong>
               </p>
               <p>
-                Registered Email: <strong className="text-brand-text font-bold">{user.email}</strong>
+                {t('registeredEmail', 'Registered Email')}: <strong className="text-brand-text dark:text-slate-200 font-bold">{user.email}</strong>
               </p>
               <p>
-                Phone: <strong className="text-brand-text font-bold">{user.phone || '+91 98200 12345'}</strong>
+                {t('assignedRole', 'Portal Role')}: <strong className="uppercase text-brand-orange dark:text-orange-400 font-extrabold">{role === 'donor' ? 'Food Donor / Volunteer' : 'NGO Manager'}</strong>
+              </p>
+              <p className="flex items-start gap-1">
+                <span>{t('locationLabel', 'Location')}:</span>{' '}
+                <strong className="text-brand-text dark:text-slate-200 font-bold flex-1">{user.location || 'Current GPS Location'}</strong>
               </p>
               <p>
-                Fixed Account Role: <strong className="uppercase text-brand-orange font-extrabold">{role === 'donor' ? 'Food Donor / Volunteer' : 'NGO Manager'}</strong>
-              </p>
-              <p>
-                Location: <strong className="text-brand-text font-bold">{user.location || 'Mumbai, Maharashtra'}</strong>
-              </p>
-              <p>
-                Status:{' '}
-                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
-                  Verified Active
+                {t('statusLabel', 'Account Status')}:{' '}
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800">
+                  {t('verifiedActive', 'Verified Active')}
                 </span>
               </p>
             </div>
           </div>
         );
 
+      case 'settings':
+        return <SettingsPage onShowToast={showToast} />;
+
       default:
-        return <div className="p-8 text-brand-muted">Page not found</div>;
+        return <div className="p-8 text-brand-muted dark:text-slate-400">Page not found</div>;
     }
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg flex flex-col font-sans">
+    <div className="min-h-screen bg-[#FFFCF7] dark:bg-[#0B1120] text-[#1F2937] dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       <Navbar
         onToggleSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         activeView={activeTab}
+        onNavigateHome={() => setActiveTab('dashboard')}
       />
 
-      <div className="flex-1 flex max-w-7xl w-full mx-auto">
+      <div className="flex-1 flex w-full min-h-0">
         <Sidebar
           activeTab={activeTab}
           onSelectTab={(tab) => {
@@ -298,7 +323,7 @@ const MainLayout: React.FC = () => {
           pendingRequestsCount={pendingCount}
         />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 overflow-y-auto">
+        <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 xl:p-10 min-w-0 overflow-y-auto overflow-x-hidden w-full">
           {renderView()}
         </main>
       </div>
@@ -310,8 +335,12 @@ const MainLayout: React.FC = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainLayout />
-    </AuthProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <MainLayout />
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }

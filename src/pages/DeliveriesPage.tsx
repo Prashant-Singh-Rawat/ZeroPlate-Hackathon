@@ -6,41 +6,93 @@ import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
 import { Truck, CheckCircle2, Clock } from 'lucide-react';
 
+import { syncCloudBookings } from '../services/cloudSync';
+import { getLocalBookings } from '../services/requestStorage';
+
 interface DeliveriesPageProps {
   onShowToast: (type: 'success' | 'error' | 'warning' | 'info', msg: string) => void;
 }
 
+const DEFAULT_FLEET: DeliveryPerson[] = [
+  {
+    id: 'del_rahul',
+    donorId: 'donor_spicevilla',
+    name: 'Rahul Varma',
+    phone: '+91 98765 43210',
+    role: 'Delivery Person',
+    vehicleType: 'Bike',
+    vehicleNumber: 'MH-02-EE-8899',
+    availability: 'Available',
+    currentLatitude: 19.074,
+    currentLongitude: 72.875,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'del_amit',
+    donorId: 'donor_spicevilla',
+    name: 'Amit Patel',
+    phone: '+91 98123 45678',
+    role: 'Driver',
+    vehicleType: 'Van',
+    vehicleNumber: 'MH-04-AB-1234',
+    availability: 'Available',
+    currentLatitude: 19.068,
+    currentLongitude: 72.862,
+    createdAt: new Date().toISOString(),
+  },
+];
+
 export const DeliveriesPage: React.FC<DeliveriesPageProps> = ({ onShowToast }) => {
   const { user, role } = useAuth();
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [deliveryPersons, setDeliveryPersons] = useState<DeliveryPerson[]>([]);
+
+  const isMatchingBooking = (b: Booking) => {
+    const userEmail = user?.email?.toLowerCase();
+    const userId = user?.id?.toLowerCase();
+    if (role === 'ngo') {
+      const bNgoId = b.ngoId?.toLowerCase();
+      if (userEmail) {
+        return bNgoId === userEmail || bNgoId === userId;
+      }
+      return bNgoId === 'ngo_hope' || bNgoId === userId;
+    } else {
+      const bDonorId = b.donorId?.toLowerCase();
+      if (userEmail) {
+        return bDonorId === userEmail || bDonorId === userId;
+      }
+      return bDonorId === 'donor_spicevilla' || bDonorId === userId;
+    }
+  };
+
+  const [bookings, setBookings] = useState<Booking[]>(() => {
+    const local = getLocalBookings();
+    return local.filter(isMatchingBooking);
+  });
+  const [deliveryPersons, setDeliveryPersons] = useState<DeliveryPerson[]>(DEFAULT_FLEET);
   const [activeTab, setActiveTab] = useState<'active' | 'completed' | 'all'>('active');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
+    const interval = setInterval(() => {
+      fetchData();
+    }, 6000);
+    return () => clearInterval(interval);
   }, [user, role]);
 
   const fetchData = async () => {
-    setIsLoading(true);
     try {
-      const [bookingsRes, personsRes] = await Promise.all([
-        fetch(`/api/bookings?userId=${user?.id || 'donor_spicevilla'}&role=${role}`),
-        fetch(`/api/delivery/persons?donorId=${user?.id || 'donor_spicevilla'}`),
-      ]);
+      const allBookings = await syncCloudBookings();
+      setBookings(allBookings.filter(isMatchingBooking));
 
-      if (bookingsRes.ok) {
-        const data = await bookingsRes.json();
-        setBookings(data);
-      }
+      const personsRes = await fetch(`/api/delivery/persons?donorId=${user?.id || 'donor_spicevilla'}`);
       if (personsRes.ok) {
         const pData = await personsRes.json();
-        setDeliveryPersons(pData);
+        if (Array.isArray(pData) && pData.length > 0) {
+          setDeliveryPersons(pData);
+        }
       }
     } catch (e) {
       console.warn('Fetch deliveries error', e);
-    } finally {
-      setIsLoading(false);
     }
   };
 
