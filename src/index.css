@@ -74,13 +74,49 @@ html.dark input, html.dark textarea, html.dark select {
 }
 
 /* =============================================
-   GLOBAL BASE
+   GLOBAL BASE & RESPONSIVE DESKTOP/TV SCALING
    ============================================= */
 @layer base {
   * { box-sizing: border-box; }
 
   html {
     scroll-behavior: smooth;
+    font-size: 16px;
+  }
+
+  /* Tablets & Small Laptops (768px - 1024px) */
+  @media (min-width: 768px) {
+    html {
+      font-size: 16.5px;
+    }
+  }
+
+  /* Standard Laptops & Desktops (1024px - 1280px) */
+  @media (min-width: 1024px) {
+    html {
+      font-size: 17.5px;
+    }
+  }
+
+  /* Large Monitors & Widescreens (1280px - 1536px) */
+  @media (min-width: 1280px) {
+    html {
+      font-size: 18.5px;
+    }
+  }
+
+  /* Full HD & 2K Monitors (1536px - 1920px) */
+  @media (min-width: 1536px) {
+    html {
+      font-size: 20px;
+    }
+  }
+
+  /* Ultrawide, 4K Monitors & Smart TVs (>= 1920px) */
+  @media (min-width: 1920px) {
+    html {
+      font-size: 21.5px;
+    }
   }
 
   body {
