@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FoodDonation, MatchScoreResult } from '../types';
-import { MapPin, Navigation, Utensils, Sparkles, Clock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { MapPin, Navigation, Utensils, Sparkles, Clock, ArrowRight, ShieldCheck, Compass, Layers, Crosshair } from 'lucide-react';
 import { MatchScore } from './MatchScore';
+import L from 'leaflet';
 
 interface MapViewProps {
   donations: (FoodDonation & { match?: MatchScoreResult })[];
@@ -12,183 +13,288 @@ interface MapViewProps {
 
 export const MapView: React.FC<MapViewProps> = ({
   donations,
-  ngoLocation = { name: 'Hope Foundation HQ', latitude: 19.062, longitude: 72.854 },
+  ngoLocation = { name: 'My NGO Hub', latitude: 31.25, longitude: 75.7 },
   onSelectDonation,
   onRequestDonation,
 }) => {
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markersLayerRef = useRef<L.LayerGroup | null>(null);
+
   const [selectedItem, setSelectedItem] = useState<(FoodDonation & { match?: MatchScoreResult }) | null>(
     donations[0] || null
   );
+  const [mapTileType, setMapTileType] = useState<'streets' | 'satellite'>('streets');
 
-  // Map coordinates projection to 0-100% relative coordinates
-  // Mumbai bounding box approximate: lat 19.03 to 19.14, lng 72.81 to 72.92
-  const minLat = 19.03;
-  const maxLat = 19.14;
-  const minLng = 72.81;
-  const maxLng = 72.92;
+  // Center coordinates (with fallback)
+  const centerLat = typeof ngoLocation.latitude === 'number' && !isNaN(ngoLocation.latitude) ? ngoLocation.latitude : 31.25;
+  const centerLng = typeof ngoLocation.longitude === 'number' && !isNaN(ngoLocation.longitude) ? ngoLocation.longitude : 75.7;
 
-  const projectCoords = (lat: number, lng: number) => {
-    const x = Math.max(10, Math.min(90, ((lng - minLng) / (maxLng - minLng)) * 80 + 10));
-    // Invert y because screen coordinates go top-to-bottom
-    const y = Math.max(10, Math.min(90, 100 - (((lat - minLat) / (maxLat - minLat)) * 80 + 10)));
-    return { x, y };
+  // Initialize Map
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    if (!mapInstanceRef.current) {
+      const map = L.map(mapContainerRef.current, {
+        center: [centerLat, centerLng],
+        zoom: 13,
+        zoomControl: false,
+      });
+
+      // Add Zoom Control to Top Right
+      L.control.zoom({ position: 'topright' }).addTo(map);
+
+      // Tile Layer
+      const tileUrl =
+        mapTileType === 'satellite'
+          ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+          : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+      const tiles = L.tileLayer(tileUrl, {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(map);
+
+      // Markers Layer
+      const markersLayer = L.layerGroup().addTo(map);
+      markersLayerRef.current = markersLayer;
+      mapInstanceRef.current = map;
+
+      // Invalidate size on mount for correct full container render
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 250);
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update Tile Layer if switched
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+
+    // Remove existing tile layers
+    map.eachLayer((layer) => {
+      if (layer instanceof L.TileLayer) {
+        map.removeLayer(layer);
+      }
+    });
+
+    const tileUrl =
+      mapTileType === 'satellite'
+        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+    L.tileLayer(tileUrl, {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(map);
+  }, [mapTileType]);
+
+  // Update Markers & GPS Center
+  useEffect(() => {
+    if (!mapInstanceRef.current || !markersLayerRef.current) return;
+    const map = mapInstanceRef.current;
+    const layer = markersLayerRef.current;
+
+    layer.clearLayers();
+
+    // 1. NGO Hub Live GPS Marker
+    const ngoIcon = L.divIcon({
+      className: 'custom-ngo-pin',
+      html: `
+        <div style="position:relative; display:flex; flex-direction:column; align-items:center; transform:translate(-50%, -50%); cursor:pointer;">
+          <div style="position:absolute; width:44px; height:44px; border-radius:50%; background:rgba(16,185,129,0.35); animation:pulse 2s infinite;"></div>
+          <div style="width:34px; height:34px; border-radius:12px; background:#10B981; border:3px solid white; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,0,0,0.3); font-size:16px;">
+            🏢
+          </div>
+          <div style="margin-top:4px; padding:2px 8px; background:rgba(15,23,42,0.9); border:1px solid rgba(16,185,129,0.6); color:#34D399; font-weight:800; font-size:10px; border-radius:20px; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+            📍 ${ngoLocation.name || 'Your NGO Hub'}
+          </div>
+        </div>
+      `,
+      iconSize: [0, 0],
+    });
+
+    const ngoMarker = L.marker([centerLat, centerLng], { icon: ngoIcon }).addTo(layer);
+    ngoMarker.bindPopup(`
+      <div style="font-family:sans-serif; padding:4px;">
+        <strong style="color:#10B981; font-size:13px;">🏢 ${ngoLocation.name || 'Your NGO Hub'}</strong>
+        <p style="margin:4px 0 0 0; font-size:11px; color:#64748B;">GPS Telemetry: ${centerLat.toFixed(4)}° N, ${centerLng.toFixed(4)}° E</p>
+      </div>
+    `);
+
+    // Radius Circle (5km)
+    L.circle([centerLat, centerLng], {
+      radius: 5000,
+      color: '#F97316',
+      weight: 1.5,
+      opacity: 0.4,
+      fillColor: '#F97316',
+      fillOpacity: 0.05,
+      dashArray: '4, 8',
+    }).addTo(layer);
+
+    // 2. Surplus Food Pins
+    donations.forEach((item) => {
+      const donLat = typeof item.latitude === 'number' && !isNaN(item.latitude) ? item.latitude : centerLat + 0.015;
+      const donLng = typeof item.longitude === 'number' && !isNaN(item.longitude) ? item.longitude : centerLng + 0.015;
+      const matchScore = item.match?.matchScore || 85;
+
+      const isSelected = selectedItem?.id === item.id;
+
+      const foodIcon = L.divIcon({
+        className: 'custom-food-pin',
+        html: `
+          <div style="display:flex; flex-direction:column; align-items:center; transform:translate(-50%, -50%); cursor:pointer;">
+            <div style="padding:4px 10px; background:${isSelected ? '#EA580C' : '#F97316'}; border:2px solid white; border-radius:20px; color:white; font-weight:800; font-size:11px; white-space:nowrap; box-shadow:0 4px 12px rgba(249,115,22,0.45); display:flex; align-items:center; gap:4px; transition:transform 0.2s;">
+              <span>🍲</span>
+              <span>${item.mealCount} Meals</span>
+              <span style="background:rgba(0,0,0,0.3); padding:1px 5px; border-radius:10px; font-size:9px; color:#FEF08A;">${matchScore}%</span>
+            </div>
+            <div style="margin-top:2px; padding:1px 6px; background:rgba(30,41,59,0.85); border-radius:4px; font-size:9px; color:#E2E8F0; font-weight:700; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+              ${item.foodName}
+            </div>
+          </div>
+        `,
+        iconSize: [0, 0],
+      });
+
+      const marker = L.marker([donLat, donLng], { icon: foodIcon }).addTo(layer);
+
+      marker.on('click', () => {
+        setSelectedItem(item);
+        onSelectDonation(item);
+      });
+    });
+  }, [donations, centerLat, centerLng, selectedItem]);
+
+  const handleRecenterGPS = () => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo([centerLat, centerLng], 14, { duration: 1.2 });
+    }
   };
-
-  const ngoPos = projectCoords(ngoLocation.latitude, ngoLocation.longitude);
 
   return (
     <div className="space-y-4">
-      {/* Map Container */}
-      <div className="relative w-full h-[460px] bg-gradient-to-br from-slate-900 via-stone-900 to-amber-950 rounded-3xl overflow-hidden shadow-warm-lg border-2 border-orange-950/20">
-        {/* Decorative Grid Lines & Radar Rings */}
-        <div className="absolute inset-0 bg-[radial-gradient(#F97316_1px,transparent_1px)] [background-size:24px_24px] opacity-15" />
+      {/* Map Card */}
+      <div className="relative w-full h-[520px] rounded-3xl overflow-hidden shadow-warm-lg border border-amber-900/10 dark:border-slate-800">
+        {/* Leaflet Map Canvas */}
+        <div ref={mapContainerRef} className="w-full h-full z-10" />
 
-        {/* Distance Range Rings from NGO HQ */}
-        <div
-          className="absolute rounded-full border border-orange-500/20 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          style={{
-            left: `${ngoPos.x}%`,
-            top: `${ngoPos.y}%`,
-            width: '220px',
-            height: '220px',
-          }}
-        >
-          <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold text-orange-400/60 bg-black/60 px-1.5 py-0.5 rounded">
-            5 km radius
-          </span>
-        </div>
-
-        <div
-          className="absolute rounded-full border border-orange-500/15 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          style={{
-            left: `${ngoPos.x}%`,
-            top: `${ngoPos.y}%`,
-            width: '380px',
-            height: '380px',
-          }}
-        >
-          <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold text-orange-400/40 bg-black/60 px-1.5 py-0.5 rounded">
-            15 km radius
-          </span>
-        </div>
-
-        {/* NGO HQ Marker (Center Hub) */}
-        <div
-          className="absolute -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center cursor-pointer group"
-          style={{ left: `${ngoPos.x}%`, top: `${ngoPos.y}%` }}
-        >
-          <div className="relative">
-            <span className="absolute -inset-2 rounded-full bg-emerald-500/30 animate-ping" />
-            <div className="w-9 h-9 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg border-2 border-white">
-              <Navigation className="w-5 h-5 fill-white" />
+        {/* Floating Controls Bar (Top Left) */}
+        <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 pointer-events-auto">
+          {/* Status Badge */}
+          <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-gray-200/80 dark:border-slate-700 text-xs shadow-md space-y-1">
+            <div className="font-black text-gray-900 dark:text-slate-100 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Live GPS Surplus Radar</span>
+            </div>
+            <div className="text-[11px] font-semibold text-gray-500 dark:text-slate-400">
+              {donations.length} Active Donation Pin{donations.length !== 1 ? 's' : ''} on Map
             </div>
           </div>
-          <div className="mt-1 px-2.5 py-1 bg-black/80 backdrop-blur-md rounded-full border border-emerald-400/40 text-emerald-300 font-extrabold text-[10px] whitespace-nowrap shadow-md">
-            📍 Your NGO Location
-          </div>
-        </div>
 
-        {/* Surplus Food Markers */}
-        {donations.map((item) => {
-          const pos = projectCoords(item.latitude, item.longitude);
-          const isSelected = selectedItem?.id === item.id;
-          const matchScore = item.match?.matchScore || 85;
-
-          return (
-            <div
-              key={item.id}
-              onClick={() => setSelectedItem(item)}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center cursor-pointer transition-all duration-200 ${
-                isSelected ? 'scale-110 z-30' : 'hover:scale-105'
-              }`}
-              style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+          {/* Quick Action Buttons */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleRecenterGPS}
+              className="px-3 py-1.5 bg-white/95 dark:bg-slate-800/95 hover:bg-orange-50 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-xl border border-gray-200 dark:border-slate-700 font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
             >
-              <div className="relative">
-                <div
-                  className={`px-2.5 py-1 rounded-2xl font-black text-xs text-white shadow-warm-md flex items-center gap-1.5 border-2 transition-all ${
-                    isSelected
-                      ? 'bg-brand-orange border-white ring-4 ring-orange-500/40'
-                      : 'bg-stone-800 hover:bg-stone-700 border-amber-400/60'
-                  }`}
-                >
-                  <Utensils className="w-3.5 h-3.5" />
-                  <span>{item.mealCount} Meals</span>
-                  <span className="text-[10px] bg-black/40 px-1.5 py-0.5 rounded-full text-amber-300">
-                    {matchScore}%
-                  </span>
-                </div>
-              </div>
+              <Crosshair className="w-3.5 h-3.5 text-brand-orange" />
+              <span>Center GPS</span>
+            </button>
 
-              <div className="mt-1 px-2 py-0.5 bg-black/70 backdrop-blur-sm rounded-md text-[10px] font-bold text-stone-200 truncate max-w-[130px] border border-white/10">
-                {item.donorName}
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Map Legend Overlay */}
-        <div className="absolute top-4 left-4 z-20 bg-black/70 backdrop-blur-md px-3 py-2 rounded-2xl border border-white/10 text-xs text-stone-300 space-y-1">
-          <div className="font-extrabold text-white text-[11px] flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Live Surplus Food Radar
-          </div>
-          <div className="text-[10px] text-stone-400">
-            Click any pin to inspect & request food
+            <button
+              type="button"
+              onClick={() => setMapTileType(mapTileType === 'streets' ? 'satellite' : 'streets')}
+              className="px-3 py-1.5 bg-white/95 dark:bg-slate-800/95 hover:bg-orange-50 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-xl border border-gray-200 dark:border-slate-700 font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
+            >
+              <Layers className="w-3.5 h-3.5 text-brand-orange" />
+              <span>{mapTileType === 'streets' ? 'Satellite' : 'Streets'}</span>
+            </button>
           </div>
         </div>
       </div>
 
       {/* Selected Food Inspection Card */}
       {selectedItem && (
-        <div className="bg-white rounded-3xl border-2 border-brand-orange p-6 shadow-warm-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6 animate-status-pop">
+        <div className="bg-white dark:bg-[#1E293B] rounded-3xl border-2 border-brand-orange p-6 shadow-warm-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6 animate-status-pop transition-colors">
           <div className="flex items-start gap-4 flex-1">
             <img
-              src={selectedItem.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'}
+              src={
+                selectedItem.imageUrl ||
+                'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'
+              }
               alt={selectedItem.foodName}
-              className="w-20 h-20 rounded-2xl object-cover shrink-0 border border-orange-200"
+              className="w-20 h-20 rounded-2xl object-cover shrink-0 border border-orange-200 dark:border-slate-700"
             />
             <div className="space-y-1.5 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                    selectedItem.foodType === 'veg' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                    selectedItem.foodType === 'veg'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                      : 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
                   }`}
                 >
                   {selectedItem.foodType}
                 </span>
-                <span className="text-xs text-brand-muted font-bold">
-                  {selectedItem.donorType || 'Restaurant'} • {selectedItem.donorName}
+                <span className="text-xs font-bold text-brand-muted dark:text-slate-400">
+                  {selectedItem.category || selectedItem.foodCategory}
                 </span>
-                {selectedItem.match && (
-                  <MatchScore score={selectedItem.match.matchScore} size="sm" />
-                )}
+                <span className="text-xs font-bold text-brand-orange dark:text-orange-400">
+                  • {selectedItem.mealCount} Meals Available
+                </span>
               </div>
 
-              <h3 className="text-lg font-black text-brand-text">{selectedItem.foodName}</h3>
-              <p className="text-xs text-brand-muted">
-                📍 {selectedItem.pickupLocation} ({selectedItem.match ? `${selectedItem.match.distanceKm} km away` : 'Nearby'})
-              </p>
+              <h4 className="text-base font-black text-brand-text dark:text-slate-100">
+                {selectedItem.foodName}
+              </h4>
 
-              {selectedItem.match?.explanation && (
-                <p className="text-xs bg-amber-50 text-amber-900 p-2 rounded-xl border border-amber-200 font-medium">
-                  {selectedItem.match.explanation}
-                </p>
-              )}
+              <div className="flex items-center gap-4 text-xs text-brand-muted dark:text-slate-400 flex-wrap">
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-brand-orange" />
+                  <span>{selectedItem.originAddress || selectedItem.pickupAddress || selectedItem.pickupLocation || 'Pickup Location'}</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-amber-500" />
+                  <span>
+                    Pickup Deadline:{' '}
+                    {new Date(selectedItem.pickupDeadline).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto shrink-0">
-            <button
-              onClick={() => onSelectDonation(selectedItem)}
-              className="w-full sm:w-auto px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-brand-text font-bold text-xs rounded-xl border transition-all"
-            >
-              View Full Details
-            </button>
+          <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-3 border-t md:border-t-0 pt-3 md:pt-0 border-gray-100 dark:border-slate-800">
+            {selectedItem.match && (
+              <MatchScore
+                score={selectedItem.match.matchScore}
+                breakdown={{
+                  distanceScore: selectedItem.match.distanceScore,
+                  mealScore: selectedItem.match.mealQuantityScore,
+                  urgencyScore: selectedItem.match.urgencyScore,
+                }}
+              />
+            )}
+
             <button
               onClick={() => onRequestDonation(selectedItem)}
-              className="w-full sm:w-auto px-5 py-2.5 bg-brand-orange hover:bg-brand-deep text-white font-extrabold text-xs rounded-xl shadow-warm-sm transition-all flex items-center justify-center gap-1.5 active:scale-95"
+              className="px-6 py-2.5 bg-brand-orange hover:bg-brand-deep text-white text-xs font-black rounded-xl shadow-warm-sm hover:shadow-warm-md transition-all flex items-center gap-2 active:scale-95 cursor-pointer shrink-0"
             >
-              <span>Request This Food</span>
+              <span>Request Food</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

@@ -258,6 +258,11 @@ export const FindFood: React.FC<FindFoodProps> = ({
         /* Map View (§3) */
         <MapView
           donations={filteredListings}
+          ngoLocation={{
+            name: user?.name || (user?.email ? user.email.split('@')[0] : 'My NGO Hub'),
+            latitude: typeof user?.latitude === 'number' && !isNaN(user.latitude) ? user.latitude : 31.25,
+            longitude: typeof user?.longitude === 'number' && !isNaN(user.longitude) ? user.longitude : 75.7,
+          }}
           onSelectDonation={(d) => setDetailModalItem(d)}
           onRequestDonation={(d) => openRequestModal(d)}
         />
