@@ -18,7 +18,9 @@ import {
   Sparkles,
   KeyRound,
   CheckCircle2,
+  QrCode,
 } from 'lucide-react';
+import { QRCodeModal } from '../components/QRCodeModal';
 
 interface LoginProps {
   onNavigateSignup: () => void;
@@ -38,6 +40,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
   const [googleLoading, setGoogleLoading] = useState(false);
   const [selectedLang, setSelectedLang] = useState('English');
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   // Gmail 6-Digit OTP Mode
   const [isOtpMode, setIsOtpMode] = useState(false);
@@ -143,7 +146,17 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* Scan Mobile QR Button */}
+          <button
+            type="button"
+            onClick={() => setShowQrModal(true)}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-900/60 rounded-full text-xs font-bold hover:bg-orange-100 dark:hover:bg-orange-900/50 transition-all shadow-sm cursor-pointer"
+          >
+            <QrCode className="w-3.5 h-3.5" />
+            <span className="hidden xs:inline">📱 Scan Mobile QR</span>
+          </button>
+
           <div className="relative">
             <button
               type="button"
@@ -464,6 +477,9 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
           <a href="#terms" className="hover:text-gray-600 dark:hover:text-slate-300 transition-colors">Terms of Service</a>
         </div>
       </footer>
+
+      {/* Mobile Scan QR Modal */}
+      <QRCodeModal isOpen={showQrModal} onClose={() => setShowQrModal(false)} />
     </div>
   );
 };
