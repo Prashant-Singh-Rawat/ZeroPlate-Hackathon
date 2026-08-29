@@ -13,14 +13,10 @@ import {
   Sparkles,
   ArrowRight,
   MapPin,
-  Compass,
   Sliders,
-  Radio,
   CheckCircle2,
   X,
-  Navigation,
-  Crosshair,
-  Building2,
+  RefreshCw,
 } from 'lucide-react';
 
 interface NGODashboardProps {
@@ -39,12 +35,24 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
   const [selectedDonor, setSelectedDonor] = useState<FoodDonation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Requirements Modal State
+  // Requirements Modal State with LocalStorage Persistence
+  const cacheKey = `zeroplate_req_${user?.id || 'ngo_hope'}`;
+  const getInitialReq = () => {
+    try {
+      const saved = localStorage.getItem(cacheKey);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return { reqMeals: 120, reqWeight: 60, reqRadius: 10, reqFoodType: 'veg' };
+  };
+
+  const initialValues = getInitialReq();
   const [showReqModal, setShowReqModal] = useState(false);
-  const [reqMeals, setReqMeals] = useState<number>(120);
-  const [reqWeight, setReqWeight] = useState<number>(60);
-  const [reqRadius, setReqRadius] = useState<number>(10);
-  const [reqFoodType, setReqFoodType] = useState<'veg' | 'non-veg' | 'either'>('veg');
+  const [reqMeals, setReqMeals] = useState<number>(initialValues.reqMeals ?? 120);
+  const [reqWeight, setReqWeight] = useState<number>(initialValues.reqWeight ?? 60);
+  const [reqRadius, setReqRadius] = useState<number>(initialValues.reqRadius ?? 10);
+  const [reqFoodType, setReqFoodType] = useState<'veg' | 'non-veg' | 'either'>(initialValues.reqFoodType ?? 'veg');
+  const [isSavingReq, setIsSavingReq] = useState(false);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
   // Location State
   const [isLocating, setIsLocating] = useState(false);
@@ -78,9 +86,20 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
         const reqData = await reqRes.json();
         if (reqData) {
           setRequirement(reqData);
-          setReqMeals(reqData.requiredMeals || 120);
-          setReqRadius(reqData.maximumRadius || 10);
-          setReqFoodType(reqData.foodType || 'veg');
+          if (reqData.requiredMeals) setReqMeals(reqData.requiredMeals);
+          if (reqData.maximumRadius) setReqRadius(reqData.maximumRadius);
+          if (reqData.foodType) setReqFoodType(reqData.foodType);
+
+          let parsedWeight = 60;
+          if (reqData.estWeight) {
+            parsedWeight = reqData.estWeight;
+          } else if (reqData.specificRequirement && reqData.specificRequirement.includes('Est. weight:')) {
+            const m = reqData.specificRequirement.match(/(\d+)/);
+            if (m) parsedWeight = Number(m[1]);
+          } else if (reqData.requiredMeals) {
+            parsedWeight = Math.round(reqData.requiredMeals * 0.5);
+          }
+          setReqWeight(parsedWeight);
         }
       }
     } catch (e) {
@@ -96,11 +115,11 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setIsLocating(false);
-        setLocationStatus(`📍 GPS Active: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+        setLocationStatus(`📍 GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
       },
       () => {
         setIsLocating(false);
-        setLocationStatus('📍 Default Mumbai NGO Zone (Bandra)');
+        setLocationStatus('📍 Mumbai Central NGO Zone');
       },
       { enableHighAccuracy: true, timeout: 8000 }
     );
@@ -108,27 +127,51 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
 
   const handleSaveRequirements = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSavingReq(true);
+
+    const updatedData = {
+      reqMeals: Number(reqMeals) || 120,
+      reqWeight: Number(reqWeight) || 60,
+      reqRadius: Number(reqRadius) || 10,
+      reqFoodType,
+    };
+
+    // Save to local cache immediately
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify(updatedData));
+    } catch (err) {}
+
     try {
       const res = await fetch('/api/ngos/requirements', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ngoId: user?.id || 'ngo_hope',
-          requiredMeals: Number(reqMeals),
-          maximumRadius: Number(reqRadius),
-          foodType: reqFoodType,
+          requiredMeals: updatedData.reqMeals,
+          estWeight: updatedData.reqWeight,
+          maximumRadius: updatedData.reqRadius,
+          foodType: updatedData.reqFoodType,
           foodSpecifications: ['Rice', 'Dal', 'Rice + Dal', 'Biryani'],
           urgency: 'high',
+          specificRequirement: `Est. weight: ${updatedData.reqWeight} kg`,
           requiredBy: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(),
         }),
       });
 
       if (res.ok) {
-        setShowReqModal(false);
-        fetchNGOData();
+        const data = await res.json();
+        if (data.requirement) {
+          setRequirement(data.requirement);
+        }
       }
     } catch (e) {
+      console.warn('Could not post requirement to server, local cache preserved', e);
+    } finally {
+      setIsSavingReq(false);
       setShowReqModal(false);
+      setSaveSuccessMsg('Requirements updated successfully! Matching criteria refreshed.');
+      setTimeout(() => setSaveSuccessMsg(''), 4000);
+      fetchNGOData();
     }
   };
 
@@ -138,6 +181,22 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification for Requirement Update */}
+      {saveSuccessMsg && (
+        <div className="p-4 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-2xl flex items-center justify-between shadow-sm animate-fadeIn text-emerald-800 dark:text-emerald-200">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span className="text-xs sm:text-sm font-bold">{saveSuccessMsg}</span>
+          </div>
+          <button
+            onClick={() => setSaveSuccessMsg('')}
+            className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 p-1 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800 rounded-3xl p-6 sm:p-8 text-white shadow-warm-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2 max-w-xl">
@@ -164,14 +223,14 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
         <div className="flex flex-wrap gap-3 shrink-0">
           <button
             onClick={() => onNavigate('find-food')}
-            className="px-5 py-3 bg-white hover:bg-emerald-50 text-emerald-900 font-black text-xs rounded-2xl shadow-warm-sm hover:shadow-warm-md transition-all flex items-center gap-2 active:scale-95"
+            className="px-5 py-3 bg-white hover:bg-emerald-50 text-emerald-900 font-black text-xs rounded-2xl shadow-warm-sm hover:shadow-warm-md transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
           >
             <Search className="w-4 h-4 text-emerald-700" />
             <span>Find Food</span>
           </button>
           <button
             onClick={() => onNavigate('my-requests')}
-            className="px-5 py-3 bg-black/25 hover:bg-black/35 backdrop-blur-md text-white font-extrabold text-xs rounded-2xl border border-white/20 transition-all flex items-center gap-2"
+            className="px-5 py-3 bg-black/25 hover:bg-black/35 backdrop-blur-md text-white font-extrabold text-xs rounded-2xl border border-white/20 transition-all flex items-center gap-2 cursor-pointer"
           >
             <Inbox className="w-4 h-4" />
             <span>My Requests ({pendingRequestsCount})</span>
@@ -212,15 +271,15 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
       </div>
 
       {/* SECTION: CURRENT FOOD REQUIREMENT CARD */}
-      <div className="bg-white rounded-3xl p-6 border border-amber-900/5 shadow-warm-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-amber-900/5 dark:border-slate-700 shadow-warm-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100 dark:border-slate-700">
           <div>
             <span className="text-[10px] font-black uppercase text-brand-orange tracking-wider">Active Search Criteria</span>
-            <h3 className="text-base font-black text-brand-text">Current Food Requirement</h3>
+            <h3 className="text-base font-black text-brand-text dark:text-white">Current Food Requirement</h3>
           </div>
           <button
             onClick={() => setShowReqModal(true)}
-            className="px-4 py-2 bg-brand-light hover:bg-orange-100 text-brand-deep text-xs font-bold rounded-xl border border-orange-200 transition-all flex items-center gap-1.5 self-start sm:self-auto"
+            className="px-4 py-2 bg-brand-light dark:bg-orange-950/40 hover:bg-orange-100 text-brand-deep dark:text-orange-400 text-xs font-bold rounded-xl border border-orange-200 dark:border-orange-800 transition-all flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
           >
             <Sliders className="w-3.5 h-3.5 text-brand-orange" />
             <span>Update Requirements</span>
@@ -228,35 +287,37 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
-          <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100">
-            <span className="text-gray-500 font-bold block text-[10px] uppercase">Meals Needed</span>
-            <strong className="text-sm font-black text-brand-text">{reqMeals} meals</strong>
+          <div className="bg-gray-50 dark:bg-slate-900/60 p-3 rounded-2xl border border-gray-100 dark:border-slate-700">
+            <span className="text-gray-500 dark:text-gray-400 font-bold block text-[10px] uppercase">Meals Needed</span>
+            <strong className="text-sm font-black text-brand-text dark:text-white">{reqMeals} meals</strong>
           </div>
 
-          <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100">
-            <span className="text-gray-500 font-bold block text-[10px] uppercase">Est. Weight</span>
-            <strong className="text-sm font-black text-brand-text">{reqWeight} kg</strong>
+          <div className="bg-gray-50 dark:bg-slate-900/60 p-3 rounded-2xl border border-gray-100 dark:border-slate-700">
+            <span className="text-gray-500 dark:text-gray-400 font-bold block text-[10px] uppercase">Est. Weight</span>
+            <strong className="text-sm font-black text-brand-text dark:text-white">{reqWeight} kg</strong>
           </div>
 
-          <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100">
-            <span className="text-gray-500 font-bold block text-[10px] uppercase">Search Radius</span>
-            <strong className="text-sm font-black text-brand-text">{reqRadius} km</strong>
+          <div className="bg-gray-50 dark:bg-slate-900/60 p-3 rounded-2xl border border-gray-100 dark:border-slate-700">
+            <span className="text-gray-500 dark:text-gray-400 font-bold block text-[10px] uppercase">Search Radius</span>
+            <strong className="text-sm font-black text-brand-text dark:text-white">{reqRadius} km</strong>
           </div>
 
-          <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100">
-            <span className="text-gray-500 font-bold block text-[10px] uppercase">Food Preference</span>
-            <strong className="text-sm font-black text-emerald-700 capitalize">{reqFoodType}</strong>
+          <div className="bg-gray-50 dark:bg-slate-900/60 p-3 rounded-2xl border border-gray-100 dark:border-slate-700">
+            <span className="text-gray-500 dark:text-gray-400 font-bold block text-[10px] uppercase">Food Preference</span>
+            <strong className="text-sm font-black text-emerald-700 dark:text-emerald-400 capitalize">
+              {reqFoodType === 'either' ? 'Veg & Non-Veg' : reqFoodType}
+            </strong>
           </div>
 
-          <div className="col-span-2 sm:col-span-1 bg-gray-50 p-3 rounded-2xl border border-gray-100 flex flex-col justify-between">
-            <span className="text-gray-500 font-bold block text-[10px] uppercase">Location</span>
+          <div className="col-span-2 sm:col-span-1 bg-gray-50 dark:bg-slate-900/60 p-3 rounded-2xl border border-gray-100 dark:border-slate-700 flex flex-col justify-between">
+            <span className="text-gray-500 dark:text-gray-400 font-bold block text-[10px] uppercase">Location</span>
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-emerald-800 truncate">{locationStatus}</span>
+              <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 truncate">{locationStatus}</span>
               <button
                 onClick={handleRefreshLocation}
                 disabled={isLocating}
                 title="Refresh GPS Location"
-                className="text-brand-orange hover:underline text-[10px] font-bold shrink-0 ml-1"
+                className="text-brand-orange hover:underline text-[10px] font-bold shrink-0 ml-1 cursor-pointer"
               >
                 {isLocating ? '...' : 'Refresh'}
               </button>
@@ -269,12 +330,12 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-black text-brand-text">Nearest Food Donors (Ranked by Fit)</h2>
-            <p className="text-xs text-brand-muted">Smart ranking based on 40% Distance + 35% Meals + 15% Weight + 10% Urgency</p>
+            <h2 className="text-lg font-black text-brand-text dark:text-white">Nearest Food Donors (Ranked by Fit)</h2>
+            <p className="text-xs text-brand-muted dark:text-gray-400">Smart ranking based on 40% Distance + 35% Meals + 15% Weight + 10% Urgency</p>
           </div>
           <button
             onClick={() => onNavigate('find-food')}
-            className="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1"
+            className="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1 cursor-pointer"
           >
             <span>View All Nearby Food</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -298,80 +359,20 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
         )}
       </div>
 
-      {/* SECTION: LIVE MAP */}
-      <div className="bg-white rounded-3xl p-6 border border-amber-900/5 shadow-warm-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black uppercase text-brand-orange tracking-wider flex items-center gap-1">
-              <Compass className="w-3.5 h-3.5" />
-              <span>Interactive Geolocation Radar</span>
-            </span>
-            <h3 className="text-base font-black text-brand-text">Live Map & Nearby Donors</h3>
-          </div>
-          <div className="flex items-center gap-2 text-xs font-bold">
-            <span className="flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              🟠 Your Location
-            </span>
-            <span className="flex items-center gap-1 text-orange-800 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">
-              🍽️ Food Donors
-            </span>
-          </div>
-        </div>
-
-        {/* Embedded Map Visual */}
-        <div className="relative rounded-2xl overflow-hidden border-2 border-orange-200 shadow-sm h-72 bg-slate-950 flex flex-col justify-between">
-          <iframe
-            title="NGO Interactive Discovery Map"
-            width="100%"
-            height="100%"
-            frameBorder="0"
-            scrolling="no"
-            marginHeight={0}
-            marginWidth={0}
-            src="https://www.openstreetmap.org/export/embed.html?bbox=72.82%2C19.04%2C72.89%2C19.10&layer=mapnik&marker=19.062%2C72.854"
-            className="w-full h-full opacity-90 hover:opacity-100 transition-opacity"
-          />
-
-          {/* Interactive Donor Info Overlay Card */}
-          {selectedDonor && (
-            <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-orange-200 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="space-y-0.5">
-                <span className="px-2 py-0.5 bg-brand-orange text-white text-[9px] font-black rounded-full">
-                  Selected Donor
-                </span>
-                <h4 className="text-xs font-black text-brand-text">{selectedDonor.donorName}</h4>
-                <p className="text-[11px] text-brand-muted truncate max-w-md">
-                  {selectedDonor.foodName} • {selectedDonor.mealCount} Meals ({selectedDonor.quantity || '40 kg'}) • Pickup before {new Date(selectedDonor.pickupDeadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => onRequestDonation(selectedDonor)}
-                  className="px-4 py-2 bg-brand-orange hover:bg-brand-deep text-white font-black text-xs rounded-xl shadow-warm-sm active:scale-95 transition-all"
-                >
-                  Request Food
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Edit Requirements Modal */}
       {showReqModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-orange-200 animate-status-pop">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-orange-200 dark:border-slate-700 animate-scaleUp">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-lg font-black text-brand-text">Update Food Requirements</h3>
-                <p className="text-xs text-brand-muted mt-0.5">
+                <h3 className="text-lg font-black text-brand-text dark:text-white">Update Food Requirements</h3>
+                <p className="text-xs text-brand-muted dark:text-gray-400 mt-0.5">
                   Update active criteria to re-rank surplus food matches.
                 </p>
               </div>
               <button
                 onClick={() => setShowReqModal(false)}
-                className="p-1 hover:bg-gray-100 rounded-lg text-gray-400"
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -379,62 +380,67 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
 
             <form onSubmit={handleSaveRequirements} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-brand-text uppercase mb-1">
+                <label className="block text-xs font-bold text-brand-text dark:text-gray-300 uppercase mb-1">
                   Required Meals *
                 </label>
                 <input
                   type="number"
-                  value={reqMeals}
-                  onChange={(e) => setReqMeals(Number(e.target.value))}
+                  value={reqMeals || ''}
+                  onChange={(e) => setReqMeals(e.target.value === '' ? 0 : Number(e.target.value))}
                   min={1}
                   required
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-black focus:bg-white focus:outline-none"
+                  placeholder="e.g. 120"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-black text-brand-text dark:text-white focus:bg-white dark:focus:bg-slate-900 focus:border-brand-orange focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-brand-text uppercase mb-1">
-                    Est. Weight (kg)
+                  <label className="block text-xs font-bold text-brand-text dark:text-gray-300 uppercase mb-1">
+                    Est. Weight (kg) *
                   </label>
                   <input
                     type="number"
-                    value={reqWeight}
-                    onChange={(e) => setReqWeight(Number(e.target.value))}
+                    value={reqWeight || ''}
+                    onChange={(e) => setReqWeight(e.target.value === '' ? 0 : Number(e.target.value))}
                     min={1}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-brand-text focus:outline-none"
+                    required
+                    placeholder="e.g. 60"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-brand-text dark:text-white focus:border-brand-orange focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-brand-text uppercase mb-1">
+                  <label className="block text-xs font-bold text-brand-text dark:text-gray-300 uppercase mb-1">
                     Search Radius (km)
                   </label>
                   <select
                     value={reqRadius}
                     onChange={(e) => setReqRadius(Number(e.target.value))}
-                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-brand-text focus:outline-none"
+                    className="w-full px-3 py-2.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-brand-text dark:text-white focus:border-brand-orange focus:outline-none cursor-pointer"
                   >
                     <option value={5}>5 km</option>
                     <option value={10}>10 km</option>
                     <option value={15}>15 km</option>
+                    <option value={20}>20 km</option>
                     <option value={25}>25 km</option>
+                    <option value={50}>50 km</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-brand-text uppercase mb-1">
+                <label className="block text-xs font-bold text-brand-text dark:text-gray-300 uppercase mb-1">
                   Dietary Preference
                 </label>
                 <select
                   value={reqFoodType}
                   onChange={(e) => setReqFoodType(e.target.value as any)}
-                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-brand-text focus:outline-none"
+                  className="w-full px-3 py-2.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold text-brand-text dark:text-white focus:border-brand-orange focus:outline-none cursor-pointer"
                 >
                   <option value="veg">Vegetarian Only</option>
                   <option value="non-veg">Non-Vegetarian Only</option>
-                  <option value="either">Either (Both)</option>
+                  <option value="either">Either (Both Veg & Non-Veg)</option>
                 </select>
               </div>
 
@@ -442,16 +448,21 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowReqModal(false)}
-                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl"
+                  className="flex-1 py-3 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 font-bold text-xs rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-brand-orange hover:bg-brand-deep text-white font-black text-xs rounded-xl shadow-warm-sm transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                  disabled={isSavingReq}
+                  className="flex-1 py-3 bg-brand-orange hover:bg-brand-deep text-white font-black text-xs rounded-xl shadow-warm-sm transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer disabled:opacity-75"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Save Requirements</span>
+                  {isSavingReq ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4" />
+                  )}
+                  <span>{isSavingReq ? 'Saving...' : 'Save Requirements'}</span>
                 </button>
               </div>
             </form>
