@@ -124,7 +124,7 @@
       "id": "ngo_entity_hope",
       "userId": "ngo_hope",
       "organizationName": "Hope Foundation",
-      "capacity": 120,
+      "capacity": 150,
       "latitude": 19.062,
       "longitude": 72.854,
       "availability": true,
@@ -658,6 +658,25 @@
       "createdAt": "2026-08-28T22:05:31.387Z"
     }
   ],
-  "requirements": [],
+  "requirements": [
+    {
+      "id": "req_1787961954233_662",
+      "ngoId": "ngo_hope",
+      "requiredMeals": 150,
+      "foodSpecifications": [
+        "Rice",
+        "Dal",
+        "Rice + Dal",
+        "Biryani"
+      ],
+      "foodType": "non-veg",
+      "urgency": "high",
+      "requiredBy": "2026-08-29T06:07:14.211Z",
+      "maximumRadius": 15,
+      "specificRequirement": "Est. weight: 90 kg",
+      "status": "ACTIVE",
+      "createdAt": "2026-08-29T00:05:54.233Z"
+    }
+  ],
   "locationUpdates": []
 }
