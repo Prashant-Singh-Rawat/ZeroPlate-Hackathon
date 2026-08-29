@@ -15,6 +15,7 @@ import { syncCloudDonations } from '../services/cloudSync';
 interface FindFoodProps {
   initialViewMode?: 'map' | 'list';
   initialSelectedDonation?: FoodDonation | null;
+  onViewModeChange?: (mode: 'map' | 'list') => void;
   onNavigateRequests: () => void;
   onShowToast: (type: 'success' | 'error' | 'warning' | 'info', msg: string) => void;
 }
@@ -22,11 +23,23 @@ interface FindFoodProps {
 export const FindFood: React.FC<FindFoodProps> = ({
   initialViewMode = 'list',
   initialSelectedDonation = null,
+  onViewModeChange,
   onNavigateRequests,
   onShowToast,
 }) => {
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'map' | 'list'>(initialViewMode);
+
+  useEffect(() => {
+    setViewMode(initialViewMode);
+  }, [initialViewMode]);
+
+  const handleToggleView = (mode: 'map' | 'list') => {
+    setViewMode(mode);
+    if (onViewModeChange) {
+      onViewModeChange(mode);
+    }
+  };
   
   const mapDonationsWithScores = (donationsList: FoodDonation[]) => {
     const ngoLat = user?.latitude || 19.062;
@@ -154,8 +167,8 @@ export const FindFood: React.FC<FindFoodProps> = ({
         {/* Map / List View Toggle (§3) */}
         <div className="bg-brand-cream border border-orange-200 rounded-2xl p-1 flex items-center shadow-warm-sm self-start sm:self-auto">
           <button
-            onClick={() => setViewMode('list')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+            onClick={() => handleToggleView('list')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
               viewMode === 'list'
                 ? 'bg-brand-orange text-white shadow-sm'
                 : 'text-brand-muted hover:text-brand-text'
@@ -165,8 +178,8 @@ export const FindFood: React.FC<FindFoodProps> = ({
             <span>List View</span>
           </button>
           <button
-            onClick={() => setViewMode('map')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+            onClick={() => handleToggleView('map')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
               viewMode === 'map'
                 ? 'bg-brand-orange text-white shadow-sm'
                 : 'text-brand-muted hover:text-brand-text'

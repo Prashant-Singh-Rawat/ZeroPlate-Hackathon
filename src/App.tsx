@@ -190,7 +190,9 @@ const MainLayout: React.FC = () => {
         }
         return (
           <FindFood
+            key={activeTab === 'find-food-map' ? 'map' : 'list'}
             initialViewMode={activeTab === 'find-food-map' ? 'map' : 'list'}
+            onViewModeChange={(mode) => setActiveTab(mode === 'map' ? 'find-food-map' : 'find-food-list')}
             onNavigateRequests={() => setActiveTab('my-requests')}
             onShowToast={showToast}
           />
