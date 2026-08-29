@@ -1,6 +1,6 @@
 export const GOOGLE_CLIENT_ID =
   (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID ||
-  '132721264540-tvqtl6nen6f2hsun0u1ejlqkqmr9640r.apps.googleusercontent.com';
+  '405883976207-i3mp8dcshufiaebt8pmsegn0du6rbciv.apps.googleusercontent.com';
 
 export interface GoogleUserPayload {
   email: string;
