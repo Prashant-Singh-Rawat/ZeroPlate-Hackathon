@@ -28,7 +28,6 @@ import { HireDeliveryPartnerPage } from './pages/HireDeliveryPartnerPage';
 
 // Shared Pages
 import { BookingsPage } from './pages/BookingsPage';
-import { MessagesPage } from './pages/MessagesPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { ImpactDashboard } from './pages/ImpactDashboard';
 import { SettingsPage } from './pages/SettingsPage';
@@ -233,9 +232,6 @@ const MainLayout: React.FC = () => {
 
       case 'bookings':
         return <BookingsPage onShowToast={showToast} />;
-
-      case 'messages':
-        return <MessagesPage />;
 
       case 'subscription':
         return (
