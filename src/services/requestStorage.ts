@@ -183,23 +183,7 @@ export function getLocalBookings(): Booking[] {
   } catch (e) {
     console.warn('Error reading local bookings', e);
   }
-  return [
-    {
-      id: 'book_seed_1',
-      donationId: 'don_dal_rice',
-      ngoId: 'ngo_hope',
-      ngoName: 'Hope Foundation',
-      donorId: 'donor_spicevilla',
-      donorName: 'SpiceVilla Restaurant',
-      foodName: 'Dal Tadka & Steamed Jeera Rice',
-      mealCount: 60,
-      pickupLocation: 'Shop 4, Hill Road, Bandra West, Mumbai 400050',
-      pickupAddress: 'Shop 4, Hill Road, Bandra West, Mumbai 400050',
-      status: 'CONFIRMED',
-      liveTrackingEnabled: true,
-      createdAt: new Date().toISOString(),
-    },
-  ];
+  return [];
 }
 
 export function saveLocalBookings(bookings: Booking[]) {
