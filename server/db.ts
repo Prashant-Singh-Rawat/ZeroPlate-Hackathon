@@ -229,7 +229,11 @@ class Database {
   }
 
   private save(data: DBData) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    try {
+      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (e) {
+      // In serverless / read-only filesystem environments (e.g. Vercel), preserve in-memory
+    }
   }
 
   public getStore(): DBData {
