@@ -125,7 +125,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] flex flex-col justify-between text-[#1F2937]">
+    <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#0B1120] flex flex-col justify-between text-[#1F2937] dark:text-slate-100 transition-colors duration-200">
       {/* Top Navbar */}
       <header className="w-full max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -136,10 +136,10 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
           </div>
           <div>
             <div className="flex items-center gap-1">
-              <span className="text-xl font-black tracking-tight text-[#1F2937]">Zero</span>
+              <span className="text-xl font-black tracking-tight text-[#1F2937] dark:text-white">Zero</span>
               <span className="text-xl font-black tracking-tight text-[#F97316]">Plate</span>
             </div>
-            <p className="text-[11px] font-medium text-[#6B7280] -mt-1">Share Food, Share Hope</p>
+            <p className="text-[11px] font-medium text-[#6B7280] dark:text-slate-400 -mt-1">Share Food, Share Hope</p>
           </div>
         </div>
 
@@ -148,15 +148,15 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
             <button
               type="button"
               onClick={() => setIsLangOpen(!isLangOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full border border-gray-200 text-xs font-semibold text-[#4B5563] hover:border-gray-300 transition-all shadow-sm"
+              className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-full border border-gray-200 dark:border-slate-700 text-xs font-semibold text-[#4B5563] dark:text-slate-200 hover:border-gray-300 dark:hover:border-slate-600 transition-all shadow-sm cursor-pointer"
             >
-              <Globe className="w-3.5 h-3.5 text-gray-500" />
+              <Globe className="w-3.5 h-3.5 text-gray-500 dark:text-slate-400" />
               <span>{selectedLang}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-slate-400" />
             </button>
 
             {isLangOpen && (
-              <div className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-30">
+              <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-100 dark:border-slate-700 py-1 z-30">
                 {['English', 'Hindi (हिंदी)', 'Marathi (मराठी)'].map((lang) => (
                   <button
                     key={lang}
@@ -164,7 +164,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                       setSelectedLang(lang.split(' ')[0]);
                       setIsLangOpen(false);
                     }}
-                    className="w-full text-left px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-orange-50 hover:text-[#F97316]"
+                    className="w-full text-left px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-700 hover:text-[#F97316] dark:hover:text-orange-400 cursor-pointer"
                   >
                     {lang}
                   </button>
@@ -173,11 +173,11 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
             )}
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-[#4B5563]">
+          <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-[#4B5563] dark:text-slate-400">
             <span>Don't have an account?</span>
             <button
               onClick={onNavigateSignup}
-              className="px-4 py-1.5 rounded-xl border border-gray-300 hover:border-[#F97316] text-[#1F2937] hover:text-[#F97316] font-bold transition-all shadow-sm bg-white"
+              className="px-4 py-1.5 rounded-xl border border-gray-300 dark:border-slate-700 hover:border-[#F97316] text-[#1F2937] dark:text-white hover:text-[#F97316] font-bold transition-all shadow-sm bg-white dark:bg-slate-800 cursor-pointer"
             >
               Sign up
             </button>
@@ -189,49 +189,49 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
       <main className="w-full max-w-7xl mx-auto px-6 py-4 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
         {/* Left Column */}
         <div className="lg:col-span-6 space-y-7 flex flex-col justify-center">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#FFF4EC] rounded-full border border-orange-200/60 w-fit">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#FFF4EC] dark:bg-orange-950/60 rounded-full border border-orange-200/60 dark:border-orange-800/60 w-fit">
             <span className="text-xs">🧡</span>
-            <span className="text-xs font-bold text-[#EA580C]">Together, we can make a difference</span>
+            <span className="text-xs font-bold text-[#EA580C] dark:text-orange-400">Together, we can make a difference</span>
           </div>
 
           <div className="space-y-3">
-            <h1 className="text-4xl sm:text-5xl font-serif font-black tracking-tight text-[#1F2937] leading-[1.15]">
+            <h1 className="text-4xl sm:text-5xl font-serif font-black tracking-tight text-[#1F2937] dark:text-white leading-[1.15]">
               Reduce Food Waste. <br />
-              <span className="text-[#EA580C]">Feed More Lives.</span>
+              <span className="text-[#EA580C] dark:text-orange-500">Feed More Lives.</span>
             </h1>
-            <p className="text-sm sm:text-base text-[#6B7280] font-normal max-w-md leading-relaxed">
+            <p className="text-sm sm:text-base text-[#6B7280] dark:text-slate-300 font-normal max-w-md leading-relaxed">
               ZeroPlate connects verified food donors with local NGOs to ensure surplus meals reach communities in need.
             </p>
           </div>
 
           <div className="space-y-3.5 max-w-md">
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-[#ECFDF5] text-[#059669] flex items-center justify-center shrink-0 border border-emerald-100">
+              <div className="w-10 h-10 rounded-2xl bg-[#ECFDF5] dark:bg-emerald-950/60 text-[#059669] dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-800">
                 <Utensils className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-[#1F2937]">Meals Saved Daily</h4>
-                <p className="text-[11px] text-[#6B7280]">Making an immediate social impact</p>
+                <h4 className="text-xs font-bold text-[#1F2937] dark:text-white">Meals Saved Daily</h4>
+                <p className="text-[11px] text-[#6B7280] dark:text-slate-400">Making an immediate social impact</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-[#ECFDF5] text-[#059669] flex items-center justify-center shrink-0 border border-emerald-100">
+              <div className="w-10 h-10 rounded-2xl bg-[#ECFDF5] dark:bg-emerald-950/60 text-[#059669] dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-800">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-[#1F2937]">Google Cloud OAuth 2.0 Verified</h4>
-                <p className="text-[11px] text-[#6B7280]">Secure identity verification for donors and NGOs</p>
+                <h4 className="text-xs font-bold text-[#1F2937] dark:text-white">Google Cloud OAuth 2.0 Verified</h4>
+                <p className="text-[11px] text-[#6B7280] dark:text-slate-400">Secure identity verification for donors and NGOs</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-[#ECFDF5] text-[#059669] flex items-center justify-center shrink-0 border border-emerald-100">
+              <div className="w-10 h-10 rounded-2xl bg-[#ECFDF5] dark:bg-emerald-950/60 text-[#059669] dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-800">
                 <Users className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-[#1F2937]">Stronger Communities</h4>
-                <p className="text-[11px] text-[#6B7280]">Real-time GPS routing & dispatch</p>
+                <h4 className="text-xs font-bold text-[#1F2937] dark:text-white">Stronger Communities</h4>
+                <p className="text-[11px] text-[#6B7280] dark:text-slate-400">Real-time GPS routing & dispatch</p>
               </div>
             </div>
           </div>
@@ -239,19 +239,19 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
 
         {/* Right Column: Form */}
         <div className="lg:col-span-6 flex justify-center">
-          <div className="w-full max-w-lg bg-white rounded-[32px] border border-gray-100 shadow-[0_10px_40px_rgba(0,0,0,0.06)] p-7 sm:p-9 space-y-6">
+          <div className="w-full max-w-lg bg-white dark:bg-[#1E293B] rounded-[32px] border border-gray-100 dark:border-slate-700 shadow-[0_10px_40px_rgba(0,0,0,0.06)] dark:shadow-2xl p-7 sm:p-9 space-y-6 transition-colors">
             <div className="text-center space-y-1.5">
-              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#1F2937]">
-                Welcome <span className="text-[#EA580C] font-black italic">Back!</span> 👋
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#1F2937] dark:text-white">
+                Welcome <span className="text-[#EA580C] dark:text-orange-500 font-black italic">Back!</span> 👋
               </h2>
-              <p className="text-xs text-[#6B7280]">
+              <p className="text-xs text-[#6B7280] dark:text-slate-300">
                 Choose your portal role and sign in with Google Cloud Account Chooser
               </p>
 
               <div className="flex items-center justify-center gap-2 pt-1 pb-1">
-                <div className="w-8 h-[1px] bg-orange-300" />
-                <span className="text-xs text-[#EA580C]">🧡</span>
-                <div className="w-8 h-[1px] bg-orange-300" />
+                <div className="w-8 h-[1px] bg-orange-300 dark:bg-orange-800" />
+                <span className="text-xs text-[#EA580C] dark:text-orange-400">🧡</span>
+                <div className="w-8 h-[1px] bg-orange-300 dark:bg-orange-800" />
               </div>
             </div>
 
@@ -260,19 +260,19 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               <button
                 type="button"
                 onClick={() => handleRoleSelect('donor')}
-                className={`p-3.5 rounded-2xl border-2 text-left transition-all flex items-start gap-3 relative ${
+                className={`p-3.5 rounded-2xl border-2 text-left transition-all flex items-start gap-3 relative cursor-pointer ${
                   selectedRole === 'donor'
-                    ? 'border-[#16A34A] bg-[#F0FDF4] shadow-sm'
-                    : 'border-gray-200 hover:border-emerald-300 bg-white'
+                    ? 'border-[#16A34A] dark:border-emerald-500 bg-[#F0FDF4] dark:bg-emerald-950/40 shadow-sm'
+                    : 'border-gray-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600 bg-white dark:bg-slate-800/60'
                 }`}
               >
-                <div className="w-10 h-10 rounded-xl bg-[#DCFCE7] text-[#16A34A] flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-[#DCFCE7] dark:bg-emerald-950/80 text-[#16A34A] dark:text-emerald-400 flex items-center justify-center shrink-0">
                   <Store className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-[10px] text-[#6B7280] font-medium block">I'm a</span>
-                  <strong className="text-xs font-black text-[#1F2937] block truncate">Food Donor</strong>
-                  <span className="text-[10px] text-[#6B7280] block truncate">Restaurant / Hotel</span>
+                  <span className="text-[10px] text-[#6B7280] dark:text-slate-400 font-medium block">I'm a</span>
+                  <strong className="text-xs font-black text-[#1F2937] dark:text-white block truncate">Food Donor</strong>
+                  <span className="text-[10px] text-[#6B7280] dark:text-slate-400 block truncate">Restaurant / Hotel</span>
                 </div>
                 {selectedRole === 'donor' && (
                   <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#16A34A] text-white flex items-center justify-center">
@@ -284,19 +284,19 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               <button
                 type="button"
                 onClick={() => handleRoleSelect('ngo')}
-                className={`p-3.5 rounded-2xl border-2 text-left transition-all flex items-start gap-3 relative ${
+                className={`p-3.5 rounded-2xl border-2 text-left transition-all flex items-start gap-3 relative cursor-pointer ${
                   selectedRole === 'ngo'
-                    ? 'border-[#EA580C] bg-[#FFF7ED] shadow-sm'
-                    : 'border-gray-200 hover:border-orange-300 bg-white'
+                    ? 'border-[#EA580C] dark:border-orange-500 bg-[#FFF7ED] dark:bg-orange-950/40 shadow-sm'
+                    : 'border-gray-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-600 bg-white dark:bg-slate-800/60'
                 }`}
               >
-                <div className="w-10 h-10 rounded-xl bg-[#FFEDD5] text-[#EA580C] flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-[#FFEDD5] dark:bg-orange-950/80 text-[#EA580C] dark:text-orange-400 flex items-center justify-center shrink-0">
                   <HeartHandshake className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-[10px] text-[#6B7280] font-medium block">I'm an</span>
-                  <strong className="text-xs font-black text-[#1F2937] block truncate">NGO Manager</strong>
-                  <span className="text-[10px] text-[#6B7280] block truncate">Charity / Shelter</span>
+                  <span className="text-[10px] text-[#6B7280] dark:text-slate-400 font-medium block">I'm an</span>
+                  <strong className="text-xs font-black text-[#1F2937] dark:text-white block truncate">NGO Manager</strong>
+                  <span className="text-[10px] text-[#6B7280] dark:text-slate-400 block truncate">Charity / Shelter</span>
                 </div>
                 {selectedRole === 'ngo' && (
                   <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[#EA580C] text-white flex items-center justify-center">
@@ -308,13 +308,13 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
 
             {/* Error & Success Messages */}
             {errorMessage && (
-              <div className="p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-xl border border-red-200">
+              <div className="p-3 bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300 text-xs font-semibold rounded-xl border border-red-200 dark:border-red-800">
                 {errorMessage}
               </div>
             )}
             {successMessage && (
-              <div className="p-3 bg-emerald-50 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 text-xs font-semibold rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>{successMessage}</span>
               </div>
             )}
@@ -325,7 +325,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={googleLoading}
-                className="w-full py-3.5 px-4 bg-white hover:bg-orange-50/50 border-2 border-orange-200 hover:border-orange-400 rounded-2xl text-xs sm:text-sm font-extrabold text-gray-800 shadow-sm flex items-center justify-center gap-3 transition-all active:scale-95 group"
+                className="w-full py-3.5 px-4 bg-white dark:bg-slate-800 hover:bg-orange-50/50 dark:hover:bg-slate-700 border-2 border-orange-200 dark:border-slate-700 hover:border-orange-400 dark:hover:border-orange-500 rounded-2xl text-xs sm:text-sm font-extrabold text-gray-800 dark:text-white shadow-sm flex items-center justify-center gap-3 transition-all active:scale-95 group cursor-pointer"
                 title="Select your Google account via Google Cloud OAuth 2.0 popup"
               >
                 <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
@@ -351,8 +351,8 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
             </div>
 
             <div className="relative flex items-center justify-center">
-              <div className="w-full border-t border-gray-200" />
-              <span className="absolute bg-white px-3 text-[11px] text-gray-400 font-medium">
+              <div className="w-full border-t border-gray-200 dark:border-slate-700" />
+              <span className="absolute bg-white dark:bg-[#1E293B] px-3 text-[11px] text-gray-500 dark:text-slate-400 font-medium">
                 or sign in with verified credentials
               </span>
             </div>
@@ -360,14 +360,14 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
             {/* Email / OTP / Password Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="relative">
-                <Mail className="w-4 h-4 text-gray-400 absolute left-4 top-3.5" />
+                <Mail className="w-4 h-4 text-gray-400 dark:text-slate-500 absolute left-4 top-3.5" />
                 <input
                   type="email"
                   value={emailOrPhone}
                   onChange={(e) => setEmailOrPhone(e.target.value)}
                   required
                   placeholder="name@gmail.com"
-                  className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-xs font-medium text-[#1F2937] placeholder-gray-400 focus:border-[#EA580C] focus:ring-1 focus:ring-[#EA580C] focus:outline-none transition-all"
+                  className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-medium text-[#1F2937] dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:border-[#EA580C] focus:ring-1 focus:ring-[#EA580C] focus:outline-none transition-all"
                 />
               </div>
 
@@ -375,46 +375,46 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                 /* 6-Digit OTP Input */
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-bold text-brand-text uppercase">
+                    <label className="text-[11px] font-bold text-gray-900 dark:text-white uppercase">
                       6-Digit Gmail Verification Code
                     </label>
                     <button
                       type="button"
                       onClick={handleSendOtp}
                       disabled={isSendingOtp}
-                      className="text-[11px] font-bold text-[#EA580C] hover:underline"
+                      className="text-[11px] font-bold text-[#EA580C] dark:text-orange-400 hover:underline cursor-pointer"
                     >
                       {isSendingOtp ? 'Sending code...' : otpSent ? 'Resend Code' : 'Send Code to Gmail'}
                     </button>
                   </div>
                   <div className="relative">
-                    <KeyRound className="w-4 h-4 text-gray-400 absolute left-4 top-3.5" />
+                    <KeyRound className="w-4 h-4 text-gray-400 dark:text-slate-500 absolute left-4 top-3.5" />
                     <input
                       type="text"
                       maxLength={6}
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value)}
                       placeholder="Enter 6-digit code"
-                      className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-xs font-mono font-bold tracking-widest text-[#1F2937] placeholder-gray-400 focus:border-[#EA580C] focus:outline-none"
+                      className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold tracking-widest text-[#1F2937] dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:border-[#EA580C] focus:outline-none"
                     />
                   </div>
                 </div>
               ) : (
                 /* Password Input */
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-gray-400 absolute left-4 top-3.5" />
+                  <Lock className="w-4 h-4 text-gray-400 dark:text-slate-500 absolute left-4 top-3.5" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     placeholder="Password"
-                    className="w-full pl-11 pr-11 py-3 bg-white border border-gray-200 rounded-xl text-xs font-medium text-[#1F2937] placeholder-gray-400 focus:border-[#EA580C] focus:ring-1 focus:ring-[#EA580C] focus:outline-none transition-all"
+                    className="w-full pl-11 pr-11 py-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-medium text-[#1F2937] dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:border-[#EA580C] focus:ring-1 focus:ring-[#EA580C] focus:outline-none transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600"
+                    className="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 cursor-pointer"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4 text-gray-400" />}
                   </button>
@@ -430,7 +430,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                     setErrorMessage('');
                     setSuccessMessage('');
                   }}
-                  className="font-bold text-[#EA580C] hover:underline"
+                  className="font-bold text-[#EA580C] dark:text-orange-400 hover:underline cursor-pointer"
                 >
                   {isOtpMode ? 'Use Password Sign-In instead' : 'Sign in with Gmail Verification Code (OTP)'}
                 </button>
@@ -438,7 +438,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
                   <button
                     type="button"
                     onClick={onNavigateForgot}
-                    className="font-bold text-gray-500 hover:underline"
+                    className="font-bold text-gray-500 dark:text-slate-400 hover:underline cursor-pointer"
                   >
                     Forgot?
                   </button>
@@ -449,7 +449,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md shadow-orange-500/25 transition-all flex items-center justify-center gap-2 active:scale-95"
+                className="w-full py-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md shadow-orange-500/25 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
               >
                 <Lock className="w-4 h-4" />
                 <span>{isLoading ? 'Verifying...' : `Enter ${selectedRole === 'donor' ? 'Food Donor' : 'NGO'} Portal`}</span>
@@ -459,13 +459,13 @@ export const Login: React.FC<LoginProps> = ({ onNavigateSignup, onNavigateForgot
         </div>
       </main>
 
-      <footer className="w-full max-w-7xl mx-auto px-6 py-6 text-center text-xs text-[#9CA3AF]">
+      <footer className="w-full max-w-7xl mx-auto px-6 py-6 text-center text-xs text-[#9CA3AF] dark:text-slate-500">
         <div className="flex flex-wrap items-center justify-center gap-3">
           <span>© 2024 ZeroPlate. All rights reserved.</span>
           <span>|</span>
-          <a href="#privacy" className="hover:text-gray-600 transition-colors">Privacy Policy</a>
+          <a href="#privacy" className="hover:text-gray-600 dark:hover:text-slate-300 transition-colors">Privacy Policy</a>
           <span>|</span>
-          <a href="#terms" className="hover:text-gray-600 transition-colors">Terms of Service</a>
+          <a href="#terms" className="hover:text-gray-600 dark:hover:text-slate-300 transition-colors">Terms of Service</a>
         </div>
       </footer>
     </div>
