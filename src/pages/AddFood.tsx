@@ -2,16 +2,20 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Utensils,
-  MapPin,
   Clock,
-  PackageCheck,
+  MapPin,
   CheckCircle2,
   ArrowRight,
-  Sparkles,
+  AlertCircle,
   Building2,
   Info,
+  Navigation,
+  Compass,
+  Loader2,
+  Radio,
 } from 'lucide-react';
 import { publishDonationToCloud } from '../services/cloudSync';
+import { getCurrentGPSLocation } from '../services/gpsLocation';
 
 interface AddFoodProps {
   onSuccessPublished: () => void;
@@ -36,9 +40,31 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
   const defaultDeadline = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString().slice(0, 16);
   const [pickupDeadline, setPickupDeadline] = useState(defaultDeadline);
 
-  // Saved Donor Origin
+  // Saved Donor Origin & GPS Tracking
   const [isEditingOrigin, setIsEditingOrigin] = useState(false);
   const [savedOriginAddress, setSavedOriginAddress] = useState(user?.location || 'Bandra West, Mumbai');
+  const [originLat, setOriginLat] = useState<number>(user?.latitude || 19.076);
+  const [originLng, setOriginLng] = useState<number>(user?.longitude || 72.8777);
+  const [isFetchingGPS, setIsFetchingGPS] = useState(false);
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
+  const [isGpsActive, setIsGpsActive] = useState(false);
+
+  const handleDetectGPS = async () => {
+    setIsFetchingGPS(true);
+    try {
+      const loc = await getCurrentGPSLocation();
+      setSavedOriginAddress(loc.address);
+      setOriginLat(loc.latitude);
+      setOriginLng(loc.longitude);
+      setGpsAccuracy(loc.accuracy);
+      setIsGpsActive(true);
+      onShowToast('success', `GPS Location acquired: ${loc.address} (±${loc.accuracy}m accuracy)`);
+    } catch (err: any) {
+      onShowToast('error', err.message || 'Failed to get GPS location.');
+    } finally {
+      setIsFetchingGPS(false);
+    }
+  };
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,8 +124,8 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
       quantity: quantity.trim() || `${mealCount} meals`,
       description: description.trim() || 'Fresh surplus food ready for NGO rescue.',
       packagingStatus,
-      latitude: user?.latitude || 19.076,
-      longitude: user?.longitude || 72.8777,
+      latitude: originLat,
+      longitude: originLng,
       pickupLocation: savedOriginAddress,
       pickupAddress: savedOriginAddress,
       originAddress: savedOriginAddress,
@@ -350,45 +376,82 @@ export const AddFood: React.FC<AddFoodProps> = ({ onSuccessPublished, onShowToas
               </div>
             </div>
 
-            {/* Saved Food Origin Card */}
-            <div className="bg-brand-cream/90 dark:bg-slate-800/90 rounded-2xl p-4 border border-orange-200 dark:border-slate-700 space-y-2">
-              <div className="flex items-center justify-between">
+            {/* Saved Food Origin Card with GPS Tracker */}
+            <div className="bg-brand-cream/90 dark:bg-slate-800/90 rounded-2xl p-4 sm:p-5 border border-orange-200 dark:border-slate-700 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-[11px] font-black uppercase text-brand-deep dark:text-orange-300 flex items-center gap-1.5">
                   <Building2 className="w-4 h-4 text-brand-orange" />
                   <span>Food Origin Location</span>
                 </span>
-                <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full">
-                  ✓ Using your saved donor location
-                </span>
+                
+                <div className="flex items-center gap-2">
+                  {isGpsActive ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/60 px-2.5 py-1 rounded-full shadow-sm">
+                      <Radio className="w-3 h-3 text-emerald-600 animate-pulse" />
+                      <span>🛰️ Live GPS Active {gpsAccuracy ? `(±${gpsAccuracy}m)` : ''}</span>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 bg-orange-100/70 dark:bg-slate-700 px-2.5 py-0.5 rounded-full">
+                      📍 Saved donor location
+                    </span>
+                  )}
+                </div>
               </div>
 
-              <div className="flex items-start justify-between gap-3 pt-1">
-                <div className="space-y-0.5">
-                  <strong className="text-xs font-extrabold text-brand-text dark:text-slate-100 block">
-                    📍 {user?.name || 'Food Donor'}
-                  </strong>
-                  <p className="text-xs text-brand-muted dark:text-slate-400">
-                    {savedOriginAddress}
-                  </p>
-                </div>
+              {/* GPS Fetch Button & Coordinates Bar */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleDetectGPS}
+                  disabled={isFetchingGPS}
+                  className="flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl text-xs font-black shadow-md shadow-orange-500/20 transition-all active:scale-95 cursor-pointer disabled:opacity-60"
+                >
+                  {isFetchingGPS ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Locating GPS Coordinates...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Navigation className="w-3.5 h-3.5 fill-white" />
+                      <span>🎯 Fetch Live GPS Location</span>
+                    </>
+                  )}
+                </button>
 
                 <button
                   type="button"
                   onClick={() => setIsEditingOrigin(!isEditingOrigin)}
-                  className="text-xs font-bold text-brand-orange dark:text-orange-400 hover:underline shrink-0"
+                  className="px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 hover:border-orange-300 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
                 >
-                  {isEditingOrigin ? 'Done' : 'Edit Saved Location'}
+                  {isEditingOrigin ? 'Done' : '✏️ Edit Manually'}
                 </button>
               </div>
 
+              {/* Address details */}
+              <div className="p-3 bg-white dark:bg-slate-900/90 rounded-xl border border-orange-100 dark:border-slate-800 space-y-1">
+                <div className="flex items-center justify-between text-xs font-extrabold text-brand-text dark:text-slate-100">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-brand-orange shrink-0" />
+                    <span>{user?.name || 'Food Donor'}</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400">
+                    {originLat.toFixed(4)}° N, {originLng.toFixed(4)}° E
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 font-medium pl-5">
+                  {savedOriginAddress}
+                </p>
+              </div>
+
               {isEditingOrigin && (
-                <div className="pt-2">
+                <div className="pt-1">
                   <input
                     type="text"
                     value={savedOriginAddress}
                     onChange={(e) => setSavedOriginAddress(e.target.value)}
-                    placeholder="Enter updated origin address"
-                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-orange-300 dark:border-slate-600 rounded-xl text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none"
+                    placeholder="Enter updated street address or landmark"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-orange-300 dark:border-slate-600 rounded-xl text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none shadow-inner"
                   />
                 </div>
               )}

@@ -22,6 +22,7 @@ import {
 import { computeFullMatch } from '../services/matching/matchingEngine';
 import { syncCloudDonations, syncCloudRequests } from '../services/cloudSync';
 import { getLocalDonations } from '../services/donationStorage';
+import { getCurrentGPSLocation } from '../services/gpsLocation';
 
 interface NGODashboardProps {
   onNavigate: (tab: string, extraData?: any) => void;
@@ -120,20 +121,22 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
     }
   };
 
-  const handleRefreshLocation = () => {
-    if (!navigator.geolocation) return;
+  const handleRefreshLocation = async () => {
     setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setIsLocating(false);
-        setLocationStatus(`📍 GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
-      },
-      () => {
-        setIsLocating(false);
-        setLocationStatus('📍 Mumbai Central NGO Zone');
-      },
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
+    try {
+      const loc = await getCurrentGPSLocation();
+      setLocationStatus(`📍 ${loc.address} (±${loc.accuracy}m)`);
+      if (user) {
+        user.latitude = loc.latitude;
+        user.longitude = loc.longitude;
+        user.location = loc.address;
+      }
+      fetchNGOData();
+    } catch (e: any) {
+      setLocationStatus('📍 Mumbai Central NGO Zone');
+    } finally {
+      setIsLocating(false);
+    }
   };
 
   const handleSaveRequirements = async (e: React.FormEvent) => {
