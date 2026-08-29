@@ -1,9 +1,10 @@
-# 🍽️ ZeroPlate
+# 🍽️ ZeroPlate — Live Multi-Device Surplus Food Rescue & AI Logistics
 
 <div align="center">
 
-> *"Turning surplus food into shared meals."*
+> *"Turning surplus food into shared meals with real-time cross-device collaboration, AI matching, and privacy-first logistics."*
 
+[![Live on Vercel](https://img.shields.io/badge/Live_Deployment-zero--plate--hackathon.vercel.app-EA580C?style=for-the-badge&logo=vercel&logoColor=white)](https://zero-plate-hackathon.vercel.app)
 [![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.1.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
@@ -12,6 +13,11 @@
 [![Node.js](https://img.shields.io/badge/Node.js-22.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Vitest](https://img.shields.io/badge/Vitest-3.0.5-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
+<br/>
+
+📱 **Live Web Application**: [https://zero-plate-hackathon.vercel.app](https://zero-plate-hackathon.vercel.app)  
+📷 **Scan Mobile QR Code**: Point your phone camera at `https://zero-plate-hackathon.vercel.app/zeroplate-qr.png` to instantly open the app on your mobile device.
 
 </div>
 
