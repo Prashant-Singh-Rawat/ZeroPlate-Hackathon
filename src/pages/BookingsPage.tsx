@@ -23,18 +23,16 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
     const userId = user?.id?.toLowerCase();
     if (role === 'ngo') {
       const bNgoId = b.ngoId?.toLowerCase();
-      return (
-        (userEmail && bNgoId === userEmail) ||
-        (userId && bNgoId === userId) ||
-        (!userEmail && bNgoId === 'ngo_hope')
-      );
+      if (userEmail) {
+        return bNgoId === userEmail || bNgoId === userId;
+      }
+      return bNgoId === 'ngo_hope' || bNgoId === userId;
     } else {
       const bDonorId = b.donorId?.toLowerCase();
-      return (
-        (userEmail && bDonorId === userEmail) ||
-        (userId && bDonorId === userId) ||
-        (!userEmail && bDonorId === 'donor_spicevilla')
-      );
+      if (userEmail) {
+        return bDonorId === userEmail || bDonorId === userId;
+      }
+      return bDonorId === 'donor_spicevilla' || bDonorId === userId;
     }
   };
 

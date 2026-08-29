@@ -26,11 +26,10 @@ export const MyRequests: React.FC<MyRequestsProps> = ({
     const userEmail = user?.email?.toLowerCase();
     const userId = user?.id?.toLowerCase();
     const rNgoId = r.ngoId?.toLowerCase();
-    return (
-      (userEmail && rNgoId === userEmail) ||
-      (userId && rNgoId === userId) ||
-      (!userEmail && rNgoId === 'ngo_hope')
-    );
+    if (userEmail) {
+      return rNgoId === userEmail || rNgoId === userId;
+    }
+    return rNgoId === 'ngo_hope' || rNgoId === userId;
   };
 
   const [requests, setRequests] = useState<FoodRequest[]>(() => {
@@ -133,7 +132,7 @@ export const MyRequests: React.FC<MyRequestsProps> = ({
                       {isAccepted && <CheckCircle2 className="w-3.5 h-3.5" />}
                       {isRejected && <XCircle className="w-3.5 h-3.5" />}
                       {isPending && <Clock className="w-3.5 h-3.5" />}
-                      <span>{isPending ? 'Pending Donor Approval' : req.status}</span>
+                      <span>{isPending ? 'Pending Donor Approval' : isRejected ? 'Not Allotted (Booked by Other)' : req.status}</span>
                     </span>
                   </div>
 
@@ -161,8 +160,8 @@ export const MyRequests: React.FC<MyRequestsProps> = ({
                   )}
 
                   {isRejected && (
-                    <div className="text-xs bg-gray-100 text-gray-700 p-2 rounded-xl">
-                      This donation was declined or assigned to another local organization.
+                    <div className="text-xs bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 font-medium p-2.5 rounded-xl border border-amber-200 dark:border-amber-900/50">
+                      ⚠️ This food donation was accepted and allotted to another NGO.
                     </div>
                   )}
                 </div>

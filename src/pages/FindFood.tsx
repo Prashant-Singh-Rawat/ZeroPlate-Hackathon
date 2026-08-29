@@ -97,7 +97,10 @@ export const FindFood: React.FC<FindFoodProps> = ({
     if (!requestModalItem) return;
     setIsSubmittingRequest(true);
 
+    const ngoIdentifier = user?.email || user?.id || 'ngo_hope';
+    const ngoDisplayName = user?.name || (user?.email ? user.email.split('@')[0] : 'Hope Foundation');
     const donorName = requestModalItem.donorName || 'Food Donor';
+
     // 1. Immediately create local request and update donation state
     createLocalRequest(requestModalItem, user, requestedMealsInput, requestNotes);
 
@@ -107,8 +110,8 @@ export const FindFood: React.FC<FindFoodProps> = ({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         donationId: requestModalItem.id,
-        ngoId: user?.id || 'ngo_hope',
-        ngoName: user?.name || 'Hope Foundation',
+        ngoId: ngoIdentifier,
+        ngoName: ngoDisplayName,
         requestedMeals: requestedMealsInput,
         notes: requestNotes,
       }),

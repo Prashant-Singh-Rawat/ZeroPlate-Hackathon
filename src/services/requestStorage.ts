@@ -6,28 +6,7 @@ import { submitRequestToCloud, updateRequestStatusInCloud } from './cloudSync';
 const REQUESTS_KEY = 'zeroplate_requests';
 const BOOKINGS_KEY = 'zeroplate_bookings';
 
-const INITIAL_SEED_REQUESTS: FoodRequest[] = [
-  {
-    id: 'req_seed_1',
-    donationId: 'don_biryani',
-    ngoId: 'ngo_hope',
-    ngoName: 'Hope Foundation',
-    donorId: 'donor_spicevilla',
-    donorName: 'SpiceVilla Restaurant',
-    foodName: 'Veg Hyderabadi Biryani',
-    requestedMeals: 50,
-    matchScore: 94,
-    distanceScore: 92,
-    mealQuantityScore: 100,
-    foodSpecScore: 90,
-    urgencyScore: 95,
-    distanceKm: 2.1,
-    explanation: 'Recommended because Hope Foundation is 2.1 km away, pickup needed within 4 hours, and has capacity for all 50 meals.',
-    status: 'PENDING',
-    notes: 'Volunteers ready with vehicle for immediate pickup.',
-    requestedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-  },
-];
+const INITIAL_SEED_REQUESTS: FoodRequest[] = [];
 
 export function getLocalRequests(): FoodRequest[] {
   try {
@@ -61,6 +40,8 @@ export function createLocalRequest(
   const existing = getLocalRequests();
   const ngoLat = ngoUser?.latitude || 19.062;
   const ngoLng = ngoUser?.longitude || 72.854;
+  const ngoIdentifier = ngoUser?.email || ngoUser?.id || 'ngo_hope';
+  const ngoDisplayName = ngoUser?.name || (ngoUser?.email ? ngoUser.email.split('@')[0] : 'Hope Foundation');
 
   const match = computeFullMatch(
     { lat: donation.latitude, lng: donation.longitude },
@@ -69,14 +50,14 @@ export function createLocalRequest(
     100,
     donation.pickupDeadline,
     ngoUser?.subscriptionPlan === 'premium',
-    ngoUser?.name || 'Hope Foundation'
+    ngoDisplayName
   );
 
   const newRequest: FoodRequest = {
     id: `req_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
     donationId: donation.id,
-    ngoId: ngoUser?.id || 'ngo_hope',
-    ngoName: ngoUser?.name || 'Hope Foundation',
+    ngoId: ngoIdentifier,
+    ngoName: ngoDisplayName,
     donorId: donation.donorId,
     donorName: donation.donorName,
     foodName: donation.foodName,
