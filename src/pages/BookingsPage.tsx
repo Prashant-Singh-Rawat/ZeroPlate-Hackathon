@@ -224,15 +224,13 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
 
                 {/* Actions */}
                 <div className="shrink-0 flex items-center gap-2.5 pt-2 md:pt-0 flex-wrap">
-                  {isNGO && (
-                    <button
-                      onClick={() => setSelectedRatingBooking(b)}
-                      className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
-                    >
-                      <Star className="w-4 h-4 fill-white" />
-                      <span>{existingRating ? `⭐ Rated ${existingRating.overallScore}★ (Edit)` : '⭐ Rate & Review Donor'}</span>
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setSelectedRatingBooking(b)}
+                    className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Star className="w-4 h-4 fill-white" />
+                    <span>{existingRating ? `⭐ Rated ${existingRating.overallScore}★ (Edit)` : '⭐ Rate & Review Donor'}</span>
+                  </button>
 
                   {!isCompleted && (
                     <button
