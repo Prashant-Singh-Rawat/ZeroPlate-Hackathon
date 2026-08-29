@@ -213,7 +213,14 @@ export async function syncCloudBookings(): Promise<Booking[]> {
   if (Array.isArray(cloudBookings)) {
     const map = new Map<string, Booking>();
     local.forEach((b) => map.set(b.id, b));
-    cloudBookings.forEach((b) => map.set(b.id, b));
+    cloudBookings.forEach((b) => {
+      const existing = map.get(b.id);
+      if (existing && existing.status === 'COMPLETED') {
+        map.set(b.id, { ...b, status: 'COMPLETED', completedAt: existing.completedAt || b.completedAt });
+      } else {
+        map.set(b.id, b);
+      }
+    });
     const merged = Array.from(map.values());
     saveLocalBookings(merged);
     return merged;

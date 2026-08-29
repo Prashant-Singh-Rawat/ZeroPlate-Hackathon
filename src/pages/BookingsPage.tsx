@@ -63,6 +63,19 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
 
   const handleCompletePickup = async (bookingId: string) => {
     setCompletingId(bookingId);
+
+    // 1. Immediately update UI state so it leaves Active Pickups and appears in Completed Rescues
+    setBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, status: 'COMPLETED', completedAt: new Date().toISOString() } : b))
+    );
+
+    // 2. Update local storage
+    const local = getLocalBookings().map((b) =>
+      b.id === bookingId ? { ...b, status: 'COMPLETED' as const, completedAt: new Date().toISOString() } : b
+    );
+    saveLocalBookings(local);
+
+    // 3. Sync to Cloud
     completeBookingInCloud(bookingId).catch(() => {});
     fetch(`/api/bookings/${bookingId}/complete`, {
       method: 'POST',
@@ -76,13 +89,12 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
       origin: { y: 0.6 },
       colors: ['#F97316', '#16A34A', '#10B981'],
     });
-    if (onShowToast) onShowToast('success', 'Pickup confirmed as COMPLETED! Impact metrics updated.');
-    fetchBookings();
+    if (onShowToast) onShowToast('success', 'Pickup confirmed as COMPLETED! Removed from Active and moved to Completed History.');
     setCompletingId(null);
   };
 
   const filteredBookings = bookings.filter((b) => {
-    if (activeTab === 'confirmed') return b.status === 'CONFIRMED' || b.status === 'PICKUP_IN_PROGRESS';
+    if (activeTab === 'confirmed') return b.status !== 'COMPLETED' && b.status !== 'CANCELLED';
     if (activeTab === 'completed') return b.status === 'COMPLETED';
     return true;
   });
@@ -100,7 +112,7 @@ export const BookingsPage: React.FC<BookingsPageProps> = ({ onShowToast }) => {
       <div className="flex items-center gap-2 border-b border-gray-200 dark:border-slate-800 overflow-x-auto pb-1">
         {[
           { id: 'all', label: `All Bookings (${bookings.length})` },
-          { id: 'confirmed', label: `Active Pickups (${bookings.filter((b) => b.status === 'CONFIRMED').length})` },
+          { id: 'confirmed', label: `Active Pickups (${bookings.filter((b) => b.status !== 'COMPLETED' && b.status !== 'CANCELLED').length})` },
           { id: 'completed', label: `Completed Rescues (${bookings.filter((b) => b.status === 'COMPLETED').length})` },
         ].map((tab) => (
           <button

@@ -60,10 +60,21 @@ export const DonorRequests: React.FC<DonorRequestsProps> = ({
   const handleAccept = async (request: FoodRequest) => {
     setProcessingId(request.id);
     
-    // 1. Immediately accept locally, create booking & reject competing
+    // 1. Immediately update UI state so it leaves Pending and enters History
+    setRequests((prev) =>
+      prev.map((r) => {
+        if (r.id === request.id) return { ...r, status: 'ACCEPTED', respondedAt: new Date().toISOString() };
+        if (r.donationId === request.donationId && r.status === 'PENDING') {
+          return { ...r, status: 'REJECTED', respondedAt: new Date().toISOString() };
+        }
+        return r;
+      })
+    );
+
+    // 2. Immediately accept locally, create booking & reject competing
     acceptLocalRequest(request.id, user);
 
-    // 2. Sync to backend API
+    // 3. Sync to backend API
     fetch(`/api/requests/${request.id}/accept`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -77,27 +88,25 @@ export const DonorRequests: React.FC<DonorRequestsProps> = ({
       colors: ['#F97316', '#16A34A', '#EA580C'],
     });
 
-    onShowToast('success', `Request accepted! Food confirmed for ${request.ngoName}. All competing requests auto-rejected.`);
-    fetchRequests();
+    onShowToast('success', `Request accepted! Food confirmed for ${request.ngoName}. Moved to Past Request History.`);
     setProcessingId(null);
   };
 
   const handleReject = async (request: FoodRequest) => {
     setProcessingId(request.id);
+    // 1. Immediately update UI state
+    setRequests((prev) =>
+      prev.map((r) => (r.id === request.id ? { ...r, status: 'REJECTED', respondedAt: new Date().toISOString() } : r))
+    );
+
     try {
-      const res = await fetch(`/api/requests/${request.id}/reject`, {
+      fetch(`/api/requests/${request.id}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ donorId: user?.id || 'donor_spicevilla' }),
-      });
+      }).catch(() => {});
 
-      const data = await res.json();
-      if (res.ok) {
-        onShowToast('info', `Request from ${request.ngoName} declined.`);
-        fetchRequests();
-      } else {
-        onShowToast('error', data.error || 'Failed to reject request.');
-      }
+      onShowToast('info', `Request from ${request.ngoName} declined and moved to history.`);
     } catch (e) {
       onShowToast('error', 'Network error.');
     } finally {
