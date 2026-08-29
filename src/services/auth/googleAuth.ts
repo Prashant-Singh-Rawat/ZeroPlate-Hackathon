@@ -31,14 +31,14 @@ export function decodeGoogleJwt(token: string): GoogleUserPayload | null {
 }
 
 /**
- * Launch native official Google Cloud OAuth popup dialog
+ * Launch native official Google Cloud OAuth flow
  */
 export function launchGoogleOAuthPopup(
   role: string,
   onSuccess: (userData: { email: string; name: string; avatar?: string; token?: string }) => void,
   onError?: (err: any) => void
 ) {
-  // 1. First priority: Use Google Identity Services Token Client if available in window
+  // 1. Try Google Identity Services Token Client if available
   if (typeof window !== 'undefined' && (window as any).google?.accounts?.oauth2) {
     try {
       const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
@@ -70,32 +70,32 @@ export function launchGoogleOAuthPopup(
           }
 
           if (tokenResponse?.error) {
-            console.warn('Google Token Response Error:', tokenResponse.error);
-            if (onError) onError(new Error(tokenResponse.error_description || tokenResponse.error));
+            console.warn('Google token error, redirecting to accounts.google.com', tokenResponse.error);
+            openNativeGoogleAuthWindow(role, onSuccess, onError);
           }
         },
         error_callback: (nonOAuthError: any) => {
-          console.warn('Google Identity error callback:', nonOAuthError);
-          // Fallback to direct OAuth popup window
-          openNativeGoogleAuthWindow(onSuccess, onError);
+          console.warn('Google Identity error, redirecting to accounts.google.com:', nonOAuthError);
+          openNativeGoogleAuthWindow(role, onSuccess, onError);
         },
       });
 
       tokenClient.requestAccessToken({ prompt: 'select_account' });
       return;
     } catch (e) {
-      console.warn('Falling back to direct OAuth popup window', e);
+      console.warn('Falling back to native Google redirect flow', e);
     }
   }
 
-  // 2. Direct native Google Accounts OAuth 2.0 popup window
-  openNativeGoogleAuthWindow(onSuccess, onError);
+  // 2. Direct native Google Accounts OAuth 2.0 window or redirect
+  openNativeGoogleAuthWindow(role, onSuccess, onError);
 }
 
 /**
- * Opens the native official accounts.google.com popup dialog
+ * Opens official accounts.google.com OAuth dialog, falling back to full redirect if popups are blocked
  */
 function openNativeGoogleAuthWindow(
+  role: string,
   onSuccess: (userData: { email: string; name: string; avatar?: string; token?: string }) => void,
   onError?: (err: any) => void
 ) {
@@ -103,7 +103,7 @@ function openNativeGoogleAuthWindow(
     const redirectUri = window.location.origin;
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&response_type=token&scope=openid%20email%20profile&redirect_uri=${encodeURIComponent(
       redirectUri
-    )}&prompt=select_account`;
+    )}&prompt=select_account&state=${encodeURIComponent(role)}`;
 
     const width = 500;
     const height = 650;
@@ -116,8 +116,9 @@ function openNativeGoogleAuthWindow(
       `width=${width},height=${height},left=${left},top=${top},status=no,toolbar=no,menubar=no`
     );
 
+    // If browser popup blocker intercepts the popup, seamlessly redirect the page to accounts.google.com
     if (!popup) {
-      if (onError) onError(new Error('Popup window was blocked by browser. Please allow popups for this site.'));
+      window.location.href = authUrl;
       return;
     }
 

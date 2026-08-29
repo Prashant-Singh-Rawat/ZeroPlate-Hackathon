@@ -65,6 +65,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user]);
 
+  // Handle incoming Google OAuth redirect callback
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token=')) {
+      try {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get('access_token');
+        const roleParam = (params.get('state') as UserRole) || 'donor';
+
+        if (accessToken) {
+          fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          })
+            .then((r) => r.json())
+            .then((userInfo) => {
+              if (userInfo && userInfo.email) {
+                loginWithGoogle(roleParam, {
+                  email: userInfo.email,
+                  name: userInfo.name || userInfo.email.split('@')[0],
+                  avatar: userInfo.picture,
+                  token: accessToken,
+                });
+              }
+            })
+            .catch((err) => console.warn('OAuth redirect profile fetch error', err))
+            .finally(() => {
+              window.history.replaceState(null, '', window.location.pathname);
+            });
+        }
+      } catch (err) {
+        console.warn('Error parsing Google OAuth redirect', err);
+      }
+    }
+  }, []);
+
   const login = async (email: string, selectedRole?: UserRole): Promise<{ success: boolean; error?: string }> => {
     try {
       const res = await fetch('/api/auth/login', {
