@@ -299,3 +299,12 @@ export async function completeBookingInCloud(bookingId: string): Promise<boolean
   }
   return false;
 }
+
+export async function syncCloudRatings(): Promise<void> {
+  try {
+    const { data: cloudRatings } = await fetchGithubFile<any>('cloud_ratings.json', []);
+    if (cloudRatings && cloudRatings.length > 0) {
+      // Cloud sync update if needed
+    }
+  } catch (e) {}
+}

@@ -2,6 +2,7 @@ import React from 'react';
 import { FoodDonation, MatchScoreResult, UserRole } from '../types';
 import { MatchScore } from './MatchScore';
 import { StatusBadge } from './StatusBadge';
+import { DonorRatingBadge } from './DonorRatingBadge';
 import { MapPin, Clock, ArrowRight, Inbox, Eye, Flame, Zap } from 'lucide-react';
 
 interface FoodCardProps {
@@ -110,16 +111,19 @@ export const FoodCard: React.FC<FoodCardProps> = ({
               )}
             </span>
           </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5">
               <Clock className={`w-3.5 h-3.5 shrink-0 ${isExpired ? 'text-gray-300' : isUrgent ? 'text-red-500' : 'text-orange-400'}`} />
               <span className={`font-bold ${isExpired ? 'text-gray-400' : isUrgent ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-slate-300'}`}>
                 {isExpired ? 'Expired' : `${hoursRemaining} hrs left`}
               </span>
             </div>
-            <span className="text-gray-400 dark:text-slate-500 font-medium truncate max-w-[100px]">
-              By {donation.donorName}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-gray-500 dark:text-slate-400 font-semibold truncate max-w-[110px]">
+                {donation.donorName}
+              </span>
+              <DonorRatingBadge donorId={donation.donorId} size="sm" showDetails />
+            </div>
           </div>
         </div>
 

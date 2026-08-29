@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FoodDonation, MatchScoreResult } from '../types';
 import { MapPin, Navigation, Utensils, Sparkles, Clock, ArrowRight, ShieldCheck, Compass, Layers, Crosshair } from 'lucide-react';
 import { MatchScore } from './MatchScore';
+import { DonorRatingBadge } from './DonorRatingBadge';
 import L from 'leaflet';
 
 interface MapViewProps {
@@ -255,9 +256,12 @@ export const MapView: React.FC<MapViewProps> = ({
                 </span>
               </div>
 
-              <h4 className="text-base font-black text-brand-text dark:text-slate-100">
-                {selectedItem.foodName}
-              </h4>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="text-base sm:text-lg font-black text-brand-text dark:text-slate-100">
+                  {selectedItem.foodName}
+                </h4>
+                <DonorRatingBadge donorId={selectedItem.donorId} size="sm" showDetails />
+              </div>
 
               <div className="flex items-center gap-4 text-xs text-brand-muted dark:text-slate-400 flex-wrap">
                 <span className="flex items-center gap-1">

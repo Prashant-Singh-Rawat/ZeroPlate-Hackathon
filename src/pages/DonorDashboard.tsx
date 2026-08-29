@@ -12,6 +12,8 @@ import {
 
 import { getLocalDonations } from '../services/donationStorage';
 import { syncCloudDonations, syncCloudRequests } from '../services/cloudSync';
+import { getDonorRatingSummary } from '../services/ratingStorage';
+import { DonorRatingBadge } from '../components/DonorRatingBadge';
 
 interface DonorDashboardProps {
   onNavigate: (tab: string, extraData?: any) => void;
@@ -108,8 +110,8 @@ export const DonorDashboard: React.FC<DonorDashboardProps> = ({ onNavigate }) =>
                 <span className="text-xs font-bold">{totalMeals} meals donated</span>
               </div>
               <div className="flex items-center gap-1.5 text-white/90">
-                <Star className="w-4 h-4 fill-white/60" />
-                <span className="text-xs font-bold">{impactScore} people impacted</span>
+                <Star className="w-4 h-4 fill-amber-300 text-amber-300" />
+                <span className="text-xs font-bold">{getDonorRatingSummary(user?.id || user?.email || 'donor_spicevilla').averageRating}★ NGO Rating ({getDonorRatingSummary(user?.id || user?.email || 'donor_spicevilla').totalReviews} reviews)</span>
               </div>
             </div>
           </div>

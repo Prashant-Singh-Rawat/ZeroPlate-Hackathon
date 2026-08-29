@@ -4,6 +4,7 @@ import { FoodDonation, MatchScoreResult } from '../types';
 import { FoodCard } from '../components/FoodCard';
 import { MapView } from '../components/MapView';
 import { MatchScore } from '../components/MatchScore';
+import { DonorRatingBadge } from '../components/DonorRatingBadge';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
 import { Search, MapPin, List, RefreshCw, Filter, Sparkles, Clock, Building, ArrowRight, X, CheckCircle2 } from 'lucide-react';
@@ -333,11 +334,14 @@ export const FindFood: React.FC<FindFoodProps> = ({
 
             {/* Donor & Pickup Info */}
             <div className="bg-brand-cream/80 p-4 rounded-2xl border border-orange-100 space-y-2 text-xs">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <span className="text-brand-muted">Donor Entity:</span>
-                <span className="font-bold text-brand-text">
-                  {detailModalItem.donorName} ({detailModalItem.donorType || 'Restaurant'})
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-brand-text">
+                    {detailModalItem.donorName} ({detailModalItem.donorType || 'Restaurant'})
+                  </span>
+                  <DonorRatingBadge donorId={detailModalItem.donorId} size="sm" showDetails />
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-brand-muted">Distance:</span>
