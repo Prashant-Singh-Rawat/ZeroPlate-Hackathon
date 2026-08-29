@@ -18,8 +18,12 @@ import {
   Heart,
   ChevronRight,
   Send,
+  Star,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { RatingModal } from './RatingModal';
+import { DonorRatingBadge } from './DonorRatingBadge';
+import { getRatingForBooking } from '../services/ratingStorage';
 
 interface LiveDeliveryMapProps {
   booking: Booking;
@@ -44,6 +48,8 @@ export const LiveDeliveryMap: React.FC<LiveDeliveryMapProps> = ({
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [selectedPersonId, setSelectedPersonId] = useState<string>('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const existingRating = getRatingForBooking(booking.id);
 
   // Compute live routing & ETA
   useEffect(() => {
@@ -123,6 +129,11 @@ export const LiveDeliveryMap: React.FC<LiveDeliveryMapProps> = ({
           colors: ['#F97316', '#16A34A', '#10B981'],
         });
         onShowToast('success', 'Food rescue confirmed & completed! Saved to delivery history.');
+        if (isNGO) {
+          setTimeout(() => {
+            setIsRatingModalOpen(true);
+          }, 500);
+        }
       } else {
         onShowToast('info', `Delivery status updated to: ${nextStatus.replace(/_/g, ' ')}`);
       }
@@ -422,6 +433,16 @@ export const LiveDeliveryMap: React.FC<LiveDeliveryMapProps> = ({
               </strong>
             </div>
 
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500">Food Donor:</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-brand-text text-right max-w-[120px] truncate">
+                  {booking.donorName}
+                </span>
+                <DonorRatingBadge donorId={booking.donorId} size="sm" showDetails />
+              </div>
+            </div>
+
             <div className="flex justify-between">
               <span className="text-gray-500">Origin:</span>
               <span className="font-bold text-brand-text text-right max-w-[140px] truncate">
@@ -527,22 +548,49 @@ export const LiveDeliveryMap: React.FC<LiveDeliveryMapProps> = ({
               <button
                 onClick={() => handleUpdateStatus('COMPLETED')}
                 disabled={isUpdating}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-warm-sm transition-all flex items-center justify-center gap-2 active:scale-95 animate-pulse"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-warm-sm transition-all flex items-center justify-center gap-2 active:scale-95 animate-pulse cursor-pointer"
               >
                 <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
-                <span>Confirm Receipt of Meals</span>
+                <span>Confirm Receipt of Meals & Rate Donor</span>
               </button>
             )}
 
             {booking.status === 'COMPLETED' && (
-              <div className="w-full py-2.5 bg-emerald-100 text-emerald-900 font-black text-xs rounded-xl border border-emerald-300 text-center flex items-center justify-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-emerald-700" />
-                <span>Donation Delivered & Completed</span>
+              <div className="space-y-2 w-full">
+                <div className="w-full py-2.5 bg-emerald-100 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-300 font-black text-xs rounded-xl border border-emerald-300 dark:border-emerald-800 text-center flex items-center justify-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-emerald-700" />
+                  <span>Donation Delivered & Completed</span>
+                </div>
+
+                {isNGO && (
+                  <button
+                    onClick={() => setIsRatingModalOpen(true)}
+                    className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Star className="w-4 h-4 fill-white" />
+                    <span>
+                      {existingRating ? `Rated ${existingRating.overallScore}★ (Edit Evaluation)` : '⭐ Rate & Evaluate Food Donor'}
+                    </span>
+                  </button>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Interactive 3-Question Rating Modal */}
+      {isRatingModalOpen && (
+        <RatingModal
+          booking={booking}
+          isOpen={true}
+          onClose={() => setIsRatingModalOpen(false)}
+          onRatingSubmitted={(feedback) => {
+            onShowToast('success', `⭐ Rating submitted for ${feedback.donorName}! Overall score: ${feedback.overallScore}★`);
+            onRefresh();
+          }}
+        />
+      )}
     </div>
   );
 };
