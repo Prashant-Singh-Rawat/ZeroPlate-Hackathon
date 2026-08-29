@@ -32,18 +32,23 @@ export const FindFood: React.FC<FindFoodProps> = ({
     const ngoLat = user?.latitude || 19.062;
     const ngoLng = user?.longitude || 72.854;
     return donationsList
-      .filter((d) => d.status === 'AVAILABLE' || d.status === 'PENDING_REQUEST')
+      .filter((d) => d.status === 'AVAILABLE')
       .map((d) => {
+        const donLat = typeof d.latitude === 'number' && !isNaN(d.latitude) ? d.latitude : 19.076;
+        const donLng = typeof d.longitude === 'number' && !isNaN(d.longitude) ? d.longitude : 72.8777;
+        const donMeals = typeof d.mealCount === 'number' && !isNaN(d.mealCount) && d.mealCount > 0 ? d.mealCount : 40;
+        const donDeadline = d.pickupDeadline || new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
+
         const match = computeFullMatch(
-          { lat: d.latitude, lng: d.longitude },
+          { lat: donLat, lng: donLng },
           { lat: ngoLat, lng: ngoLng },
-          d.mealCount,
+          donMeals,
           100,
-          d.pickupDeadline,
+          donDeadline,
           user?.subscriptionPlan === 'premium',
-          user?.name || 'Hope Foundation'
+          user?.name || (user?.email ? user.email.split('@')[0] : 'Hope Foundation')
         );
-        return { ...d, match };
+        return { ...d, latitude: donLat, longitude: donLng, mealCount: donMeals, match };
       });
   };
 
