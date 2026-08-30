@@ -89,7 +89,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
     const activeValue = hoverValue > 0 ? hoverValue : value;
 
     return (
-      <div className="flex items-center justify-between gap-2 flex-wrap pt-0.5">
+      <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
         <div className="flex items-center gap-1 sm:gap-1.5" onMouseLeave={() => onHover(0)}>
           {[1, 2, 3, 4, 5].map((star) => {
             const isFilled = activeValue >= star;
@@ -106,7 +106,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                 title={`Rate ${star} Star${star > 1 ? 's' : ''}`}
               >
                 <Star
-                  className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-150 ${
+                  className={`w-6 h-6 sm:w-7 sm:h-7 transition-all duration-150 ${
                     isFilled
                       ? `${colorClass} fill-current scale-110 drop-shadow-md`
                       : 'text-gray-300 dark:text-slate-600 hover:text-amber-400'
@@ -117,7 +117,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
           })}
         </div>
         <span
-          className={`text-xs font-black px-2 py-0.5 rounded-lg transition-colors ${
+          className={`text-xs font-black px-2.5 py-0.5 rounded-lg transition-colors ${
             value > 0
               ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border border-amber-300/60 dark:border-amber-700/60'
               : 'text-gray-400 dark:text-slate-500 font-semibold'
@@ -168,49 +168,59 @@ export const RatingModal: React.FC<RatingModalProps> = ({
     }
   };
 
-  // Render via createPortal directly into document.body
+  // Fully Responsive Portal Dialog (Scrollable on mobile, 2-column on desktop)
   const modalContent = (
     <div
-      className="fixed inset-0 z-[99999] w-full h-full bg-black/80 backdrop-blur-md overflow-y-auto overscroll-contain flex flex-col justify-start md:justify-center items-center p-3 sm:p-6 py-4 sm:py-8 animate-fadeIn"
-      style={{ margin: 0, top: 0, left: 0 }}
+      className="fixed inset-0 z-[99999] w-full h-full bg-black/80 backdrop-blur-md overflow-y-auto overscroll-contain flex items-start justify-center p-3 sm:p-4 md:p-6 py-6 sm:py-10 animate-fadeIn"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-[#1E293B] rounded-3xl md:rounded-[28px] max-w-4xl w-full shadow-2xl border border-orange-200/80 dark:border-slate-700 flex flex-col md:grid md:grid-cols-12 transition-all relative overflow-hidden my-auto shrink-0"
+        className="w-full max-w-4xl bg-white dark:bg-[#1E293B] rounded-3xl md:rounded-[28px] shadow-2xl border border-orange-200/80 dark:border-slate-700 grid grid-cols-1 md:grid-cols-12 transition-all relative overflow-hidden my-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ══════════════════ LEFT PANEL: DESKTOP ONLY HERO (Hidden on Mobile) ══════════════════ */}
-        <div className="hidden md:flex md:col-span-5 bg-gradient-to-br from-brand-deep via-orange-600 to-amber-600 text-white p-6 md:p-8 flex-col justify-between relative overflow-hidden shrink-0">
-          {/* Ambient decorative glow */}
+        {/* ══════════════════ LEFT PANEL: Overview & Live Calculated Score ══════════════════ */}
+        <div className="w-full md:col-span-5 bg-gradient-to-br from-brand-deep via-orange-600 to-amber-600 text-white p-5 sm:p-6 md:p-8 flex flex-col justify-between relative overflow-hidden">
+          {/* Ambient decorative glow circles */}
           <div className="absolute -top-12 -right-12 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none" />
           <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-orange-400/20 rounded-full blur-2xl pointer-events-none" />
 
-          <div className="space-y-4 relative z-10">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-black tracking-wider uppercase border border-white/20">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Verified Impact Review</span>
+          <div className="space-y-3 sm:space-y-4 relative z-10">
+            {/* Top row: badge + mobile close button */}
+            <div className="flex items-center justify-between">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-black tracking-wider uppercase border border-white/20">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>Verified Impact Review</span>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="md:hidden p-1.5 rounded-xl bg-black/20 hover:bg-black/30 text-white transition-colors cursor-pointer"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             <div>
-              <h2 className="text-2xl font-black tracking-tight leading-snug">
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight leading-snug">
                 {booking.foodName}
               </h2>
-              <p className="text-sm text-orange-100 font-medium mt-1">
+              <p className="text-xs sm:text-sm text-orange-100 font-medium mt-1">
                 {booking.mealCount} Meals • Donated by{' '}
                 <strong className="text-white underline decoration-amber-300 font-bold">{booking.donorName}</strong>
               </p>
             </div>
 
             {/* Live Auto-Calculated Score Card */}
-            <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 space-y-1.5 mt-3">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 space-y-1.5 mt-2 sm:mt-3">
               <span className="text-[10px] font-black uppercase tracking-wider text-amber-200 block">
                 Live Calculated Score
               </span>
               <div className="flex items-baseline gap-2">
                 <div className="flex items-center gap-1 text-amber-300">
-                  <Star className="w-6 h-6 fill-amber-300 drop-shadow" />
+                  <Star className="w-6 h-6 sm:w-7 sm:h-7 fill-amber-300 drop-shadow" />
                 </div>
-                <span className="text-3xl font-black tracking-tight">
+                <span className="text-3xl sm:text-4xl font-black tracking-tight">
                   {isAllRated ? overallScore : isAnyRated ? overallScore : '0.0'}
                 </span>
                 <span className="text-xs font-bold text-orange-100">/ 5.0</span>
@@ -223,7 +233,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
             </div>
           </div>
 
-          <div className="pt-4 relative z-10 border-t border-white/15 text-[11px] text-orange-100 space-y-1">
+          <div className="pt-4 sm:pt-6 relative z-10 border-t border-white/15 text-[11px] text-orange-100 space-y-1 mt-4 md:mt-0">
             <div className="flex items-center gap-1.5 font-bold text-white">
               <ShieldCheck className="w-4 h-4 text-emerald-300" />
               <span>Transparent Reputation Engine</span>
@@ -234,10 +244,10 @@ export const RatingModal: React.FC<RatingModalProps> = ({
           </div>
         </div>
 
-        {/* ══════════════════ RIGHT PANEL: All 3 Evaluation Questions ══════════════════ */}
-        <div className="w-full md:col-span-7 p-4 sm:p-6 md:p-8 flex flex-col justify-between space-y-3.5 bg-white dark:bg-[#1E293B]">
-          <div className="space-y-3">
-            {/* Desktop Header */}
+        {/* ══════════════════ RIGHT PANEL: The 3 Evaluation Questions ══════════════════ */}
+        <div className="w-full md:col-span-7 p-5 sm:p-6 md:p-8 flex flex-col justify-between space-y-4 bg-white dark:bg-[#1E293B]">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Header (Desktop) */}
             <div className="hidden md:flex items-center justify-between pb-2 border-b border-gray-100 dark:border-slate-800">
               <div>
                 <h3 className="text-lg font-black text-brand-text dark:text-slate-100">
@@ -251,31 +261,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({
                 type="button"
                 onClick={onClose}
                 className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Mobile Header (Clean & Compact) */}
-            <div className="md:hidden flex items-center justify-between pb-2.5 border-b border-gray-100 dark:border-slate-800">
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
-                  <h3 className="text-sm sm:text-base font-black text-brand-text dark:text-slate-100">
-                    Rate {booking.foodName} ({booking.mealCount} Meals)
-                  </h3>
-                </div>
-                <p className="text-[11px] text-brand-muted dark:text-slate-400 mt-0.5">
-                  Donor: <strong className="text-brand-text dark:text-slate-200">{booking.donorName}</strong> • Live Score:{' '}
-                  <strong className="text-brand-orange font-black">
-                    {isAllRated ? overallScore : isAnyRated ? overallScore : '0.0'}★
-                  </strong>
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Close"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -283,25 +269,25 @@ export const RatingModal: React.FC<RatingModalProps> = ({
 
             {/* Error Message */}
             {errorMessage && (
-              <div className="p-2.5 sm:p-3 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 rounded-xl text-xs font-bold flex items-center gap-2 animate-shake">
+              <div className="p-3 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 rounded-xl text-xs font-bold flex items-center gap-2 animate-shake">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
                 <span>{errorMessage}</span>
               </div>
             )}
 
             {/* The 3 Evaluation Questions */}
-            <div className="space-y-2.5 sm:space-y-3">
+            <div className="space-y-3">
               {/* Question 1: Food Quality */}
-              <div className="p-3 sm:p-3.5 rounded-2xl bg-orange-50/50 dark:bg-slate-800/60 border border-orange-100 dark:border-slate-700 space-y-0.5">
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-orange-50/50 dark:bg-slate-800/60 border border-orange-100 dark:border-slate-700 space-y-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-orange-500 text-white flex items-center justify-center shadow-sm shrink-0">
-                    <Utensils className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <div className="w-6 h-6 rounded-lg bg-orange-500 text-white flex items-center justify-center shadow-sm shrink-0">
+                    <Utensils className="w-3.5 h-3.5" />
                   </div>
                   <div>
                     <h4 className="text-xs sm:text-sm font-black text-brand-text dark:text-slate-100 leading-tight">
                       1) Quality of Food Given by Donor
                     </h4>
-                    <p className="text-[10px] text-brand-muted dark:text-slate-400">
+                    <p className="text-[10px] sm:text-[11px] font-medium text-brand-muted dark:text-slate-400">
                       Freshness, taste, hygiene, temperature & safe condition.
                     </p>
                   </div>
@@ -310,16 +296,16 @@ export const RatingModal: React.FC<RatingModalProps> = ({
               </div>
 
               {/* Question 2: Delivery Experience */}
-              <div className="p-3 sm:p-3.5 rounded-2xl bg-blue-50/50 dark:bg-slate-800/60 border border-blue-100 dark:border-slate-700 space-y-0.5">
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-blue-50/50 dark:bg-slate-800/60 border border-blue-100 dark:border-slate-700 space-y-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm shrink-0">
-                    <Truck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <div className="w-6 h-6 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm shrink-0">
+                    <Truck className="w-3.5 h-3.5" />
                   </div>
                   <div>
                     <h4 className="text-xs sm:text-sm font-black text-brand-text dark:text-slate-100 leading-tight">
                       2) Delivery & Pickup Experience
                     </h4>
-                    <p className="text-[10px] text-brand-muted dark:text-slate-400">
+                    <p className="text-[10px] sm:text-[11px] font-medium text-brand-muted dark:text-slate-400">
                       Punctuality, packaging quality & coordination.
                     </p>
                   </div>
@@ -328,16 +314,16 @@ export const RatingModal: React.FC<RatingModalProps> = ({
               </div>
 
               {/* Question 3: Quantity Accuracy */}
-              <div className="p-3 sm:p-3.5 rounded-2xl bg-emerald-50/50 dark:bg-slate-800/60 border border-emerald-100 dark:border-slate-700 space-y-0.5">
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/50 dark:bg-slate-800/60 border border-emerald-100 dark:border-slate-700 space-y-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-sm shrink-0">
-                    <Scale className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <div className="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-sm shrink-0">
+                    <Scale className="w-3.5 h-3.5" />
                   </div>
                   <div>
                     <h4 className="text-xs sm:text-sm font-black text-brand-text dark:text-slate-100 leading-tight">
                       3) Quantity Accuracy (Promised vs Received)
                     </h4>
-                    <p className="text-[10px] text-brand-muted dark:text-slate-400">
+                    <p className="text-[10px] sm:text-[11px] font-medium text-brand-muted dark:text-slate-400">
                       Did donor provide full quantity promised ({booking.mealCount} meals)?
                     </p>
                   </div>
@@ -351,35 +337,34 @@ export const RatingModal: React.FC<RatingModalProps> = ({
               <label className="block text-[11px] font-bold text-brand-text dark:text-slate-300">
                 Optional Feedback & Commendation
               </label>
-              <input
-                type="text"
+              <textarea
                 value={feedbackNotes}
                 onChange={(e) => setFeedbackNotes(e.target.value)}
                 placeholder="e.g. Excellent packaging, hot food, and polite coordination!"
-                className="w-full px-3.5 py-1.5 sm:py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:outline-none focus:border-brand-orange focus:bg-white dark:focus:bg-slate-800 transition-colors"
+                rows={2}
+                className="w-full px-3.5 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:outline-none focus:border-brand-orange focus:bg-white dark:focus:bg-slate-800 transition-colors resize-none"
               />
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-end gap-2 sm:gap-3 pt-2.5 sm:pt-3 border-t border-gray-100 dark:border-slate-800 shrink-0">
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full sm:w-auto px-4 py-2 sm:py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-bold text-brand-muted hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer text-center order-2 sm:order-1"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50 order-1 sm:order-2"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Submit Evaluation</span>
-            </button>
-          </div>
+            {/* Action Buttons (Always reachable at the bottom of the form) */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-gray-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-bold text-brand-muted hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer text-center order-2 sm:order-1"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer disabled:opacity-50 order-1 sm:order-2"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Submit Evaluation</span>
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
